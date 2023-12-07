@@ -28,46 +28,55 @@ public final class Collision {
         BigDecimal oneEightieth = BigDecimal.valueOf(0.0125);
         BigDecimal pointThree = BigDecimal.valueOf(0.3);
         BigDecimal bigAmount = BigDecimal.valueOf(amount);
+        double epsilon = 0.0000000129;
         switch (direction) {
             case 0:
                 BigDecimal bigX = BigDecimal.valueOf(x);
                 if (amount >= 0) {
                     for (BigDecimal xx = bigX.subtract(bigX.remainder(oneEightieth)); xx.compareTo(bigX.add(bigAmount)) != 1; xx = xx.add(oneEightieth)) {
                         if (isCubeFull(xx.add(pointThree).doubleValue(), y, z - 0.3, xx.add(pointThree).doubleValue(), y + 1.8, z + 0.3, direction)) {
-                            return new double[]{xx.doubleValue(), y, z};
+                            return new double[]{xx.doubleValue() - epsilon, y, z};
                         }
                     }
                 } else {
                     for (BigDecimal xx = bigX.subtract(bigX.remainder(oneEightieth)); xx.compareTo(bigX.add(bigAmount)) != -1; xx = xx.subtract(oneEightieth)) {
                         if (isCubeFull(xx.subtract(pointThree).doubleValue(), y, z - 0.3, xx.subtract(pointThree).doubleValue(), y + 1.8, z + 0.3, direction)) {
-                            return new double[]{xx.doubleValue(), y, z};
+                            return new double[]{xx.doubleValue() + epsilon, y, z};
                         }
                     }
                 }
                 return new double[]{bigX.add(bigAmount).doubleValue(), y, z};
 
-            // FIXME: 20.11.2023 incorrect negativity
             case 1:
                 BigDecimal bigY = BigDecimal.valueOf(y);
-                for (BigDecimal yy = bigY.remainder(oneEightieth); yy.compareTo(bigAmount) != 1; yy = yy.add(oneEightieth)) {
-                    if (isCubeFull(x - 0.3, bigY.subtract(yy).doubleValue(), z - 0.3, x + 0.3, bigY.subtract(yy).doubleValue(), z + 0.3, direction)) {
-                        return new double[]{x, bigY.subtract(yy).doubleValue(), z, 1.0};
+                if (amount > 0) {
+                    for (BigDecimal yy = bigY.subtract(bigY.remainder(oneEightieth)); yy.compareTo(bigY.add(bigAmount)) != 1; yy = yy.add(oneEightieth)) {
+                        if (isCubeFull(x - 0.3, yy.add(BigDecimal.valueOf(1.8)).doubleValue(), z - 0.3, x + 0.3, yy.add(BigDecimal.valueOf(1.8)).doubleValue(), z + 0.3, direction)) {
+                            return new double[]{x, yy.doubleValue(), z, 1.0};
+                        }
                     }
                 }
-                return new double[]{x, bigY.subtract(bigAmount).doubleValue(), z, 0.0};
+                else {
+                    for (BigDecimal yy = bigY.subtract(bigY.remainder(oneEightieth)); yy.compareTo(bigY.add(bigAmount)) != -1; yy = yy.subtract(oneEightieth)) {
+                        if (isCubeFull(x - 0.3, yy.doubleValue(), z - 0.3, x + 0.3, yy.doubleValue(), z + 0.3, direction)) {
+                            return new double[]{x, yy.doubleValue(), z, 1.0};
+                        }
+                    }
+                }
+                return new double[]{x, bigY.add(bigAmount).doubleValue(), z, 0.0};
 
             case 2:
                 BigDecimal bigZ = BigDecimal.valueOf(z);
                 if (amount >= 0) {
                     for (BigDecimal zz = bigZ.subtract(bigZ.remainder(oneEightieth)); zz.compareTo(bigZ.add(bigAmount)) != 1; zz = zz.add(oneEightieth)) {
                         if (isCubeFull(x - 0.3, y, zz.doubleValue(), x + 0.3, y + 1.8, zz.add(pointThree).doubleValue(), direction)) {
-                            return new double[]{x, y, zz.doubleValue()};
+                            return new double[]{x, y, zz.doubleValue() - epsilon};
                         }
                     }
                 } else {
                     for (BigDecimal zz = bigZ.subtract(bigZ.remainder(oneEightieth)); zz.compareTo(bigZ.add(bigAmount)) != -1; zz = zz.subtract(oneEightieth)) {
                         if (isCubeFull(x - 0.3, y, zz.subtract(pointThree).doubleValue(), x + 0.3, y + 1.8, zz.doubleValue(), direction)) {
-                            return new double[]{x, y, zz.doubleValue()};
+                            return new double[]{x, y, zz.doubleValue() + epsilon};
                         }
                     }
                 }
@@ -100,7 +109,9 @@ public final class Collision {
                                 return true;
                         }
                         if (direction == 1) {
-                            if (doesCubesCollide(x1, y1, z1, x2, y2, z2, bx1, by1, bz1, bx2, by2, bz2, direction))
+                            if (doesCubesCollide(x1, y1, z1, x2, y2, z2, bx1, by1, bz1, bx2, by1, bz2, direction))
+                                return true;
+                            if (doesCubesCollide(x1, y1, z1, x2, y2, z2, bx1, by2, bz1, bx2, by2, bz2, direction))
                                 return true;
                         }
                         if (direction == 2) {

@@ -228,6 +228,7 @@ public class MainActivity extends AppCompatActivity {
                 if (x > 500) {
                     PacketUtils.moveLeftRight = 0;
                     PacketUtils.moveForwardBack = 0;
+                    PacketUtils.jump = false;
                     if (motionEvent.getAction() == MotionEvent.ACTION_MOVE) {
                         float newYaw = PacketUtils.x_rot + x - mPreviousX[0];
                         float newPitch = PacketUtils.y_rot + y - mPreviousY[0];
@@ -250,15 +251,17 @@ public class MainActivity extends AppCompatActivity {
                     if (y < 680) PacketUtils.moveForwardBack = 1;
                     if (x > 100 && x < 230 && y > 680 && y < 760) PacketUtils.jump = true;
                     else if (x > 100 && x < 230){ PacketUtils.moveLeftRight = 0; PacketUtils.jump = false;}
-                    else if (y > 680 && y < 760){ PacketUtils.moveForwardBack = 0;}
+                    else if (y > 680 && y < 760){ PacketUtils.moveForwardBack = 0; PacketUtils.jump = false;}
                 } else {
                     PacketUtils.moveLeftRight = 0;
                     PacketUtils.moveForwardBack = 0;
+                    PacketUtils.jump = false;
                 }
 
                 if (motionEvent.getAction() == MotionEvent.ACTION_UP) {
                     PacketUtils.moveLeftRight = 0;
                     PacketUtils.moveForwardBack = 0;
+                    PacketUtils.jump = false;
                 }
 
                 return true;
@@ -515,7 +518,7 @@ public class MainActivity extends AppCompatActivity {
                         }
                         if (onGround) {
                             PacketUtils.motionY = 0;
-                            if ((timeSincePos == 20 || PacketUtils.motionX != 0 || PacketUtils.motionZ != 0 ||PacketUtils.moveLeftRight != 0|| PacketUtils.moveForwardBack != 0) && !PacketUtils.isRotating) {
+                            if ((timeSincePos == 20 || PacketUtils.jump || PacketUtils.motionX != 0 || PacketUtils.motionZ != 0 ||PacketUtils.moveLeftRight != 0|| PacketUtils.moveForwardBack != 0) && !PacketUtils.isRotating) {
                                 List<Byte> playerpos = new ArrayList<>();
 
                                 PacketUtils.calculateMovements();

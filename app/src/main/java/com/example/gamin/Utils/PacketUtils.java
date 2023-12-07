@@ -71,13 +71,12 @@ public final class PacketUtils extends AppCompatActivity {
         if (isOnGround)
             mult *= 0.6F;//friction
         float acceleration = 0.16277136F / (mult * mult * mult);
-
         float landMovementFactor = (float) generic_movementSpeed; //TODO : add potion effects
         float movementFactor;
         if (isOnGround)
             movementFactor = (float) (landMovementFactor * sprintingMult * acceleration);
         else
-            movementFactor = 0.2F * sprintingMult;
+            movementFactor = 0.02F * sprintingMult;
 
         //updatemotionxz
         float dist = strafe * strafe + forward * forward;
@@ -114,7 +113,7 @@ public final class PacketUtils extends AppCompatActivity {
         System.out.println(motionX + " " + motionY + " " + motionZ);
         moveEntity(motionX, motionY, motionZ);
 
-        motionY += 0.08D; //gravity
+        motionY -= 0.08D; //gravity
         motionY *= 0.9800000190734863D; //air resistance
 
         motionX *= mult; //friction
