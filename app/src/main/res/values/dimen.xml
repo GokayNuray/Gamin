@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <dimen name="yuzyetmis">170dp</dimen>
+    <dimen name="yuzelli">150dp</dimen>
+    <dimen name="ikiyuzkirk">240dp</dimen>
+</resources>
