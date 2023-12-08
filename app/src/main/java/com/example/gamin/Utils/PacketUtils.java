@@ -124,12 +124,50 @@ public final class PacketUtils extends AppCompatActivity {
         motionZ *= mult; //friction
     }
 
-    public static void moveEntity(double x, double y, double z) {
+    //TODO add step assist and maybe add ladder climbing and maybe add water and lava movement and
+    public static void moveEntity(double motionX, double motionY, double motionZ) {
         try {
-            PacketUtils.y = Collision.calculateMovement(PacketUtils.x, PacketUtils.y, PacketUtils.z, 1, y)[1];
+            PacketUtils.y = Collision.calculateMovement(PacketUtils.x, PacketUtils.y, PacketUtils.z, 1, motionY)[1];
             isOnGround = Collision.calculateMovement(PacketUtils.x, PacketUtils.y, PacketUtils.z, 1, 0.0)[3] == 1.0;
-            PacketUtils.x = Collision.calculateMovement(PacketUtils.x, PacketUtils.y, PacketUtils.z, 0, x)[0];
-            PacketUtils.z = Collision.calculateMovement(PacketUtils.x, PacketUtils.y, PacketUtils.z, 2, z)[2];
+            if (isSneaking && isOnGround) {
+                double xx = Collision.calculateMovement(PacketUtils.x, PacketUtils.y, PacketUtils.z, 0, motionX)[0];
+                while (Collision.calculateMovement(xx, PacketUtils.y, PacketUtils.z, 1, -0.98)[3] == 0.0) {
+                    if (motionX > 0) {
+                        xx -= 0.05;
+                        if (xx < PacketUtils.x) {
+                            xx = PacketUtils.x;
+                            break;
+                        }
+                    } else {
+                        xx += 0.05;
+                        if (xx > PacketUtils.x) {
+                            xx = PacketUtils.x;
+                            break;
+                        }
+                    }
+                }
+                PacketUtils.x = xx;
+                double zz = Collision.calculateMovement(PacketUtils.x, PacketUtils.y, PacketUtils.z, 2, motionZ)[2];
+                while (Collision.calculateMovement(PacketUtils.x, PacketUtils.y, zz, 1, -0.98)[3] == 0.0) {
+                    if (motionZ > 0) {
+                        zz -= 0.05;
+                        if (zz < PacketUtils.z) {
+                            zz = PacketUtils.z;
+                            break;
+                        }
+                    } else {
+                        zz += 0.05;
+                        if (zz > PacketUtils.z) {
+                            zz = PacketUtils.z;
+                            break;
+                        }
+                    }
+                }
+                PacketUtils.z = zz;
+            } else {
+                PacketUtils.x = Collision.calculateMovement(PacketUtils.x, PacketUtils.y, PacketUtils.z, 0, motionX)[0];
+                PacketUtils.z = Collision.calculateMovement(PacketUtils.x, PacketUtils.y, PacketUtils.z, 2, motionZ)[2];
+            }
         } catch (JSONException e) {
             e.printStackTrace();
         }

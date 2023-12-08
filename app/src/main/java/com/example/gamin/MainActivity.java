@@ -224,11 +224,17 @@ public class MainActivity extends AppCompatActivity {
                 float x = motionEvent.getX();
                 float y = motionEvent.getY();
 
+                if (!(x > 1275 && y > 750)) {
+                    PacketUtils.isSneaking = false;
+                }
 
                 if (x > 500) {
                     PacketUtils.moveLeftRight = 0;
                     PacketUtils.moveForwardBack = 0;
                     PacketUtils.jump = false;
+                    if (x > 1275 && y > 750) {
+                        PacketUtils.isSneaking = true;
+                    }
                     if (motionEvent.getAction() == MotionEvent.ACTION_MOVE) {
                         float newYaw = PacketUtils.x_rot + x - mPreviousX[0];
                         float newPitch = PacketUtils.y_rot + y - mPreviousY[0];
@@ -262,6 +268,7 @@ public class MainActivity extends AppCompatActivity {
                     PacketUtils.moveLeftRight = 0;
                     PacketUtils.moveForwardBack = 0;
                     PacketUtils.jump = false;
+                    PacketUtils.isSneaking = false;
                 }
 
                 return true;

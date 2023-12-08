@@ -283,37 +283,30 @@ public class YourRenderer implements GLSurfaceView.Renderer {
                 1.0f, 1.0f
         }; //texture coords
         //second triangle to complete the square
-float[] tringul4 = new float[]{
+        float[] tringul4 = new float[]{
                 -0.12f, 0.2f, -0.15f,
                 -0.15f, 0.2f, -0.15f,
                 -0.12f, 0.2f, -0.2f
         }; //coords of 3 vertices of a triangle in 3d space
+
         float[] tringul5 = new float[]{
-                1.0f, 1.0f, 1.0f, 0.50f,
-                1.0f, 1.0f, 1.0f, 0.50f,
-                1.0f, 1.0f, 1.0f, 0.50f
-        }; //color of each vertex
-        float[] tringul6 = new float[]{
-                0.0f, 1.0f,
-                1.0f, 1.0f,
-                0.0f, 0.0f
-        }; //texture coords
+                0.14f, 0.2f, -0.2f,
+                0.18f, 0.2f, -0.2f,
+                0.14f, 0.2f, -0.27f
+        }; //coords of 3 vertices of a triangle in 3d space
 
         //WHY?? code crashes when there are no blocks in screen without this code(texture coords)
         //but works fine otherwise
         // I guess it used texture coords of the previous triangle and crashed when there is none
-        FloatBuffer tringulBuffer = ByteBuffer.allocateDirect(36*2).order(ByteOrder.nativeOrder()).asFloatBuffer();
-        tringulBuffer.put(tringul);
-        tringulBuffer.put(tringul4).position(0);
-        FloatBuffer tringulBuffer2 = ByteBuffer.allocateDirect(48*2).order(ByteOrder.nativeOrder()).asFloatBuffer();
-        tringulBuffer2.put(tringul2);
-        tringulBuffer2.put(tringul5).position(0);
+        FloatBuffer tringulBuffer = ByteBuffer.allocateDirect(36 * 3).order(ByteOrder.nativeOrder()).asFloatBuffer();
+        tringulBuffer.put(tringul).put(tringul4).put(tringul5).position(0);
+
+        FloatBuffer tringulBuffer2 = ByteBuffer.allocateDirect(48 * 3).order(ByteOrder.nativeOrder()).asFloatBuffer();
+        tringulBuffer2.put(tringul2).put(tringul2).put(tringul2).position(0);
 
         //WHY??
-        FloatBuffer textureBuffer = ByteBuffer.allocateDirect(24*2).order(ByteOrder.nativeOrder()).asFloatBuffer();
-        textureBuffer.put(tringul3);
-        textureBuffer.put(tringul6).position(0);
-
+        FloatBuffer textureBuffer = ByteBuffer.allocateDirect(24 * 3).order(ByteOrder.nativeOrder()).asFloatBuffer();
+        textureBuffer.put(tringul3).put(tringul3).put(tringul3).position(0);
 
         GLES20.glEnableVertexAttribArray(YourRenderer.colorHandle);
         GLES20.glVertexAttribPointer(YourRenderer.colorHandle, 4, GLES20.GL_FLOAT, false, 0, tringulBuffer2);
@@ -326,6 +319,6 @@ float[] tringul4 = new float[]{
         GLES20.glEnableVertexAttribArray(YourRenderer.mTextureCoordinateHandle);
         GLES20.glVertexAttribPointer(YourRenderer.mTextureCoordinateHandle, 2, GLES20.GL_FLOAT, false, 0, textureBuffer);
 
-        GLES20.glDrawArrays(GLES20.GL_TRIANGLES, 0, 3 * 2);
+        GLES20.glDrawArrays(GLES20.GL_TRIANGLES, 0, 3 * 3);
     }
 }
