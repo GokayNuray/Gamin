@@ -4749,27 +4749,33 @@
       },
       {
         "metadata": 4,
-        "displayName": "Acacia Leaves (no decay)"
+        "displayName": "Acacia Leaves (no decay)",
+        "itemModel": "acacia_leaves"
       },
       {
         "metadata": 5,
-        "displayName": "Dark Oak Leaves (no decay)"
+        "displayName": "Dark Oak Leaves (no decay)",
+        "itemModel": "dark_oak_leaves"
       },
       {
         "metadata": 8,
-        "displayName": "Acacia Leaves (check decay)"
+        "displayName": "Acacia Leaves (check decay)",
+        "itemModel": "acacia_leaves"
       },
       {
         "metadata": 9,
-        "displayName": "Dark Oak Leaves (check decay)"
+        "displayName": "Dark Oak Leaves (check decay)",
+        "itemModel": "dark_oak_leaves"
       },
       {
         "metadata": 12,
-        "displayName": "Acacia Leaves (no decay and check decay)"
+        "displayName": "Acacia Leaves (no decay and check decay)",
+        "itemModel": "acacia_leaves"
       },
       {
         "metadata": 13,
-        "displayName": "Dark Oak Leaves (no decay and check decay)"
+        "displayName": "Dark Oak Leaves (no decay and check decay)",
+        "itemModel": "dark_oak_leaves"
       }
     ],
     "drops": [
@@ -4811,27 +4817,33 @@
       },
       {
         "metadata": 4,
-        "displayName": "Acacia wood facing East/West"
+        "displayName": "Acacia wood facing East/West",
+        "itemModel": "acacia_log"
       },
       {
         "metadata": 5,
-        "displayName": "Dark Oak wood facing East/West"
+        "displayName": "Dark Oak wood facing East/West",
+        "itemModel": "dark_oak_log"
       },
       {
         "metadata": 8,
-        "displayName": "Acacia wood facing North/South"
+        "displayName": "Acacia wood facing North/South",
+        "itemModel": "acacia_log"
       },
       {
         "metadata": 9,
-        "displayName": "Dark Oak wood facing North/South"
+        "displayName": "Dark Oak wood facing North/South",
+        "itemModel": "dark_oak_log"
       },
       {
         "metadata": 12,
-        "displayName": "Acacia wood with only bark"
+        "displayName": "Acacia wood with only bark",
+        "itemModel": "acacia_bark"
       },
       {
         "metadata": 13,
-        "displayName": "Dark Oak wood with only bark"
+        "displayName": "Dark Oak wood with only bark",
+        "itemModel": "dark_oak_bark"
       }
     ],
     "drops": [

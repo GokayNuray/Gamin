@@ -9,6 +9,7 @@ import android.opengl.GLUtils;
 import android.opengl.Matrix;
 
 import com.example.gamin.Minecraft.ChunkColumn;
+import com.example.gamin.Minecraft.Slot;
 import com.example.gamin.R;
 import com.example.gamin.Utils.PacketUtils;
 
@@ -26,6 +27,7 @@ import java.util.Objects;
 import javax.microedition.khronos.egl.EGLConfig;
 import javax.microedition.khronos.opengles.GL10;
 
+//TODO use VBOs to improve performance
 public class YourRenderer implements GLSurfaceView.Renderer {
     public static int mProgram;
     public static int vPMatrixHandle;
@@ -204,9 +206,12 @@ public class YourRenderer implements GLSurfaceView.Renderer {
         for (int dx = -15; dx < 15; dx++) {
             for (int dy = -45; dy < 45; dy++) {
                 for (int dz = -15; dz < 15; dz++) {
-                    if (ChunkColumn.getBlock((int) PacketUtils.x + dx, (int) PacketUtils.y + dy, (int) PacketUtils.z + dz) != 0/* && (int) PacketUtils.x != 616*/) {
+                    short block = ChunkColumn.getBlock((int) PacketUtils.x + dx, (int) PacketUtils.y + dy, (int) PacketUtils.z + dz);
+                    if (block != 0/* && (int) PacketUtils.x != 616*/) {
                         try {
-                            new SlotRenderer(context, color, newSlot, (int) PacketUtils.x + dx, (int) PacketUtils.y + dy, (int) PacketUtils.z + dz);
+                            //TODO fix incorrect model names and add variation support
+                            Slot slot = new Slot((short) ChunkColumn.getBlockId(block), (byte) 1, (byte) 0, ChunkColumn.getBlockMetaData(block), null);
+                            new SlotRenderer(context, color, slot.itemModel + ".json", (int) PacketUtils.x + dx, (int) PacketUtils.y + dy, (int) PacketUtils.z + dz);
                         } catch (IOException | JSONException e) {
                             throw new RuntimeException(e);
                         }

@@ -30,9 +30,10 @@ public class Slot {
         this.damage = damage;
         this.metaData = metaData;
         this.nbt = nbt;
+        JSONObject item = new JSONObject();
 
         try {
-            JSONObject item;
+            if (id<0) id = (short)(id + 256);
             if (id < 255) {
                 item = blocksMap.get(Integer.valueOf(id));
             }
@@ -46,9 +47,17 @@ public class Slot {
                 System.out.println(id);
                 System.out.println("AAAAAAAAAAA");
             }
+            if (item == null) System.out.println(id + " is null");
             assert item != null;
-            if (metaData != 0) {
-                item = item.getJSONArray("variations").getJSONObject(metaData);
+            if (metaData != 0 && item.has("variations")) {
+                JSONArray variations = item.getJSONArray("variations");
+                //get the variation with the correct metadata
+                for (int i = 0; i < variations.length(); i++) {
+                    JSONObject variation = variations.getJSONObject(i);
+                    if (variation.getInt("metadata") == metaData) {
+                        item = variation;
+                    }
+                }
             }
             this.displayName = item.getString("displayName");
             if (item.has("itemModel")) {
@@ -59,6 +68,7 @@ public class Slot {
             }
 
         } catch (JSONException e) {
+            System.out.println(item);
             throw new RuntimeException(e);
         }
 
