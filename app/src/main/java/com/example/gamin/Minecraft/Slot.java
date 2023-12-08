@@ -49,7 +49,7 @@ public class Slot {
             }
             if (item == null) System.out.println(id + " is null");
             assert item != null;
-            if (metaData != 0 && item.has("variations")) {
+            if (item.has("variations")) {
                 JSONArray variations = item.getJSONArray("variations");
                 //get the variation with the correct metadata
                 for (int i = 0; i < variations.length(); i++) {

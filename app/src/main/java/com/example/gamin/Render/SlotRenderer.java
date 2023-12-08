@@ -10,6 +10,7 @@ import org.json.JSONObject;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -23,7 +24,12 @@ public class SlotRenderer {
     static Map<String, List<Square>> models = new HashMap<>();
     public SlotRenderer(Context context, float[] color, String model, int x, int y, int z) throws IOException, JSONException {
         if (!models.containsKey(model)) {
-            InputStream is = context.getAssets().open("models/item/" + model);
+            InputStream is;
+            if (Arrays.asList(context.getAssets().list("models/block")).contains(model))
+                is = context.getAssets().open("models/block/" + model);
+            else
+                is = context.getAssets().open("models/item/" + model);
+
             byte[] b = new byte[is.available()];
             is.read(b);
             JSONObject jsonObject = new JSONObject(new String(b));

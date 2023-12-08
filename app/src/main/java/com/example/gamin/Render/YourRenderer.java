@@ -66,10 +66,12 @@ public class YourRenderer implements GLSurfaceView.Renderer {
         GLES20.glGenTextures(1, textureHandle, 0);
         final BitmapFactory.Options options = new BitmapFactory.Options();
         options.inScaled = false;
-        final Bitmap bitmap = BitmapFactory.decodeResource(context.getResources(), resId, options);
+        //FIXME why can resId be 0?
+        final Bitmap bitmap = BitmapFactory.decodeResource(context.getResources(), resId == 0 ? R.drawable.apple : resId, options);
         GLES20.glBindTexture(GLES20.GL_TEXTURE_2D, textureHandle[0]);
         GLES20.glTexParameteri(GLES20.GL_TEXTURE_2D, GLES20.GL_TEXTURE_MIN_FILTER, GLES20.GL_NEAREST);
         GLES20.glTexParameteri(GLES20.GL_TEXTURE_2D, GLES20.GL_TEXTURE_MAG_FILTER, GLES20.GL_NEAREST);
+        if (bitmap == null) throw new RuntimeException(resId + " is null");
         GLUtils.texImage2D(GLES20.GL_TEXTURE_2D, 0, bitmap, 0);
         bitmap.recycle();
         return textureHandle[0];
@@ -213,6 +215,7 @@ public class YourRenderer implements GLSurfaceView.Renderer {
                             Slot slot = new Slot((short) ChunkColumn.getBlockId(block), (byte) 1, (byte) 0, ChunkColumn.getBlockMetaData(block), null);
                             new SlotRenderer(context, color, slot.itemModel + ".json", (int) PacketUtils.x + dx, (int) PacketUtils.y + dy, (int) PacketUtils.z + dz);
                         } catch (IOException | JSONException e) {
+                            System.out.println("crush " + ChunkColumn.getBlockId(block) + " " + ChunkColumn.getBlockMetaData(block));
                             throw new RuntimeException(e);
                         }
                     }

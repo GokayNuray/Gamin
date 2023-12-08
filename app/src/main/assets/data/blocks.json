@@ -576,51 +576,63 @@
       },
       {
         "metadata": 4,
-        "displayName": "Oak Leaves (no decay)"
+        "displayName": "Oak Leaves (no decay)",
+        "itemModel": "oak_leaves"
       },
       {
         "metadata": 5,
-        "displayName": "Spruce Leaves (no decay)"
+        "displayName": "Spruce Leaves (no decay)",
+        "itemModel": "spruce_leaves"
       },
       {
         "metadata": 6,
-        "displayName": "Birch Leaves (no decay)"
+        "displayName": "Birch Leaves (no decay)",
+        "itemModel": "birch_leaves"
       },
       {
         "metadata": 7,
-        "displayName": "Jungle Leaves (no decay)"
+        "displayName": "Jungle Leaves (no decay)",
+        "itemModel": "jungle_leaves"
       },
       {
         "metadata": 8,
-        "displayName": "Oak Leaves (check decay)"
+        "displayName": "Oak Leaves (check decay)",
+        "itemModel": "oak_leaves"
       },
       {
         "metadata": 9,
-        "displayName": "Spruce Leaves (check decay)"
+        "displayName": "Spruce Leaves (check decay)",
+        "itemModel": "spruce_leaves"
       },
       {
         "metadata": 10,
-        "displayName": "Birch Leaves (check decay)"
+        "displayName": "Birch Leaves (check decay)",
+        "itemModel": "birch_leaves"
       },
       {
         "metadata": 11,
-        "displayName": "Jungle Leaves (check decay)"
+        "displayName": "Jungle Leaves (check decay)",
+        "itemModel": "jungle_leaves"
       },
       {
         "metadata": 12,
-        "displayName": "Oak Leaves (no decay and check decay)"
+        "displayName": "Oak Leaves (no decay and check decay)",
+        "itemModel": "oak_leaves"
       },
       {
         "metadata": 13,
-        "displayName": "Spruce Leaves (no decay and check decay)"
+        "displayName": "Spruce Leaves (no decay and check decay)",
+        "itemModel": "spruce_leaves"
       },
       {
         "metadata": 14,
-        "displayName": "Birch Leaves (no decay and check decay)"
+        "displayName": "Birch Leaves (no decay and check decay)",
+        "itemModel": "birch_leaves"
       },
       {
         "metadata": 15,
-        "displayName": "Jungle Leaves (no decay and check decay)"
+        "displayName": "Jungle Leaves (no decay and check decay)",
+        "itemModel": "jungle_leaves"
       }
     ],
     "drops": [
@@ -1337,7 +1349,8 @@
       },
       {
         "metadata": 8,
-        "displayName": "Smooth Double Stone Slab"
+        "displayName": "Smooth Double Stone Slab",
+        "itemModel": "double_stone"
       },
       {
         "metadata": 9,
@@ -2265,31 +2278,38 @@
       },
       {
         "metadata": 1,
-        "displayName": "Two layers, 4 pixels thick"
+        "displayName": "Two layers, 4 pixels thick",
+        "itemModel": "snow_layer"
       },
       {
         "metadata": 2,
-        "displayName": "Three layers, 6 pixels thick"
+        "displayName": "Three layers, 6 pixels thick",
+        "itemModel": "snow_layer"
       },
       {
         "metadata": 3,
-        "displayName": "Four layers, 8 pixels thick"
+        "displayName": "Four layers, 8 pixels thick",
+        "itemModel": "snow_layer"
       },
       {
         "metadata": 4,
-        "displayName": "Five layers, 10 pixels thick"
+        "displayName": "Five layers, 10 pixels thick",
+        "itemModel": "snow_layer"
       },
       {
         "metadata": 5,
-        "displayName": "Six layers, 12 pixels thick"
+        "displayName": "Six layers, 12 pixels thick",
+        "itemModel": "snow_layer"
       },
       {
         "metadata": 6,
-        "displayName": "Seven layers, 14 pixels thick"
+        "displayName": "Seven layers, 14 pixels thick",
+        "itemModel": "snow_layer"
       },
       {
         "metadata": 7,
-        "displayName": "Eight layers, 16 pixels thick"
+        "displayName": "Eight layers, 16 pixels thick",
+        "itemModel": "snow_layer"
       }
     ],
     "drops": [
@@ -2771,6 +2791,7 @@
   {
     "id": 98,
     "displayName": "Stone Bricks",
+    "itemModel": "stonebrick",
     "name": "stonebrick",
     "hardness": 1.5,
     "stackSize": 64,
@@ -4094,7 +4115,8 @@
       },
       {
         "metadata": 1,
-        "displayName": "Wither Skeleton Skull"
+        "displayName": "Wither Skeleton Skull",
+        "itemModel": "skull_wither"
       },
       {
         "metadata": 2,
@@ -4153,51 +4175,63 @@
       },
       {
         "metadata": 3,
-        "displayName": "Anvil (North/South)"
+        "displayName": "Anvil (North/South)",
+        "itemModel": "anvil_intact"
       },
       {
         "metadata": 4,
-        "displayName": "Anvil (East/West)"
+        "displayName": "Anvil (East/West)",
+        "itemModel": "anvil_intact"
       },
       {
         "metadata": 5,
-        "displayName": "Anvil (South/North)"
+        "displayName": "Anvil (South/North)",
+        "itemModel": "anvil_intact"
       },
       {
         "metadata": 6,
-        "displayName": "Anvil (West/East)"
+        "displayName": "Anvil (West/East)",
+        "itemModel": "anvil_intact"
       },
       {
         "metadata": 7,
-        "displayName": "Slightly Damaged Anvil (North/South)"
+        "displayName": "Slightly Damaged Anvil (North/South)",
+        "itemModel": "anvil_slightly_damaged"
       },
       {
         "metadata": 8,
-        "displayName": "Slightly Damaged Anvil (East/West)"
+        "displayName": "Slightly Damaged Anvil (East/West)",
+        "itemModel": "anvil_slightly_damaged"
       },
       {
         "metadata": 9,
-        "displayName": "Slightly Damaged Anvil (West/East)"
+        "displayName": "Slightly Damaged Anvil (West/East)",
+        "itemModel": "anvil_slightly_damaged"
       },
       {
         "metadata": 10,
-        "displayName": "Slightly Damaged Anvil (South/North)"
+        "displayName": "Slightly Damaged Anvil (South/North)",
+        "itemModel": "anvil_slightly_damaged"
       },
       {
         "metadata": 11,
-        "displayName": "Very Damaged Anvil (North/South)"
+        "displayName": "Very Damaged Anvil (North/South)",
+        "itemModel": "anvil_very_damaged"
       },
       {
         "metadata": 12,
-        "displayName": "Very Damaged Anvil (East/West)"
+        "displayName": "Very Damaged Anvil (East/West)",
+        "itemModel": "anvil_very_damaged"
       },
       {
         "metadata": 13,
-        "displayName": "Very Damaged Anvil (West/East)"
+        "displayName": "Very Damaged Anvil (West/East)",
+        "itemModel": "anvil_very_damaged"
       },
       {
         "metadata": 14,
-        "displayName": "Very Damaged Anvil (South/North)"
+        "displayName": "Very Damaged Anvil (South/North)",
+        "itemModel": "anvil_very_damaged"
       }
     ],
     "drops": [
@@ -4651,6 +4685,7 @@
   {
     "id": 160,
     "displayName": "Stained Glass Pane",
+    "itemModel": "white_stained_glass_pane",
     "name": "stained_glass_pane",
     "hardness": 0.3,
     "stackSize": 64,
