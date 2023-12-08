@@ -312,6 +312,10 @@ public class MainActivity extends AppCompatActivity {
                 }
             });
 
+            @SuppressLint("UseSwitchCompatOrMaterialCode") Switch toggleSprint = findViewById(R.id.toggleSprint);
+            toggleSprint.setOnCheckedChangeListener((compoundButton, b) -> PacketUtils.isSprinting = b);
+
+
         });
     }
 

@@ -103,10 +103,14 @@ public final class Collision {
                         double bz2 = collisionData.getJSONArray(i).getDouble(5) + (int) Math.floor(z1) + iz;
 
                         if (direction == 0) {
-                            if (doesCubesCollide(x1, y1, z1, x2, y2, z2, bx1, by1, bz1, bx1, by2, bz2, direction))
+                            if (doesCubesCollide(x1, y1, z1, x2, y2, z2, bx1, by1, bz1, bx1, by2, bz2, direction)) {
+                                PacketUtils.didHorizontalCollide = true;
                                 return true;
-                            if (doesCubesCollide(x1, y1, z1, x2, y2, z2, bx2, by1, bz1, bx2, by2, bz2, direction))
+                            }
+                            if (doesCubesCollide(x1, y1, z1, x2, y2, z2, bx2, by1, bz1, bx2, by2, bz2, direction)) {
+                                PacketUtils.didHorizontalCollide = true;
                                 return true;
+                            }
                         }
                         if (direction == 1) {
                             if (doesCubesCollide(x1, y1, z1, x2, y2, z2, bx1, by1, bz1, bx2, by1, bz2, direction))
@@ -115,10 +119,14 @@ public final class Collision {
                                 return true;
                         }
                         if (direction == 2) {
-                            if (doesCubesCollide(x1, y1, z1, x2, y2, z2, bx1, by1, bz1, bx2, by2, bz1, direction))
+                            if (doesCubesCollide(x1, y1, z1, x2, y2, z2, bx1, by1, bz1, bx2, by2, bz1, direction)) {
+                                PacketUtils.didHorizontalCollide = true;
                                 return true;
-                            if (doesCubesCollide(x1, y1, z1, x2, y2, z2, bx1, by1, bz2, bx2, by2, bz2, direction))
+                            }
+                            if (doesCubesCollide(x1, y1, z1, x2, y2, z2, bx1, by1, bz2, bx2, by2, bz2, direction)) {
+                                PacketUtils.didHorizontalCollide = true;
                                 return true;
+                            }
                         }
                     }
                 }

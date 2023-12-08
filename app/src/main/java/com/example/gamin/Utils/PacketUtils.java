@@ -48,7 +48,8 @@ public final class PacketUtils extends AppCompatActivity {
     public static boolean isOnGround = false;
     public static boolean jump;
     public static boolean isSneaking;
-    public static boolean isSprinting;
+    public static boolean didHorizontalCollide = false;
+    public static boolean isSprinting = true;
     public static float x_rot = 0.0F;
     public static float y_rot = 0.0F;
     public static Map<Long, ChunkColumn> chunkColumnMap = new HashMap<>();
@@ -57,7 +58,6 @@ public final class PacketUtils extends AppCompatActivity {
     public static void calculateMovements() {
         float strafe = moveLeftRight * 0.98F;
         float forward = moveForwardBack * 0.98F;
-        float sprintingMult = isSprinting ? 1.3F : 1.0F;
         if (isOnGround) {
             if (isSneaking) {
                 strafe = (float) (strafe * 0.3D);
@@ -65,6 +65,9 @@ public final class PacketUtils extends AppCompatActivity {
             }
             motionY = 0.0D;
         }
+        boolean canSprint = isSprinting && forward > 0.8F && !didHorizontalCollide;//TODO add hunger and potion effects and using items
+        float sprintingMult = canSprint ? 1.3F : 1.0F;
+
 
         //inertia
         float mult = 0.91F;
@@ -74,7 +77,7 @@ public final class PacketUtils extends AppCompatActivity {
         float landMovementFactor = (float) generic_movementSpeed; //TODO : add potion effects
         float movementFactor;
         if (isOnGround)
-            movementFactor = (float) (landMovementFactor * sprintingMult * acceleration);
+            movementFactor = (landMovementFactor * sprintingMult * acceleration);
         else
             movementFactor = 0.02F * sprintingMult;
 
@@ -97,7 +100,7 @@ public final class PacketUtils extends AppCompatActivity {
             motionY = 0.42D;
             System.out.println("jump");
             float f = x_rot * 0.017453292F; //toRadians
-            if (isSprinting) {
+            if (canSprint) {
                 motionX -= Math.sin(f) * 0.2F;
                 motionZ += Math.cos(f) * 0.2F;
             }
@@ -111,6 +114,7 @@ public final class PacketUtils extends AppCompatActivity {
             motionZ = 0.0D;
 
         System.out.println(motionX + " " + motionY + " " + motionZ);
+        didHorizontalCollide = false;
         moveEntity(motionX, motionY, motionZ);
 
         motionY -= 0.08D; //gravity
