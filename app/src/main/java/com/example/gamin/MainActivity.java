@@ -219,20 +219,23 @@ public class MainActivity extends AppCompatActivity {
             final float[] mPreviousX = {0};
             final float[] mPreviousY = {0};
             glSurfaceView.setOnTouchListener((view1, motionEvent) -> {
+                int width = glSurfaceView.getWidth();
+                int height = glSurfaceView.getHeight();
+                float ratio = (float) height / width;
                 view1.performClick();
 
                 float x = motionEvent.getX();
                 float y = motionEvent.getY();
 
-                if (!(x > 1275 && y > 750)) {
+                if (!(x > width * 1.7/2 && y > height * (ratio * 2 - 0.3)/(ratio * 2))) {
                     PacketUtils.isSneaking = false;
                 }
 
-                if (x > 500) {
+                if (x > width/2.0) {
                     PacketUtils.moveLeftRight = 0;
                     PacketUtils.moveForwardBack = 0;
                     PacketUtils.jump = false;
-                    if (x > 1275 && y > 750) {
+                    if ((x > width * 1.7/2 && y > height * (ratio * 2 - 0.3)/(ratio * 2))) {
                         PacketUtils.isSneaking = true;
                     }
                     if (motionEvent.getAction() == MotionEvent.ACTION_MOVE) {
@@ -249,15 +252,15 @@ public class MainActivity extends AppCompatActivity {
 
                     mPreviousX[0] = x;
                     mPreviousY[0] = y;
-                } else if (x > 0 && x < 360 && y < 900 && y > 550) {
+                } else if (x > 0 && x < width * 0.6/2 && y < height && y > height * (ratio * 2 - 0.6)/(ratio * 2)) {
                     //System.out.printf("x: %f  y: %f\n", x, y);
-                    if (x < 100) PacketUtils.moveLeftRight = 1;//sol
-                    if (x > 230) PacketUtils.moveLeftRight = -1;
-                    if (y > 760) PacketUtils.moveForwardBack = -1;//arka
-                    if (y < 680) PacketUtils.moveForwardBack = 1;
-                    if (x > 100 && x < 230 && y > 680 && y < 760) PacketUtils.jump = true;
-                    else if (x > 100 && x < 230){ PacketUtils.moveLeftRight = 0; PacketUtils.jump = false;}
-                    else if (y > 680 && y < 760){ PacketUtils.moveForwardBack = 0; PacketUtils.jump = false;}
+                    if (x < width * 0.2/2) PacketUtils.moveLeftRight = 1;//sol
+                    if (x > width * 0.4/2) PacketUtils.moveLeftRight = -1;
+                    if (y > height * (ratio * 2 - 0.2)/(ratio * 2)) PacketUtils.moveForwardBack = -1;//arka
+                    if (y < height * (ratio * 2 - 0.4)/(ratio * 2)) PacketUtils.moveForwardBack = 1;
+                    if (x > width * 0.2/2 && x < width * 0.4/2 && y > 680 && y < 760) PacketUtils.jump = true;
+                    else if (x > width * 0.2/2 && x < width * 0.4/2){ PacketUtils.moveLeftRight = 0; PacketUtils.jump = false;}
+                    else if (y > height * (ratio * 2 - 0.4)/(ratio * 2) && y < height * (ratio * 2 - 0.2)/(ratio * 2)){ PacketUtils.moveForwardBack = 0; PacketUtils.jump = false;}
                 } else {
                     PacketUtils.moveLeftRight = 0;
                     PacketUtils.moveForwardBack = 0;

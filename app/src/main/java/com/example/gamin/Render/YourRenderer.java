@@ -41,6 +41,7 @@ public class YourRenderer implements GLSurfaceView.Renderer {
     private final float[] vPMatrix = new float[16];
     private final float[] vPMatrix2 = new float[16];
     private final float[] projectionMatrix = new float[16];
+    private final float[] projectionMatrix2 = new float[16];
     private final float[] viewMatrix = new float[16];
     private final float[] viewMatrix2 = new float[16];
     private final float[] rotationMatrix = new float[16];
@@ -150,7 +151,7 @@ public class YourRenderer implements GLSurfaceView.Renderer {
 
         // this projection matrix is applied to object coordinates
         // in the onDrawFrame() method
-        //Matrix.frustumM(projectionMatrix, 0, -ratio, ratio, -1, 1, 0.15f, 16);
+        Matrix.frustumM(projectionMatrix2, 0, -1, 1, -ratio, ratio, 1, 2);
         Matrix.perspectiveM(projectionMatrix, 0, 110, ratio, 0.15f, 64);
 
     }
@@ -184,8 +185,8 @@ public class YourRenderer implements GLSurfaceView.Renderer {
         Matrix.multiplyMM(scratch, 0, vPMatrix, 0, rotationMatrix, 0);
         GLES20.glUniformMatrix4fv(YourRenderer.vPMatrixHandle, 1, false, scratch, 0);
 
-        Matrix.setLookAtM(viewMatrix2, 0, 0, 0, 0, 0, 2, 0, 0, 1, 0.01f);
-        Matrix.multiplyMM(vPMatrix2, 0, projectionMatrix, 0, viewMatrix2, 0);
+        Matrix.setLookAtM(viewMatrix2, 0, 0, 0, 0, 0, 0, -1, 0, 10, 0);
+        Matrix.multiplyMM(vPMatrix2, 0, projectionMatrix2, 0, viewMatrix2, 0);
         Matrix.setRotateM(rotationMatrix2, 0, 0, 1.0f, 1.0f, 1.0f);
         Matrix.multiplyMM(scratch2, 0, vPMatrix2, 0, rotationMatrix2, 0);
 
@@ -272,14 +273,15 @@ public class YourRenderer implements GLSurfaceView.Renderer {
 
 
         GLES20.glUniformMatrix4fv(vPMatrixHandle, 1, false, scratch2, 0);
+        //System.out.println("ratio: " + ratio);//0.625
 
         //tringul is a triangle with coords of 3 vertices of a triangle in 3d space and tringul2 is a color of each vertex and tringul3 is texture coords
         //complete the tringul to make a square
-        float[] tringul = new float[]{
-                -0.15f, 0.2f, -0.2f,
-                -0.12f, 0.2f, -0.2f,
-                -0.15f, 0.2f, -0.15f
-        }; //coords of 3 vertices of a triangle in 3d space
+        float[] tringul = new float[] {
+                -0.8f, 0.4f - ratio, -1,
+                -0.6f, 0.4f - ratio, -1,
+                -0.6f, 0.2f - ratio, -1,
+        };
         float[] tringul2 = new float[]{
                 1.0f, 1.0f, 1.0f, 0.50f,
                 1.0f, 1.0f, 1.0f, 0.50f,
@@ -292,15 +294,16 @@ public class YourRenderer implements GLSurfaceView.Renderer {
         }; //texture coords
         //second triangle to complete the square
         float[] tringul4 = new float[]{
-                -0.12f, 0.2f, -0.15f,
-                -0.15f, 0.2f, -0.15f,
-                -0.12f, 0.2f, -0.2f
-        }; //coords of 3 vertices of a triangle in 3d space
+                -0.8f, 0.4f - ratio, -1,
+                -0.8f, 0.2f - ratio, -1,
+                -0.6f, 0.2f - ratio, -1,
+        };//coords of 3 vertices of a triangle in 3d space
 
+        //triangle in bottom right corner
         float[] tringul5 = new float[]{
-                0.14f, 0.2f, -0.2f,
-                0.18f, 0.2f, -0.2f,
-                0.14f, 0.2f, -0.27f
+                0.8f, 0.3f - ratio, -1,
+                0.7f, 0.3f - ratio, -1,
+                0.7f, 0.2f - ratio, -1,
         }; //coords of 3 vertices of a triangle in 3d space
 
         //WHY?? code crashes when there are no blocks in screen without this code(texture coords)
