@@ -8,12 +8,6 @@ import android.opengl.GLSurfaceView;
 import android.opengl.GLUtils;
 import android.opengl.Matrix;
 
-import org.json.JSONException;
-
-import java.io.IOException;
-import java.nio.ByteBuffer;
-import java.nio.ByteOrder;
-
 import javax.microedition.khronos.egl.EGLConfig;
 import javax.microedition.khronos.opengles.GL10;
 
@@ -103,7 +97,7 @@ public class MyRenderer implements GLSurfaceView.Renderer {
 
 
         Matrix.multiplyMM(scratch, 0, vPMatrix, 0, rotationMatrix, 0);
-            try {
+            /*try {
                 ByteBuffer pixelBuf = ByteBuffer.allocate(mWidth*mHeight*4).order(ByteOrder.LITTLE_ENDIAN);
                 //BufferedOutputStream bos = new BufferedOutputStream(new FileOutputStream("/storage/emulated/0/deneme.png"));
                 SlotRenderer slotRenderer = new SlotRenderer(context, color, newSlot,0,0,0);
@@ -117,7 +111,7 @@ public class MyRenderer implements GLSurfaceView.Renderer {
                 //bos.close();
             } catch (IOException | JSONException e) {
                 e.printStackTrace();
-            }
+            }*/
     }
 
     public static int loadShader(int type, String shaderCode){

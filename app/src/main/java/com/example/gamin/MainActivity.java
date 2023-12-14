@@ -258,7 +258,7 @@ public class MainActivity extends AppCompatActivity {
                     if (x > width * 0.4/2) PacketUtils.moveLeftRight = -1;
                     if (y > height * (ratio * 2 - 0.2)/(ratio * 2)) PacketUtils.moveForwardBack = -1;//arka
                     if (y < height * (ratio * 2 - 0.4)/(ratio * 2)) PacketUtils.moveForwardBack = 1;
-                    if (x > width * 0.2/2 && x < width * 0.4/2 && y > 680 && y < 760) PacketUtils.jump = true;
+                    if (x > width * 0.2/2 && x < width * 0.4/2 && y > height * (ratio * 2 - 0.4)/(ratio * 2) && y < height * (ratio * 2 - 0.2)/(ratio * 2)) PacketUtils.jump = true;
                     else if (x > width * 0.2/2 && x < width * 0.4/2){ PacketUtils.moveLeftRight = 0; PacketUtils.jump = false;}
                     else if (y > height * (ratio * 2 - 0.4)/(ratio * 2) && y < height * (ratio * 2 - 0.2)/(ratio * 2)){ PacketUtils.moveForwardBack = 0; PacketUtils.jump = false;}
                 } else {

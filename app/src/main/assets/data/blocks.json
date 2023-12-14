@@ -1393,44 +1393,54 @@
     "variations": [
       {
         "metadata": 0,
-        "displayName": "Stone Slab"
+        "displayName": "Stone Slab",
+        "blockModel": "half_slab_stone"
       },
       {
         "metadata": 1,
-        "displayName": "Sandstone Slab"
+        "displayName": "Sandstone Slab",
+        "blockModel": "half_slab_sandstone"
       },
       {
         "metadata": 2,
-        "displayName": "(Stone) Wooden Slab"
+        "displayName": "(Stone) Wooden Slab",
+        "blockModel": "half_slab_wood"
       },
       {
         "metadata": 3,
-        "displayName": "Cobblestone Slab"
+        "displayName": "Cobblestone Slab",
+        "blockModel": "half_slab_cobblestone"
       },
       {
         "metadata": 4,
         "displayName": "Bricks Slab",
-        "itemModel": "brick_slab"
+        "itemModel": "brick_slab",
+        "blockModel": "half_slab_brick"
       },
       {
         "metadata": 5,
-        "displayName": "Stone Brick Slab"
+        "displayName": "Stone Brick Slab",
+        "blockModel": "half_slab_stone_brick"
       },
       {
         "metadata": 6,
-        "displayName": "Nether Brick Slab"
+        "displayName": "Nether Brick Slab",
+        "blockModel": "half_slab_nether_brick"
       },
       {
         "metadata": 7,
-        "displayName": "Quartz Slab"
+        "displayName": "Quartz Slab",
+        "blockModel": "half_slab_quartz"
       },
       {
         "metadata": 8,
-        "displayName": "Upper Stone Slab"
+        "displayName": "Upper Stone Slab",
+        "blockModel": "upper_slab_stone"
       },
       {
         "metadata": 9,
-        "displayName": "Upper Sandstone Slab"
+        "displayName": "Upper Sandstone Slab",
+        "blockModel": "upper_slab_sandstone"
       },
       {
         "metadata": 10,
@@ -1438,23 +1448,28 @@
       },
       {
         "metadata": 11,
-        "displayName": "Upper Cobblestone Slab"
+        "displayName": "Upper Cobblestone Slab",
+        "blockModel": "upper_slab_cobblestone"
       },
       {
         "metadata": 12,
-        "displayName": "Upper Bricks Slab"
+        "displayName": "Upper Bricks Slab",
+        "blockModel": "upper_slab_brick"
       },
       {
         "metadata": 13,
-        "displayName": "Upper Stone Brick Slab"
+        "displayName": "Upper Stone Brick Slab",
+        "blockModel": "upper_slab_stone_brick"
       },
       {
         "metadata": 14,
-        "displayName": "Upper Nether Brick Slab"
+        "displayName": "Upper Nether Brick Slab",
+        "blockModel": "upper_slab_nether_brick"
       },
       {
         "metadata": 15,
-        "displayName": "Upper Quartz Slab"
+        "displayName": "Upper Quartz Slab",
+        "blockModel": "upper_slab_quartz"
       }
     ],
     "drops": [
@@ -3606,56 +3621,68 @@
       {
         "metadata": 0,
         "displayName": "Oak Wood Slab",
-        "itemModel": "oak_slab"
+        "itemModel": "oak_slab",
+        "blockModel": "half_slab_oak"
       },
       {
         "metadata": 1,
         "displayName": "Spruce Wood Slab",
-        "itemModel": "spruce_slab"
+        "itemModel": "spruce_slab",
+        "blockModel": "half_slab_spruce"
       },
       {
         "metadata": 2,
         "displayName": "Birch Wood Slab",
-        "itemModel": "brich_slab"
+        "itemModel": "brich_slab",
+        "blockModel": "half_slab_birch"
       },
       {
         "metadata": 3,
         "displayName": "Jungle Wood Slab",
-        "itemModel": "jungle_slab"
+        "itemModel": "jungle_slab",
+        "blockModel": "half_slab_jungle"
       },
       {
         "metadata": 4,
         "displayName": "Acacia Wood Slab",
-        "itemModel": "acacia_slab"
+        "itemModel": "acacia_slab",
+        "blockModel": "half_slab_acacia"
       },
       {
         "metadata": 5,
         "displayName": "Dark Oak Wood Slab",
-        "itemModel": "dark_oak_slab"
+        "itemModel": "dark_oak_slab",
+        "blockModel": "half_slab_dark_oak"
       },
       {
         "metadata": 8,
-        "displayName": "Upper Oak Wood Slab"
+        "displayName": "Upper Oak Wood Slab",
+        "blockModel": "upper_slab_oak"
       },
       {
         "metadata": 9,
-        "displayName": "Upper Spruce Wood Slab"
+        "displayName": "Upper Spruce Wood Slab",
+        "blockModel": "upper_slab_spruce"
       },
       {
         "metadata": 10,
-        "displayName": "Upper Birch Wood Slab"
+        "displayName": "Upper Birch Wood Slab",
+        "blockModel": "upper_slab_birch"
       },
       {
         "metadata": 11,
-        "displayName": "Upper Jungle Wood Slab"
+        "displayName": "Upper Jungle Wood Slab",
+        "blockModel": "upper_slab_jungle"
       },
       {
         "metadata": 12,
-        "displayName": "Upper Acacia Wood Slab"
+        "displayName": "Upper Acacia Wood Slab",
+        "blockModel": "upper_slab_acacia"
       },
       {
         "metadata": 13,
-        "displayName": "Upper Dark Oak Wood Slab"
+        "displayName": "Upper Dark Oak Wood Slab",
+        "blockModel": "upper_slab_dark_oak"
       }
     ],
     "drops": [
@@ -5457,11 +5484,13 @@
     "variations": [
       {
         "metadata": 0,
-        "displayName": "Red Sandstone Slab"
+        "displayName": "Red Sandstone Slab",
+        "blockModel": "half_slab_red_sandstone"
       },
       {
         "metadata": 8,
-        "displayName": "Upper Red Sandstone Slab"
+        "displayName": "Upper Red Sandstone Slab",
+        "blockModel": "upper_slab_red_sandstone"
       }
     ],
     "drops": [

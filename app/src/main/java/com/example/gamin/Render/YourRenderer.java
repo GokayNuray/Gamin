@@ -9,7 +9,6 @@ import android.opengl.GLUtils;
 import android.opengl.Matrix;
 
 import com.example.gamin.Minecraft.ChunkColumn;
-import com.example.gamin.Minecraft.Slot;
 import com.example.gamin.R;
 import com.example.gamin.Utils.PacketUtils;
 
@@ -213,8 +212,7 @@ public class YourRenderer implements GLSurfaceView.Renderer {
                     if (block != 0/* && (int) PacketUtils.x != 616*/) {
                         try {
                             //TODO fix incorrect model names and add variation support
-                            Slot slot = new Slot((short) ChunkColumn.getBlockId(block), (byte) 1, (byte) 0, ChunkColumn.getBlockMetaData(block), null);
-                            new SlotRenderer(context, color, slot.itemModel + ".json", (int) PacketUtils.x + dx, (int) PacketUtils.y + dy, (int) PacketUtils.z + dz);
+                           new SlotRenderer(context, color, ChunkColumn.getBlockId(block), ChunkColumn.getBlockMetaData(block), 1,(int) PacketUtils.x + dx, (int) PacketUtils.y + dy, (int) PacketUtils.z + dz);
                         } catch (IOException | JSONException e) {
                             System.out.println("crush " + ChunkColumn.getBlockId(block) + " " + ChunkColumn.getBlockMetaData(block));
                             throw new RuntimeException(e);

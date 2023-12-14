@@ -14,7 +14,7 @@ import java.util.Map;
 /** @noinspection ResultOfMethodCallIgnored*/
 public class Slot {
     public static Map<Integer,JSONObject> blocksMap;
-    static Map<Integer,JSONObject> itemsMap;
+    public static Map<Integer,JSONObject> itemsMap;
 
     byte count;
     byte damage;

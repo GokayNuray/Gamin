@@ -26,9 +26,15 @@ public class ChunkColumn {
     public static byte getBlockId(short block) {
         return (byte) ((block & 0x000f) * 16 + (block & 0xf000) / 0x1000);
     }
+    public static byte getBlockId(int x, int y, int z) {
+        return getBlockId(getBlock(x,y,z));
+    }
 
     public static byte getBlockMetaData(short block) {
         return (byte) ((block & 0x00f0) + (block & 0x0f00) / 0x0100);
+    }
+    public static byte getBlockMetaData(int x, int y, int z) {
+        return getBlockMetaData(getBlock(x,y,z));
     }
 
     public static void setBlock(int x, int y, int z, short block) {

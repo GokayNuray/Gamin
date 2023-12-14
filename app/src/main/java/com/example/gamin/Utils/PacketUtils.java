@@ -96,7 +96,7 @@ public final class PacketUtils extends AppCompatActivity {
             motionZ += forward * cosYaw + strafe * sinYaw;
         }
 
-        if (jump && isOnGround) {//TODO water and lava jumping and maybe add jumpticks
+        if (jump && isOnGround) {//TODO water and lava jumping and maybe add jumpticks and head collision
             motionY = 0.42D;
             System.out.println("jump");
             float f = x_rot * 0.017453292F; //toRadians
@@ -106,6 +106,7 @@ public final class PacketUtils extends AppCompatActivity {
             }
         }
 
+        //TODO not sure about x and z, research more
         if (Math.abs(motionX) < 0.005D)
             motionX = 0.0D;
         if (Math.abs(motionY) < 0.005D)
@@ -341,7 +342,9 @@ public final class PacketUtils extends AppCompatActivity {
                 long BlockX = blockPos >> 38;
                 long BlockY = (blockPos >> 26) & 0xFFF;
                 long BlockZ = (blockPos << 38) >> 38;
-                ChunkColumn.setBlock((int) BlockX, (int) BlockY, (int) BlockZ, (short) VarInt.readVarInt(dataStream23));
+                short blockraw = (short)VarInt.readVarInt(dataStream23);
+                short block = (short) ((blockraw & 255) << 8 | (blockraw >> 8));
+                ChunkColumn.setBlock((int) BlockX, (int) BlockY, (int) BlockZ, block);
             }
             break;
             case 0x26://multiple chunks

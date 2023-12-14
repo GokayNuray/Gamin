@@ -597,6 +597,7 @@
     "id": 133,
     "displayName": "Block of Emerald",
     "name": "emerald_block",
+    "itemModel": "emerald_block",
     "stackSize": 64
   },
   {
