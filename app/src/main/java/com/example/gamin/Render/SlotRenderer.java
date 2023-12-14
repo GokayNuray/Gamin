@@ -2,6 +2,7 @@ package com.example.gamin.Render;
 
 import android.annotation.SuppressLint;
 import android.content.Context;
+import android.opengl.Matrix;
 
 import com.example.gamin.Minecraft.ChunkColumn;
 import com.example.gamin.Minecraft.Slot;
@@ -389,13 +390,47 @@ public class SlotRenderer {
         for (Square square : Objects.requireNonNull(models.get(model + id))
         ) {
             float[] old = square.squareCoords;
-            square.squareCoords = addCoordinates(square.squareCoords, x, y, z);
+            //long time = SystemClock.uptimeMillis() % 4000L;
+            float angle = 0;//.090f * ((int) time);
+            if (angle!=0) {
+                List<Float> coords = new ArrayList<>();
+                for (float f : square.squareCoords) {
+                    coords.add(f);
+                }
+                coords.add(12, 1.5f);
+                coords.add(9, 1.5f);
+                coords.add(6, 1.5f);
+                coords.add(3, 1.5f);
+                float[] rotationMatrix = new float[16];
+                float[] matrix = new float[16];
+                for (int i = 0; i < 16; i++) {
+                    matrix[i] = coords.get(i) - 0.5f;
+                }
+                Matrix.setRotateM(rotationMatrix, 0, angle, 0, 1, 0);
+                Matrix.multiplyMM(matrix, 0, rotationMatrix, 0, matrix, 0);
+
+                coords.clear();
+                for (float f : matrix) {
+                    coords.add(f);
+                }
+                coords.remove(15);
+                coords.remove(11);
+                coords.remove(7);
+                coords.remove(3);
+                float[] result = new float[12];
+                for (int i = 0; i < 12; i++) {
+                    result[i] = coords.get(i) + 0.5f;
+                }
+                square.squareCoords = addCoordinates(result, x, y, z);
+            } else {
+                square.squareCoords = addCoordinates(square.squareCoords, x, y, z);
+            }
             square.render();
             square.squareCoords = old;
         }
     }
 
-    public static float[] addCoordinates(float[] old, int x, int y, int z) {
+    public static float[] addCoordinates(float[] old, float x, float y, float z) {
         float[] newCoords = new float[old.length];
         for (int i = 0; i < old.length; i++) {
             int a = i % 3;
