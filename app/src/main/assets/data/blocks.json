@@ -491,51 +491,63 @@
       },
       {
         "metadata": 4,
-        "displayName": "Oak wood facing East/West"
+        "displayName": "Oak wood facing East/West",
+        "blockModel": "oak_log_side"
       },
       {
         "metadata": 5,
-        "displayName": "Spruce wood facing East/West"
+        "displayName": "Spruce wood facing East/West",
+        "blockModel": "spruce_log_side"
       },
       {
         "metadata": 6,
-        "displayName": "Birch wood facing East/West"
+        "displayName": "Birch wood facing East/West",
+        "blockModel": "birch_log_side"
       },
       {
         "metadata": 7,
-        "displayName": "Jungle wood facing East/West"
+        "displayName": "Jungle wood facing East/West",
+        "blockModel": "jungle_log_side"
       },
       {
         "metadata": 8,
-        "displayName": "Oak wood facing North/South"
+        "displayName": "Oak wood facing North/South",
+        "blockModel": "oak_log_side"
       },
       {
         "metadata": 9,
-        "displayName": "Spruce wood facing North/South"
+        "displayName": "Spruce wood facing North/South",
+        "blockModel": "spruce_log_side"
       },
       {
         "metadata": 10,
-        "displayName": "Birch wood facing North/South"
+        "displayName": "Birch wood facing North/South",
+        "blockModel": "birch_log_side"
       },
       {
         "metadata": 11,
-        "displayName": "Jungle wood facing North/South"
+        "displayName": "Jungle wood facing North/South",
+        "blockModel": "jungle_log_side"
       },
       {
         "metadata": 12,
-        "displayName": "Oak wood with only bark"
+        "displayName": "Oak wood with only bark",
+        "blockModel": "oak_bark"
       },
       {
         "metadata": 13,
-        "displayName": "Spruce wood with only bark"
+        "displayName": "Spruce wood with only bark",
+        "blockModel": "spruce_bark"
       },
       {
         "metadata": 14,
-        "displayName": "Birch wood with only bark"
+        "displayName": "Birch wood with only bark",
+        "blockModel": "birch_bark"
       },
       {
         "metadata": 15,
-        "displayName": "Jungle wood with only bark"
+        "displayName": "Jungle wood with only bark",
+        "blockModel": "jungle_bark"
       }
     ],
     "drops": [
@@ -4880,22 +4892,26 @@
       {
         "metadata": 4,
         "displayName": "Acacia wood facing East/West",
-        "itemModel": "acacia_log"
+        "itemModel": "acacia_log",
+        "blockModel": "acacia_log_side"
       },
       {
         "metadata": 5,
         "displayName": "Dark Oak wood facing East/West",
-        "itemModel": "dark_oak_log"
+        "itemModel": "dark_oak_log",
+        "blockModel": "dark_oak_log_side"
       },
       {
         "metadata": 8,
         "displayName": "Acacia wood facing North/South",
-        "itemModel": "acacia_log"
+        "itemModel": "acacia_log",
+        "blockModel": "acacia_log_side"
       },
       {
         "metadata": 9,
         "displayName": "Dark Oak wood facing North/South",
-        "itemModel": "dark_oak_log"
+        "itemModel": "dark_oak_log",
+        "blockModel": "dark_oak_log_side"
       },
       {
         "metadata": 12,

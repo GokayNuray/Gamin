@@ -114,7 +114,7 @@ public final class PacketUtils extends AppCompatActivity {
         if (Math.abs(motionZ) < 0.005D)
             motionZ = 0.0D;
 
-        System.out.println(motionX + " " + motionY + " " + motionZ);
+        //System.out.println(motionX + " " + motionY + " " + motionZ);
         didHorizontalCollide = false;
         moveEntity(motionX, motionY, motionZ);
 

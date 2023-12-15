@@ -28,13 +28,16 @@ import java.util.Set;
 @SuppressLint("DiscouragedApi")
 public class SlotRenderer {
 
-    static Set<Integer> specialBlocks = new HashSet<>(Arrays.asList(2/*,43, 44, 125, 126, 181, 182*/));
-    static Set<Integer> multiStateBlocks = new HashSet<>(Arrays.asList(43, 125, 181));
+    static Set<Integer> specialBlocks = new HashSet<>(Arrays.asList(2, 85, 113, 188, 189, 190, 191, 192));
+    static Set<Integer> multiStateBlocks = new HashSet<>(Arrays.asList(17, 162, 43, 125, 181));
     static Map<String, List<Square>> models = new HashMap<>();
+    //static final String[] woodTypes = {"oak", "spruce", "birch", "jungle", "acacia", "dark_oak"};
     List<Square> squares = new ArrayList<>();
+    float angle = 0;
 
     public SlotRenderer(Context context, float[] color, short id, byte metadata, int type, int x, int y, int z) throws IOException, JSONException {
         String model;
+        float modelAngle = 0;
         switch (type) {
             //item
             case 0:
@@ -89,7 +92,7 @@ public class SlotRenderer {
             default:
                 throw new IllegalStateException("Unexpected value: " + type);
         }
-        if (!models.containsKey(model + id)) {
+        if (!models.containsKey(model + id + " " + metadata)) {
             InputStream is;
             String newModel = model;
             try {
@@ -109,6 +112,10 @@ public class SlotRenderer {
                 newModel = getMultiStateBlockModel(id, metadata, newModel);
             }
             for (String s : newModel.split("amongus")) {
+                if (s.startsWith("angle")) {
+                    modelAngle = Float.parseFloat(s.substring(5));
+                    continue;
+                }
                 is = context.getAssets().open(s);
                 //assert is != null : "Model not found: " + model;
                 byte[] b = new byte[is.available()];
@@ -384,15 +391,16 @@ public class SlotRenderer {
                 }
             }
             //System.out.println("AmongUs?" + model);
-            models.put(model + id, squares);
+            if (modelAngle != 0)
+                for (Square square : squares)
+                    rotateSquare(square, modelAngle);
+            models.put(model + id + " " + metadata, squares);
         }
 
-        for (Square square : Objects.requireNonNull(models.get(model + id))
+        for (Square square : Objects.requireNonNull(models.get(model + id + " " + metadata))
         ) {
             float[] old = square.squareCoords;
-            //long time = SystemClock.uptimeMillis() % 4000L;
-            float angle = 0;//.090f * ((int) time);
-            if (angle!=0) {
+            if (angle != 0) {
                 List<Float> coords = new ArrayList<>();
                 for (float f : square.squareCoords) {
                     coords.add(f);
@@ -430,6 +438,38 @@ public class SlotRenderer {
         }
     }
 
+    static void rotateSquare(Square square, float angle) {
+        List<Float> coords = new ArrayList<>();
+        for (float f : square.squareCoords) {
+            coords.add(f);
+        }
+        coords.add(12, 1.5f);
+        coords.add(9, 1.5f);
+        coords.add(6, 1.5f);
+        coords.add(3, 1.5f);
+        float[] rotationMatrix = new float[16];
+        float[] matrix = new float[16];
+        for (int i = 0; i < 16; i++) {
+            matrix[i] = coords.get(i) - 0.5f;
+        }
+        Matrix.setRotateM(rotationMatrix, 0, angle, 0, 1, 0);
+        Matrix.multiplyMM(matrix, 0, rotationMatrix, 0, matrix, 0);
+
+        coords.clear();
+        for (float f : matrix) {
+            coords.add(f);
+        }
+        coords.remove(15);
+        coords.remove(11);
+        coords.remove(7);
+        coords.remove(3);
+        float[] result = new float[12];
+        for (int i = 0; i < 12; i++) {
+            result[i] = coords.get(i) + 0.5f;
+        }
+        square.squareCoords = result;
+    }
+
     public static float[] addCoordinates(float[] old, float x, float y, float z) {
         float[] newCoords = new float[old.length];
         for (int i = 0; i < old.length; i++) {
@@ -451,10 +491,18 @@ public class SlotRenderer {
 
     static String getMultiStateBlockModel(int id, int metadata, String model) {
         switch (id) {
+            //logs
+            case 17:
+            case 162:
+                System.out.println("metadata2: " + metadata);
+                if ((metadata & 12) == 4) model = model + "amongus" + "angle090";
+                break;
+            //double slabs
             case 43:
             case 125:
             case 181:
                 model = model + "amongus" + model.replaceFirst("half", "upper");
+                //slabs
             case 44:
             case 126:
             case 182:
@@ -470,7 +518,8 @@ public class SlotRenderer {
     }
 
 
-    static String getSpecialBlockModel(int id, int metadata, int x, int y, int z) {
+    String getSpecialBlockModel(int id, int metadata, int x, int y, int z) {
+        String type;
         switch (id) {
             case 2:
                 if (ChunkColumn.getBlockId(x, y + 1, z) == 78 || ChunkColumn.getBlockId(x, y + 1, z) == 80) {
@@ -478,6 +527,63 @@ public class SlotRenderer {
                 } else {
                     return "models/block/grass_normal.json";
                 }
+
+                //fences
+            case 85:
+            case 113:
+            case 188:
+            case 189:
+            case 190:
+            case 191:
+            case 192:
+                if (id == 85) type = "oak";
+                else if (id == 113) type = "nether_brick";
+                else if (id == 188) type = "spruce";
+                else if (id == 189) type = "birch";
+                else if (id == 190) type = "jungle";
+                else if (id == 191) type = "dark_oak";
+                else type = "acacia";
+                boolean north = ChunkColumn.getBlockId(x, y, z - 1) != 0;
+                boolean west = ChunkColumn.getBlockId(x - 1, y, z) != 0;
+                boolean south = ChunkColumn.getBlockId(x, y, z + 1) != 0;
+                boolean east = ChunkColumn.getBlockId(x + 1, y, z) != 0;
+                int[] sides = new int[4];
+                if (north) sides[0] = 1;
+                if (west) sides[1] = 1;
+                if (south) sides[2] = 1;
+                if (east) sides[3] = 1;
+                int sum = sides[0] + sides[1] + sides[2] + sides[3];
+                System.out.println("sum: " + sum);
+                if (sum == 0) {
+                    return "models/block/" + type + "_fence_post.json";
+                } else if (sum == 1) {
+                    for (int i = 0; i < 4; i++) {
+                        if (sides[i] == 1) {
+                            return "models/block/" + type + "_fence_n.json";
+                        }
+                        angle += 90;
+                    }
+                } else if(sum ==2){
+                    for (int i = 0; i < 4; i++) {
+                        if (sides[i] == 1 && sides[(i+3)%4] == 1) {
+                            return "models/block/" + type + "_fence_ne.json";
+                        }
+                        if (sides[i] == 1 && sides[(i+2)%4] == 1) {
+                            return "models/block/" + type + "_fence_ns.json";
+                        }
+                        angle += 90;
+                    }
+                } else if(sum ==3){
+                    angle = 270;
+                    for (int i = 0; i < 4; i++) {
+                        if (sides[i] == 0) {
+                            return "models/block/" + type + "_fence_nse.json";
+                        }
+                        angle += 90;
+                    }
+                } else if(sum ==4){
+                    return "models/block/" + type + "_fence_nsew.json";
+                    }
             default:
                 throw new IllegalStateException("Unexpected value: " + id);
         }
