@@ -334,6 +334,26 @@ public final class PacketUtils extends AppCompatActivity {
             }
 
             break;
+            case 0x22://multiblock change
+            {
+                ByteArrayInputStream datastream22 = new ByteArrayInputStream(data);
+                DataInputStream dataStream22 = new DataInputStream(datastream22);
+                int chunkX22 = dataStream22.readInt();
+                int chunkZ22 = dataStream22.readInt();
+                int len22 = VarInt.readVarInt(dataStream22);
+                for (int i = 0; i < len22; i++) {
+                    int horizPos = dataStream22.readUnsignedByte();
+                    byte vertPos = dataStream22.readByte();
+                    int relativeX = (horizPos >> 4);
+                    int relativeZ = (horizPos & 0x0F);
+                    System.out.println(horizPos + " " + vertPos + " " + relativeX + " " + relativeZ);
+                    short blockraw = (short)VarInt.readVarInt(dataStream22);
+                    short block = (short) ((blockraw & 255) << 8 | (blockraw >> 8));
+                    System.out.println(chunkX22 * 16 + relativeX + " " + vertPos + " " + chunkZ22 * 16 + relativeZ + " " + block);
+                    ChunkColumn.setBlock(chunkX22 * 16 + relativeX, vertPos, chunkZ22 * 16 + relativeZ, block);
+                }
+            }
+            break;
             case 0x23://block change
             {
                 ByteArrayInputStream datastream23 = new ByteArrayInputStream(data);
