@@ -27,9 +27,8 @@ import java.util.Set;
  */
 @SuppressLint("DiscouragedApi")
 public class SlotRenderer {
-
-    static Set<Integer> specialBlocks = new HashSet<>(Arrays.asList(2, 85, 113, 188, 189, 190, 191, 192));
-    static Set<Integer> multiStateBlocks = new HashSet<>(Arrays.asList(17, 26, 162, 43, 125, 181));
+    static Set<Integer> specialBlocks = new HashSet<>(Arrays.asList(2, 53, 67, 108, 109, 114, 128, 134, 135, 136, 156, 163, 180, 85, 113, 188, 189, 190, 191, 192));
+    static Set<Integer> multiStateBlocks = new HashSet<>(Arrays.asList(17, 26, 162, 43, 125, 175, 181));
     static Map<String, List<Square>> models = new HashMap<>();
     List<Square> squares = new ArrayList<>();
     float angle = 0;
@@ -41,6 +40,7 @@ public class SlotRenderer {
             //item
             case 0:
                 JSONObject item = Slot.itemsMap.get((int) id);
+                assert item != null : "Item is null" + id;
                 if (item.has("variations")) {
                     JSONArray variations = item.getJSONArray("variations");
                     //get the variation with the correct metadata
@@ -95,11 +95,11 @@ public class SlotRenderer {
             InputStream is;
             String newModel = model;
             try {
-                is = context.getAssets().open(model);
+                context.getAssets().open(model).close();
             } catch (Exception e) {
                 newModel = model.replaceFirst("block", "item");
                 try {
-                    is = context.getAssets().open(newModel);
+                    context.getAssets().open(newModel).close();
                 } catch (Exception e2) {
                     System.out.println("bbModel not found: " + model + "  " + newModel);
                     newModel = "models/block/pumpkin_stem_growth3.json";
@@ -426,13 +426,24 @@ public class SlotRenderer {
                     model = model.replaceFirst("half", "upper");
                 }
                 break;
+            //double plants TODO fix top block always being double grass
+            case 175:
+                model = model.substring(model.indexOf("item/") + 5, model.indexOf(".json"));
+                model = model.replace("double_", "");
+                if ((metadata & 0x08) == 0x08) {
+                    model = "models/block/double_" + model + "_top.json";
+                } else {
+                    model = "models/block/double_" + model + "_bottom.json";
+                }
+                break;
             default:
                 throw new IllegalStateException("Unexpected value: " + id);
         }
         return model;
     }
+
     String getSpecialBlockModel(int id, int metadata, int x, int y, int z) {
-        String type;
+        String type = null;
         switch (id) {
             case 2:
                 if (ChunkColumn.getBlockId(x, y + 1, z) == 78 || ChunkColumn.getBlockId(x, y + 1, z) == 80) {
@@ -440,8 +451,95 @@ public class SlotRenderer {
                 } else {
                     return "models/block/grass_normal.json";
                 }
-
-                //fences
+                //stairs
+            case 53:
+            case 67:
+            case 108:
+            case 109:
+            case 114:
+            case 128:
+            case 134:
+            case 135:
+            case 136:
+            case 156:
+            case 163:
+            case 164:
+            case 180:
+                Set<Integer> stairs = new HashSet<>(Arrays.asList(53, 67, 108, 109, 114, -128, -122, -121, -120, -10, -93, -92, -76));
+                try {
+                    JSONObject block = Objects.requireNonNull(Slot.blocksMap.get(id));
+                    if (block.has("itemModel")) {
+                        type = block.getString("itemModel");
+                    } else {
+                        type = block.getString("displayName").trim().toLowerCase().replaceAll(" ", "_");
+                    }
+                    type = type.replaceFirst("_stairs", "");
+                } catch (JSONException e) {
+                    e.printStackTrace();
+                }
+                if ((metadata & 3) == 1) angle = 180;
+                if ((metadata & 3) == 2) angle = 270;
+                if ((metadata & 3) == 3) angle = 90;
+                //if facing north or south
+                if ((metadata & 2) == 2) {
+                    //block in north
+                    short neighbor1 = ChunkColumn.getBlock(x, y, z - 1);
+                    int neighbor1Id = ChunkColumn.getBlockId(neighbor1);
+                    int neighbor1Meta = ChunkColumn.getBlockMetaData(neighbor1);
+                    //block in south
+                    short neighbor2 = ChunkColumn.getBlock(x, y, z + 1);
+                    int neighbor2Id = ChunkColumn.getBlockId(neighbor2);
+                    int neighbor2Meta = ChunkColumn.getBlockMetaData(neighbor2);
+                    if (stairs.contains(neighbor1Id) && (neighbor1Meta & 0x02) == 0) {
+                        if ((metadata & 1) == 1) {
+                            if ((neighbor1Meta & 1) == 1) angle += 90;
+                            return "models/block/" + type + "_outer_stairs.json";
+                        } else {
+                            if ((neighbor1Meta & 1) == 0) angle += 90;
+                            return "models/block/" + type + "_inner_stairs.json";
+                        }
+                    }
+                    if (stairs.contains(neighbor2Id) && (neighbor2Meta & 0x02) == 0) {
+                        if ((metadata & 1) == 1) {
+                            if ((neighbor2Meta & 1) == 1) angle += 90;
+                            return "models/block/" + type + "_inner_stairs.json";
+                        } else {
+                            if ((neighbor2Meta & 1) == 0) angle += 90;
+                            return "models/block/" + type + "_outer_stairs.json";
+                        }
+                    }
+                }
+                //if facing east or west
+                else {
+                    //block in west
+                    short neighbor1 = ChunkColumn.getBlock(x - 1, y, z);
+                    int neighbor1Id = ChunkColumn.getBlockId(neighbor1);
+                    int neighbor1Meta = ChunkColumn.getBlockMetaData(neighbor1);
+                    //block in east
+                    short neighbor2 = ChunkColumn.getBlock(x + 1, y, z);
+                    int neighbor2Id = ChunkColumn.getBlockId(neighbor2);
+                    int neighbor2Meta = ChunkColumn.getBlockMetaData(neighbor2);
+                    if (stairs.contains(neighbor1Id) && (neighbor1Meta & 2) == 2) {
+                        if ((metadata & 1) == 1) {
+                            if ((neighbor1Meta & 1) == 0) angle += 90;
+                            return "models/block/" + type + "_outer_stairs.json";
+                        } else {
+                            if ((neighbor1Meta & 1) == 1) angle += 90;
+                            return "models/block/" + type + "_inner_stairs.json";
+                        }
+                    }
+                    if (stairs.contains(neighbor2Id) && (neighbor2Meta & 0x02) == 2) {
+                        if ((metadata & 1) == 1) {
+                            if ((neighbor2Meta & 1) == 0) angle += 90;
+                            return "models/block/" + type + "_inner_stairs.json";
+                        } else {
+                            if ((neighbor2Meta & 1) == 1) angle += 90;
+                            return "models/block/" + type + "_outer_stairs.json";
+                        }
+                    }
+                }
+                return "models/block/" + type + "_stairs.json";
+            //fences
             case 85:
             case 113:
             case 188:

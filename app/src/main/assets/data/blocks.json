@@ -5306,7 +5306,33 @@
       },
       {
         "metadata": 8,
-        "displayName": "Top Half of any Large Plant; low three bits 0x7 are derived from the block below."
+        "displayName": "Top Half of any Large Plant; low three bits 0x7 are derived from the block below.",
+        "itemModel": "sunflower"
+      },
+      {
+        "metadata": 9,
+        "displayName": "Top Half of any Large Plant; low three bits 0x7 are derived from the block below.",
+        "itemModel": "syringa"
+      },
+      {
+        "metadata": 10,
+        "displayName": "Top Half of any Large Plant; low three bits 0x7 are derived from the block below.",
+        "itemModel": "double_grass"
+      },
+      {
+        "metadata": 11,
+        "displayName": "Top Half of any Large Plant; low three bits 0x7 are derived from the block below.",
+        "itemModel": "double_fern"
+      },
+      {
+        "metadata": 12,
+        "displayName": "Top Half of any Large Plant; low three bits 0x7 are derived from the block below.",
+        "itemModel": "double_rose"
+      },
+      {
+        "metadata": 13,
+        "displayName": "Top Half of any Large Plant; low three bits 0x7 are derived from the block below.",
+        "itemModel": "paeonia"
       }
     ],
     "drops": [
