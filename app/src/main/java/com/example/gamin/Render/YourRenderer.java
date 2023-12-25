@@ -37,14 +37,10 @@ public class YourRenderer implements GLSurfaceView.Renderer {
     public static Map<Integer, List<float[]>> coords = new HashMap<>();
     public static Map<Integer, List<float[]>> textures = new HashMap<>();
     public static Map<Integer, List<float[]>> colors = new HashMap<>();
-    private final float[] vPMatrix = new float[16];
-    private final float[] vPMatrix2 = new float[16];
     private final float[] projectionMatrix = new float[16];
     private final float[] projectionMatrix2 = new float[16];
     private final float[] viewMatrix = new float[16];
     private final float[] viewMatrix2 = new float[16];
-    private final float[] rotationMatrix = new float[16];
-    private final float[] rotationMatrix2 = new float[16];
     public String newSlot = "crafting_table.json";
     Context context;
     float[] color = {1.0f, 1.0f, 1.0f, 1.0f};
@@ -177,17 +173,11 @@ public class YourRenderer implements GLSurfaceView.Renderer {
         //0.01f, 1.0f, 0.01f);
         //(float) PacketUtils.x + 0, (float) (PacketUtils.y - 10), (float) PacketUtils.z + 0);
         // Calculate the projection and view transformation
-        Matrix.multiplyMM(vPMatrix, 0, projectionMatrix, 0, viewMatrix, 0);
-        //long time = SystemClock.uptimeMillis() % 4000L;
-        float angle = 0;//0.090f * ((int) time);
-        Matrix.setRotateM(rotationMatrix, 0, angle, 1.0f, 1.0f, 1.0f);
-        Matrix.multiplyMM(scratch, 0, vPMatrix, 0, rotationMatrix, 0);
+        Matrix.multiplyMM(scratch, 0, projectionMatrix, 0, viewMatrix, 0);
         GLES20.glUniformMatrix4fv(YourRenderer.vPMatrixHandle, 1, false, scratch, 0);
 
         Matrix.setLookAtM(viewMatrix2, 0, 0, 0, 0, 0, 0, -1, 0, 10, 0);
-        Matrix.multiplyMM(vPMatrix2, 0, projectionMatrix2, 0, viewMatrix2, 0);
-        Matrix.setRotateM(rotationMatrix2, 0, 0, 1.0f, 1.0f, 1.0f);
-        Matrix.multiplyMM(scratch2, 0, vPMatrix2, 0, rotationMatrix2, 0);
+        Matrix.multiplyMM(scratch2, 0, projectionMatrix2, 0, viewMatrix2, 0);
 
         //get all blocks in a 5 block radius around the player and draw them on screen using SlotRenderer class
         /*for (int x = (int) Math.floor(PacketUtils.x) - 5; x < (int) Math.floor(PacketUtils.x) + 5; x++) {

@@ -28,14 +28,16 @@ import java.util.Set;
 @SuppressLint("DiscouragedApi")
 public class SlotRenderer {
     static Set<Integer> specialBlocks = new HashSet<>(Arrays.asList(2, 53, 67, 108, 109, 114, 128, 134, 135, 136, 156, 163, 180, 85, 113, 188, 189, 190, 191, 192));
-    static Set<Integer> multiStateBlocks = new HashSet<>(Arrays.asList(17, 26, 162, 43, 125, 175, 181));
+    static Set<Integer> multiStateBlocks = new HashSet<>(Arrays.asList(17, 26, 29, 33, 34, 162, 43, 125, 175, 181));
     static Map<String, List<Square>> models = new HashMap<>();
     List<Square> squares = new ArrayList<>();
     float angle = 0;
+    boolean upsideDown = false;
 
     public SlotRenderer(Context context, float[] color, short id, byte metadata, int type, int x, int y, int z) throws IOException, JSONException {
         String model;
         float modelAngle = 0;
+        float modelXAngle = 0;
         switch (type) {
             //item
             case 0:
@@ -113,6 +115,14 @@ public class SlotRenderer {
                     modelAngle = Float.parseFloat(s.substring(5));
                     continue;
                 }
+                if (s.startsWith("up")) {
+                    modelXAngle = 90;
+                    continue;
+                }
+                if (s.startsWith("down")) {
+                    modelXAngle = 270;
+                    continue;
+                }
                 is = context.getAssets().open(s);
                 byte[] b = new byte[is.available()];
                 is.read(b);
@@ -138,6 +148,7 @@ public class SlotRenderer {
                             if (textures.has(object.substring(i + 1, j))) {
                                 newString = textures.getString(object.substring(i + 1, j));
                             } else {
+                                if (id == 34) System.out.println(textures);
                                 newString = jsonObject.getJSONObject("textures").getString(object.substring(i + 1, j));
                             }
                         } else {
@@ -151,8 +162,6 @@ public class SlotRenderer {
                     jsonObject = new JSONObject(object);
                 } while (jsonObject.has("parent"));
                 JSONArray elements = jsonObject.getJSONArray("elements");
-                int biggest = 0;
-                int smallest = 0;
                 for (int i = 0; i < elements.length(); i++) {
                     int[] from = new int[3];
                     int[] to = new int[3];
@@ -161,23 +170,11 @@ public class SlotRenderer {
                     for (int j = 0; j < jFrom.length(); j++) {
                         int num = jFrom.getInt(j);
                         from[j] = num;
-                        if (num > biggest) {
-                            biggest = num;
-                        }
-                        if (num < smallest) {
-                            smallest = num;
-                        }
                     }
                     JSONArray jTo = element.getJSONArray("to");
                     for (int j = 0; j < jTo.length(); j++) {
                         int num = jTo.getInt(j);
                         to[j] = num;
-                        if (num > biggest) {
-                            biggest = num;
-                        }
-                        if (num < smallest) {
-                            smallest = num;
-                        }
                     }
                     String[] faces = {"north", "west", "south", "east", "up", "down"};
                     int[][] iSquareCoords = {
@@ -215,7 +212,7 @@ public class SlotRenderer {
                     for (int j = 0; j < faces.length; j++) {
                         if (element.getJSONObject("faces").has(faces[j])) {
                             int[] iSquareCoords1 = iSquareCoords[j];
-                            float[] squareCoords1 = intToFloat(iSquareCoords1, smallest, biggest);
+                            float[] squareCoords1 = intToFloat(iSquareCoords1);
                             float[] textureCoords1;
                             JSONObject face = element.getJSONObject("faces").getJSONObject(faces[j]);
                             if (face.has("uv")) {
@@ -226,7 +223,7 @@ public class SlotRenderer {
                                         uv.getInt(2), uv.getInt(3),
                                         uv.getInt(2), uv.getInt(1)
                                 };
-                                textureCoords1 = intToFloat(iTextureCoords, smallest, biggest);
+                                textureCoords1 = intToFloat(iTextureCoords);
                             } else {
                                 textureCoords1 = new float[]{
                                         0.0f, 0.0f,
@@ -255,52 +252,50 @@ public class SlotRenderer {
             }
             if (modelAngle != 0)
                 for (Square square : squares)
-                    rotateSquare(square, modelAngle);
+                    rotateSquare(square, modelAngle, 1);
+            if (modelXAngle != 0)
+                for (Square square : squares)
+                    rotateSquare(square, modelXAngle, 0);
             models.put(model + id + " " + metadata, squares);
         }
 
         for (Square square : Objects.requireNonNull(models.get(model + id + " " + metadata))
         ) {
             float[] old = square.squareCoords;
-            if (angle != 0) {
-                List<Float> coords = new ArrayList<>();
-                for (float f : square.squareCoords) {
-                    coords.add(f);
-                }
-                coords.add(12, 1.5f);
-                coords.add(9, 1.5f);
-                coords.add(6, 1.5f);
-                coords.add(3, 1.5f);
-                float[] rotationMatrix = new float[16];
-                float[] matrix = new float[16];
-                for (int i = 0; i < 16; i++) {
-                    matrix[i] = coords.get(i) - 0.5f;
-                }
-                Matrix.setRotateM(rotationMatrix, 0, angle, 0, 1, 0);
-                Matrix.multiplyMM(matrix, 0, rotationMatrix, 0, matrix, 0);
+            if (angle != 0) rotateSquare(square, angle, 1);
+            if (upsideDown) flipSquare(square);
+            square.squareCoords = addCoordinates(square.squareCoords, x, y, z);
 
-                coords.clear();
-                for (float f : matrix) {
-                    coords.add(f);
-                }
-                coords.remove(15);
-                coords.remove(11);
-                coords.remove(7);
-                coords.remove(3);
-                float[] result = new float[12];
-                for (int i = 0; i < 12; i++) {
-                    result[i] = coords.get(i) + 0.5f;
-                }
-                square.squareCoords = addCoordinates(result, x, y, z);
-            } else {
-                square.squareCoords = addCoordinates(square.squareCoords, x, y, z);
-            }
             square.render();
             square.squareCoords = old;
         }
     }
 
-    static void rotateSquare(Square square, float angle) {
+    //flip the square upside down
+    static void flipSquare(Square square) {
+        float[] coords = square.squareCoords;
+        for (int i = 1; i < coords.length; i += 3) {
+            coords[i] = coords[i] - 0.5f;
+            coords[i] = -coords[i];
+            coords[i] = coords[i] + 0.5f;
+        }
+    }
+
+    static void rotateSquare(Square square, float angle, int rotationAxis) {
+        float x = 0;
+        float y = 0;
+        float z = 0;
+        switch (rotationAxis) {
+            case 0:
+                x = 1;
+                break;
+            case 1:
+                y = 1;
+                break;
+            case 2:
+                z = 1;
+                break;
+        }
         List<Float> coords = new ArrayList<>();
         for (float f : square.squareCoords) {
             coords.add(f);
@@ -314,7 +309,7 @@ public class SlotRenderer {
         for (int i = 0; i < 16; i++) {
             matrix[i] = coords.get(i) - 0.5f;
         }
-        Matrix.setRotateM(rotationMatrix, 0, angle, 0, 1, 0);
+        Matrix.setRotateM(rotationMatrix, 0, angle, x, y, z);
         Matrix.multiplyMM(matrix, 0, rotationMatrix, 0, matrix, 0);
 
         coords.clear();
@@ -380,10 +375,10 @@ public class SlotRenderer {
         return newCoords;
     }
 
-    static float[] intToFloat(int[] in, int smallest, int biggest) {
+    static float[] intToFloat(int[] in) {
         float[] out = new float[in.length];
         for (int i = 0; i < in.length; i++) {
-            out[i] = (((float) (in[i] - smallest)) / ((float) biggest - smallest))/*0.5f*/;
+            out[i] = in[i] / 16.0f;
         }
         return out;
     }
@@ -410,6 +405,46 @@ public class SlotRenderer {
                     model = model + "amongus" + "angle270";
                 }
                 break;
+            //pistons FIXME uv coordinates broken (i changed piston.json to fix one issue but idk what is wrong with this much things)
+            case 29:
+            case 33:
+                if ((metadata & 8) == 8) {
+                    model = "models/block/piston_extended_normal.json";
+                } else {
+                    if (id == 29) model = "models/block/sticky_piston.json";
+                    else model = "models/block/piston_normal.json";
+                }
+                if ((metadata & 7) == 0) {
+                    model = model + "amongus" + "down";
+                } else if ((metadata & 7) == 1) {
+                    model = model + "amongus" + "up";
+                } else if ((metadata & 7) == 3) {
+                    model = model + "amongus" + "angle180";
+                } else if ((metadata & 7) == 4) {
+                    model = model + "amongus" + "angle90";
+                } else if ((metadata & 7) == 5) {
+                    model = model + "amongus" + "angle270";
+                }
+                break;
+                //piston head
+            case 34:
+                if ((metadata & 8) == 0) {
+                    model = "models/block/piston_head_normal.json";
+                } else {
+                    model = "models/block/piston_head_sticky.json";
+                }
+                if ((metadata & 7) == 0) {
+                    model = model + "amongus" + "down";
+                } else if ((metadata & 7) == 1) {
+                    model = model + "amongus" + "up";
+                } else if ((metadata & 7) == 3) {
+                    model = model + "amongus" + "angle180";
+                } else if ((metadata & 7) == 4) {
+                    model = model + "amongus" + "angle90";
+                } else if ((metadata & 7) == 5) {
+                    model = model + "amongus" + "angle270";
+                }
+                break;
 
             //double slabs
             case 43:
@@ -426,7 +461,7 @@ public class SlotRenderer {
                     model = model.replaceFirst("half", "upper");
                 }
                 break;
-            //double plants TODO fix top block always being double grass
+            //double plants FIXME fix top block always being double grass
             case 175:
                 model = model.substring(model.indexOf("item/") + 5, model.indexOf(".json"));
                 model = model.replace("double_", "");
@@ -477,9 +512,13 @@ public class SlotRenderer {
                 } catch (JSONException e) {
                     e.printStackTrace();
                 }
+
+                //FIXME if angle is 0, it doesn't work(it doesnt call rotateSquare)
+                if ((metadata & 3) == 0) angle = 360;
                 if ((metadata & 3) == 1) angle = 180;
                 if ((metadata & 3) == 2) angle = 270;
                 if ((metadata & 3) == 3) angle = 90;
+                if ((metadata & 4) == 4) upsideDown = true;
                 //if facing north or south
                 if ((metadata & 2) == 2) {
                     //block in north
