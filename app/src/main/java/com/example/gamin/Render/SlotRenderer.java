@@ -27,8 +27,10 @@ import java.util.Set;
  */
 @SuppressLint("DiscouragedApi")
 public class SlotRenderer {
-    static Set<Integer> specialBlocks = new HashSet<>(Arrays.asList(2, 53, 67, 108, 109, 114, 128, 134, 135, 136, 156, 163, 180, 85, 113, 188, 189, 190, 191, 192));
-    static Set<Integer> multiStateBlocks = new HashSet<>(Arrays.asList(17, 26, 29, 33, 34, 162, 43, 125, 175, 181));
+    //door ids
+    //64, 71, 193, 194, 195, 196, 197
+    static Set<Integer> specialBlocks = new HashSet<>(Arrays.asList(2, 53, 64, 71, 193, 194, 195, 196, 197, 67, 104, 105, 108, 109, 114, 128, 134, 135, 136, 156, 163, 180, 85, 113, 188, 189, 190, 191, 192));
+    static Set<Integer> multiStateBlocks = new HashSet<>(Arrays.asList(17, 26, 29, 33, 34, 59, 60, 162, 43, 125, 141, 142, 175, 181));
     static Map<String, List<Square>> models = new HashMap<>();
     List<Square> squares = new ArrayList<>();
     float angle = 0;
@@ -385,11 +387,13 @@ public class SlotRenderer {
 
     static String getMultiStateBlockModel(int id, int metadata, String model) {
         switch (id) {
+
             //logs
             case 17:
             case 162:
                 if ((metadata & 12) == 4) model = model + "amongus" + "angle090";
                 break;
+
             //beds
             case 26:
                 if ((metadata & 8) == 8) {
@@ -405,6 +409,7 @@ public class SlotRenderer {
                     model = model + "amongus" + "angle270";
                 }
                 break;
+
             //pistons FIXME uv coordinates broken (i changed piston.json to fix one issue but idk what is wrong with this much things)
             case 29:
             case 33:
@@ -426,7 +431,8 @@ public class SlotRenderer {
                     model = model + "amongus" + "angle270";
                 }
                 break;
-                //piston head
+
+            //piston head
             case 34:
                 if ((metadata & 8) == 0) {
                     model = "models/block/piston_head_normal.json";
@@ -452,6 +458,7 @@ public class SlotRenderer {
             case 181:
                 model = model + "amongus" + model.replaceFirst("half", "upper");
                 break;
+
             //slabs
             case 44:
             case 126:
@@ -461,6 +468,39 @@ public class SlotRenderer {
                     model = model.replaceFirst("half", "upper");
                 }
                 break;
+
+            //wheat
+            case 59:
+                model = "models/block/wheat_stage" + (metadata & 0x07) + ".json";
+                break;
+
+            //farmland
+            case 60:
+                if ((metadata & 0x07) == 0x07) {
+                    model = "models/block/farmland_moist.json";
+                } else {
+                    model = "models/block/farmland_dry.json";
+                }
+                break;
+
+            //carrots
+            case 141:
+                int stage = 0;
+                if (metadata > 1) stage = 1;
+                if (metadata > 3) stage = 2;
+                if (metadata > 6) stage = 3;
+                model = "models/block/carrots_stage" + stage + ".json";
+                break;
+
+            //potatoes
+            case 142:
+                int stage2 = 0;
+                if (metadata > 1) stage2 = 1;
+                if (metadata > 3) stage2 = 2;
+                if (metadata > 6) stage2 = 3;
+                model = "models/block/potatoes_stage" + stage2 + ".json";
+                break;
+
             //double plants FIXME fix top block always being double grass
             case 175:
                 model = model.substring(model.indexOf("item/") + 5, model.indexOf(".json"));
@@ -486,6 +526,7 @@ public class SlotRenderer {
                 } else {
                     return "models/block/grass_normal.json";
                 }
+
                 //stairs
             case 53:
             case 67:
@@ -578,6 +619,7 @@ public class SlotRenderer {
                     }
                 }
                 return "models/block/" + type + "_stairs.json";
+
             //fences
             case 85:
             case 113:
@@ -633,6 +675,82 @@ public class SlotRenderer {
                 } else if (sum == 4) {
                     return "models/block/" + type + "_fence_nsew.json";
                 }
+
+                //stems //TODO add coloring
+            case 104:
+                //checking 4 sides for pumpkin
+                int isPumpkinFruit = -1;
+                if (ChunkColumn.getBlockId(x + 1, y, z) == 86) isPumpkinFruit = 2;
+                if (ChunkColumn.getBlockId(x - 1, y, z) == 86) isPumpkinFruit = 0;
+                if (ChunkColumn.getBlockId(x, y, z + 1) == 86) isPumpkinFruit = 1;
+                if (ChunkColumn.getBlockId(x, y, z - 1) == 86) isPumpkinFruit = 3;
+                if (isPumpkinFruit != -1) {
+                    angle = isPumpkinFruit * 90;
+                    return "models/block/pumpkin_stem_fruit" + ".json";
+                } else {
+                    return "models/block/pumpkin_stem_growth" + metadata + ".json";
+                }
+            case 105:
+                //checking 4 sides for melon
+                int isMelonFruit = -1;
+                if (ChunkColumn.getBlockId(x + 1, y, z) == 103) isMelonFruit = 3;
+                if (ChunkColumn.getBlockId(x - 1, y, z) == 103) isMelonFruit = 1;
+                if (ChunkColumn.getBlockId(x, y, z + 1) == 103) isMelonFruit = 2;
+                if (ChunkColumn.getBlockId(x, y, z - 1) == 103) isMelonFruit = 0;
+                if (isMelonFruit != -1) {
+                    return "models/block/melon_stem_fruit" + ".json";
+                } else {
+                    return "models/block/melon_stem_growth" + metadata + ".json";
+                }
+
+                //doors
+            case 64:
+            case 71:
+            case 193:
+            case 194:
+            case 195:
+            case 196:
+            case 197:
+                if (id == 64) type = "wooden";
+                else if (id == 71) type = "iron";
+                else if (id == 193) type = "spruce";
+                else if (id == 194) type = "birch";
+                else if (id == 195) type = "jungle";
+                else if (id == 196) type = "acacia";
+                else type = "dark_oak";
+                String part;
+                int hinge;
+                int facing;
+                boolean open;
+                if ((metadata & 0x08) == 0x08) {
+                    part = "top";
+                    short bottom = ChunkColumn.getBlock(x, y - 1, z);
+                    hinge = metadata & 1;
+                    facing = ChunkColumn.getBlockMetaData(bottom) & 3;
+                    open = (ChunkColumn.getBlockMetaData(bottom) & 4) == 4;
+                } else {
+                    part = "bottom";
+                    short top = ChunkColumn.getBlock(x, y + 1, z);
+                    hinge = ChunkColumn.getBlockMetaData(top) & 1;
+                    facing = metadata & 3;
+                    open = (metadata & 4) == 4;
+                }
+                if (facing == 0) angle = 360;
+                if (facing == 1) angle = 270;
+                if (facing == 2) angle = 180;
+                if (facing == 3) angle = 90;
+                if (open) {
+                    angle -= 90;
+                    angle += 180 * hinge;
+                    hinge = (hinge + 1) % 2;
+                }
+                if (hinge == 1) {
+                    return "models/block/" + type + "_door_" + part + "_rh.json";
+                } else {
+                    return "models/block/" + type + "_door_" + part + ".json";
+                }
+
+
             default:
                 throw new IllegalStateException("Unexpected value: " + id);
         }
