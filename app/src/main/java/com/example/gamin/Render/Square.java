@@ -9,45 +9,47 @@ import java.util.List;
 import java.util.Map;
 
 public class Square {
+    private static final Map<Integer, Integer> textureMap = new HashMap<>();
     public int mTextureDataHandle;
+    public int direction;
     float[] color;
     float[] squareCoords;
     float[] textureCoords;
     int resId;
     Context context;
-    private static final Map<Integer, Integer> textureMap = new HashMap<>();
-    public Square(Context context, float[] squareCoords, float[] color, float[] textureCoords,int resId) {
+
+    public Square(Context context, float[] squareCoords, float[] color, float[] textureCoords, int resId, int direction) {
         this.color = color;
         this.squareCoords = squareCoords;
         this.textureCoords = textureCoords;
         this.resId = resId;
         this.context = context;
+        this.direction = direction;
     }
-    public void render() {
 
+    public void render() {
         float[] squareColors = new float[24];
         for (int i = 0; i < 6; i++) {
-            System.arraycopy(color, 0, squareColors, i*4, 4);
+            System.arraycopy(color, 0, squareColors, i * 4, 4);
         }
 
-        float[] coords1 = Arrays.copyOfRange(squareCoords,0,9);
+        float[] coords1 = Arrays.copyOfRange(squareCoords, 0, 9);
         float[] coords2 = new float[9];
-        System.arraycopy(Arrays.copyOfRange(squareCoords,6,12),0,coords2,0,6);
-        System.arraycopy(Arrays.copyOfRange(squareCoords,0,3),0,coords2,6,3);
+        System.arraycopy(Arrays.copyOfRange(squareCoords, 6, 12), 0, coords2, 0, 6);
+        System.arraycopy(Arrays.copyOfRange(squareCoords, 0, 3), 0, coords2, 6, 3);
 
-        float[] textures1 = Arrays.copyOfRange(textureCoords,0,6);
+        float[] textures1 = Arrays.copyOfRange(textureCoords, 0, 6);
         float[] textures2 = new float[6];
-        System.arraycopy(Arrays.copyOfRange(textureCoords,4,8),0,textures2,0,4);
-        System.arraycopy(Arrays.copyOfRange(textureCoords,0,2),0,textures2,4,2);
+        System.arraycopy(Arrays.copyOfRange(textureCoords, 4, 8), 0, textures2, 0, 4);
+        System.arraycopy(Arrays.copyOfRange(textureCoords, 0, 2), 0, textures2, 4, 2);
 
 
         if (textureMap.containsKey(resId)) {
             //noinspection DataFlowIssue
             mTextureDataHandle = textureMap.get(resId);
-        }
-        else {
-            mTextureDataHandle = YourRenderer.loadTexture(context,resId);
-            textureMap.put(resId,mTextureDataHandle);
+        } else {
+            mTextureDataHandle = YourRenderer.loadTexture(context, resId);
+            textureMap.put(resId, mTextureDataHandle);
         }
 
         List<float[]> list;
@@ -69,8 +71,7 @@ public class Square {
             list3 = YourRenderer.colors.get(mTextureDataHandle);
             assert list3 != null;
             list3.add(squareColors);
-        }
-        else {
+        } else {
             list = new ArrayList<>();
             list.add(coords1);
             list.add(coords2);

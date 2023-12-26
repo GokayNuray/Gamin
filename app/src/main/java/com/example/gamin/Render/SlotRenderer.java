@@ -6,6 +6,7 @@ import android.opengl.Matrix;
 
 import com.example.gamin.Minecraft.ChunkColumn;
 import com.example.gamin.Minecraft.Slot;
+import com.example.gamin.Utils.PacketUtils;
 
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -27,10 +28,8 @@ import java.util.Set;
  */
 @SuppressLint("DiscouragedApi")
 public class SlotRenderer {
-    //door ids
-    //64, 71, 193, 194, 195, 196, 197
     static Set<Integer> specialBlocks = new HashSet<>(Arrays.asList(2, 53, 64, 71, 193, 194, 195, 196, 197, 67, 104, 105, 108, 109, 114, 128, 134, 135, 136, 156, 163, 180, 85, 113, 188, 189, 190, 191, 192));
-    static Set<Integer> multiStateBlocks = new HashSet<>(Arrays.asList(17, 26, 29, 33, 34, 59, 60, 162, 43, 125, 141, 142, 175, 181));
+    static Set<Integer> multiStateBlocks = new HashSet<>(Arrays.asList(17, 26, 27, 28, 66, 157, 29, 33, 34, 59, 60, 162, 43, 125, 141, 142, 175, 181));
     static Map<String, List<Square>> models = new HashMap<>();
     List<Square> squares = new ArrayList<>();
     float angle = 0;
@@ -178,6 +177,22 @@ public class SlotRenderer {
                         int num = jTo.getInt(j);
                         to[j] = num;
                     }
+                    int[] origin = {};
+                    float[] fOrigin;
+                    int rotAngle = 0;
+                    String axis = "";
+                    if (element.has("rotation")) {
+                        JSONObject rotation = element.getJSONObject("rotation");
+                        origin = new int[3];
+                        JSONArray jOrigin = rotation.getJSONArray("origin");
+                        for (int j = 0; j < jOrigin.length(); j++) {
+                            int num = jOrigin.getInt(j);
+                            origin[j] = num;
+                        }
+                        rotAngle = rotation.getInt("angle");
+                        axis = rotation.getString("axis");
+                    }
+                    fOrigin = intToFloat(origin);
                     String[] faces = {"north", "west", "south", "east", "up", "down"};
                     int[][] iSquareCoords = {
                             //north
@@ -246,27 +261,79 @@ public class SlotRenderer {
                             String texture1 = element.getJSONObject("faces").getJSONObject(faces[j]).getString("texture");
                             texture1 = texture1.substring(texture1.lastIndexOf("/") + 1);
                             int textureId1 = context.getResources().getIdentifier(texture1, "drawable", context.getPackageName());
-                            Square square1 = new Square(context, squareCoords1, color2, textureCoords1, textureId1);
+                            Square square1 = new Square(context, squareCoords1, color2, textureCoords1, textureId1, j);
+                            if (element.has("rotation")) {
+                                int rotationAxis = -1;
+                                if (axis.equals("x")) rotationAxis = 0;
+                                if (axis.equals("y")) rotationAxis = 1;
+                                if (axis.equals("z")) rotationAxis = 2;
+                                rotateSquare(square1, rotAngle, rotationAxis, fOrigin[0], fOrigin[1], fOrigin[2]);
+                            }
                             squares.add(square1);
                         }
                     }
                 }
             }
             if (modelAngle != 0)
-                for (Square square : squares)
-                    rotateSquare(square, modelAngle, 1);
+                for (Square square : squares) {
+                    rotateSquare(square, modelAngle, 1, 0.5f, 0.5f, 0.5f);
+                    if (square.direction < 4)
+                        square.direction = (square.direction + ((int) modelAngle) / 90) % 4;
+                }
             if (modelXAngle != 0)
                 for (Square square : squares)
-                    rotateSquare(square, modelXAngle, 0);
+                    rotateSquare(square, modelXAngle, 0, 0.5f, 0.5f, 0.5f);
             models.put(model + id + " " + metadata, squares);
         }
 
         for (Square square : Objects.requireNonNull(models.get(model + id + " " + metadata))
         ) {
             float[] old = square.squareCoords;
-            if (angle != 0) rotateSquare(square, angle, 1);
-            if (upsideDown) flipSquare(square);
-            square.squareCoords = addCoordinates(square.squareCoords, x, y, z);
+            if (angle != 0) {
+                rotateSquare(square, angle, 1, 0.5f, 0.5f, 0.5f);
+            }
+            if (upsideDown) {
+                flipSquare(square);
+            }
+            float[] newCoords = addCoordinates(square.squareCoords, x, y, z);
+            int newDirection = square.direction;
+            if (newDirection < 4) newDirection = (newDirection + ((int) angle) / 90) % 4;
+            if (upsideDown && (square.direction > 3)) newDirection = (newDirection + 1) % 2 + 4;
+
+
+            //skip rendering if the square is not visible
+            boolean doNotRender = false;
+            switch (newDirection) {
+                //north
+                case 0:
+                    if (PacketUtils.z > newCoords[2]) doNotRender = true;
+                    break;
+                //west
+                case 1:
+                    if (PacketUtils.x > newCoords[0]) doNotRender = true;
+                    break;
+                //south
+                case 2:
+                    if (PacketUtils.z < newCoords[2]) doNotRender = true;
+                    break;
+                //east
+                case 3:
+                    if (PacketUtils.x < newCoords[0]) doNotRender = true;
+                    break;
+                //up
+                case 4:
+                    if (PacketUtils.y + 1.62 < newCoords[1]) doNotRender = true;
+                    break;
+                //down
+                case 5:
+                    if (PacketUtils.y + 1.62 > newCoords[1]) doNotRender = true;
+                    break;
+            }
+            if (doNotRender) {
+                square.squareCoords = old;
+                continue;
+            }
+            square.squareCoords = newCoords;
 
             square.render();
             square.squareCoords = old;
@@ -283,7 +350,7 @@ public class SlotRenderer {
         }
     }
 
-    static void rotateSquare(Square square, float angle, int rotationAxis) {
+    static void rotateSquare(Square square, float angle, int rotationAxis, float originX, float originY, float originZ) {
         float x = 0;
         float y = 0;
         float z = 0;
@@ -302,14 +369,17 @@ public class SlotRenderer {
         for (float f : square.squareCoords) {
             coords.add(f);
         }
-        coords.add(12, 1.5f);
-        coords.add(9, 1.5f);
-        coords.add(6, 1.5f);
-        coords.add(3, 1.5f);
+        coords.add(12, 1f);
+        coords.add(9, 1f);
+        coords.add(6, 1f);
+        coords.add(3, 1f);
         float[] rotationMatrix = new float[16];
         float[] matrix = new float[16];
-        for (int i = 0; i < 16; i++) {
-            matrix[i] = coords.get(i) - 0.5f;
+        for (int i = 0; i < 16; i += 4) {
+            matrix[i] = coords.get(i) - originX;
+            matrix[i + 1] = coords.get(i + 1) - originY;
+            matrix[i + 2] = coords.get(i + 2) - originZ;
+            matrix[i + 3] = coords.get(i + 3);
         }
         Matrix.setRotateM(rotationMatrix, 0, angle, x, y, z);
         Matrix.multiplyMM(matrix, 0, rotationMatrix, 0, matrix, 0);
@@ -323,8 +393,10 @@ public class SlotRenderer {
         coords.remove(7);
         coords.remove(3);
         float[] result = new float[12];
-        for (int i = 0; i < 12; i++) {
-            result[i] = coords.get(i) + 0.5f;
+        for (int i = 0; i < 12; i += 3) {
+            result[i] = coords.get(i) + originX;
+            result[i + 1] = coords.get(i + 1) + originY;
+            result[i + 2] = coords.get(i + 2) + originZ;
         }
         square.squareCoords = result;
     }
@@ -409,6 +481,54 @@ public class SlotRenderer {
                     model = model + "amongus" + "angle270";
                 }
                 break;
+
+            //rails TODO add rescaling for raised rails
+            case 27:
+            case 28:
+            case 66:
+            case 157:
+                String type = "normal_rail_";
+                if (id == 27) type = "golden_rail_";
+                else if (id == 28) type = "detector_rail_";
+                else if (id == 157) type = "activator_rail_";
+                if ((metadata & 8) == 8) {
+                    if (id == 28) type = type + "powered_";
+                    if ((id == 27) || (id == 157)) type = type + "active_";
+                }
+                if ((metadata & 7) == 0) {
+                    model = "models/block/" + type + "flat.json";
+                } else if ((metadata & 7) == 1) {
+                    model = "models/block/" + type + "flat.json";
+                    model = model + "amongus" + "angle090";
+                } else if ((metadata & 7) == 2) {
+                    model = "models/block/" + type + "raised_ne.json";
+                    model = model + "amongus" + "angle270";
+                } else if ((metadata & 7) == 3) {
+                    model = "models/block/" + type + "raised_sw.json";
+                    model = model + "amongus" + "angle270";
+                } else if ((metadata & 7) == 4) {
+                    model = "models/block/" + type + "raised_ne.json";
+                } else if ((metadata & 7) == 5) {
+                    model = "models/block/" + type + "raised_sw.json";
+                }
+                if (id == 66) {
+                    if (metadata == 6) {
+                        model = "models/block/normal_rail_curved.json";
+                    } else if (metadata == 7) {
+                        model = "models/block/normal_rail_curved.json";
+                        model = model + "amongus" + "angle090";
+                    } else if (metadata == 8) {
+                        model = "models/block/normal_rail_curved.json";
+                        model = model + "amongus" + "angle180";
+                    } else if (metadata == 9) {
+                        model = "models/block/normal_rail_curved.json";
+                        model = model + "amongus" + "angle270";
+                    }
+                }
+
+
+                break;
+
 
             //pistons FIXME uv coordinates broken (i changed piston.json to fix one issue but idk what is wrong with this much things)
             case 29:
@@ -703,7 +823,7 @@ public class SlotRenderer {
                     return "models/block/melon_stem_growth" + metadata + ".json";
                 }
 
-                //doors
+                //doors FIXME hitboxes are broken
             case 64:
             case 71:
             case 193:
