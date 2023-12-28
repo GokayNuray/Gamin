@@ -312,6 +312,7 @@ public class MainActivity extends AppCompatActivity {
 
             Button respawnButton = findViewById(R.id.respawn);
             respawnButton.setOnClickListener(view14 -> {
+                PacketUtils.motionY = 0;
                 PacketUtils.write((byte) 0x16, Collections.singletonList((byte) 0), PacketUtils.isPremium);
                 try {
                     long d1 = System.currentTimeMillis();

@@ -1673,7 +1673,8 @@
     "transparent": true,
     "emitLight": 15,
     "filterLight": 0,
-    "resistance": 0
+    "resistance": 0,
+    "blockModel": "fire_floor_main"
   },
   {
     "id": 52,
@@ -2302,42 +2303,50 @@
       {
         "metadata": 0,
         "displayName": "One layer, 2 pixels thick",
-        "itemModel": "snow_layer"
+        "itemModel": "snow_layer",
+        "blockModel": "snow_height2"
       },
       {
         "metadata": 1,
         "displayName": "Two layers, 4 pixels thick",
-        "itemModel": "snow_layer"
+        "itemModel": "snow_layer",
+        "blockModel": "snow_height4"
       },
       {
         "metadata": 2,
         "displayName": "Three layers, 6 pixels thick",
-        "itemModel": "snow_layer"
+        "itemModel": "snow_layer",
+        "blockModel": "snow_height6"
       },
       {
         "metadata": 3,
         "displayName": "Four layers, 8 pixels thick",
-        "itemModel": "snow_layer"
+        "itemModel": "snow_layer",
+        "blockModel": "snow_height8"
       },
       {
         "metadata": 4,
         "displayName": "Five layers, 10 pixels thick",
-        "itemModel": "snow_layer"
+        "itemModel": "snow_layer",
+        "blockModel": "snow_height10"
       },
       {
         "metadata": 5,
         "displayName": "Six layers, 12 pixels thick",
-        "itemModel": "snow_layer"
+        "itemModel": "snow_layer",
+        "blockModel": "snow_height12"
       },
       {
         "metadata": 6,
         "displayName": "Seven layers, 14 pixels thick",
-        "itemModel": "snow_layer"
+        "itemModel": "snow_layer",
+        "blockModel": "snow_height14"
       },
       {
         "metadata": 7,
         "displayName": "Eight layers, 16 pixels thick",
-        "itemModel": "snow_layer"
+        "itemModel": "snow_layer",
+        "blockModel": "snow"
       }
     ],
     "drops": [
@@ -2601,7 +2610,19 @@
     "transparent": false,
     "emitLight": 0,
     "filterLight": 15,
-    "resistance": -1
+    "resistance": -1,
+    "variations": [
+      {
+        "metadata": 1,
+        "displayName": "Nether Portal",
+        "blockModel": "portal_ns"
+      },
+      {
+        "metadata": 2,
+        "displayName": "Nether Portal",
+        "blockModel": "portal_ew"
+      }
+    ]
   },
   {
     "id": 91,
@@ -2635,7 +2656,44 @@
     "transparent": true,
     "emitLight": 0,
     "filterLight": 0,
-    "resistance": 0.5
+    "resistance": 0.5,
+    "variations": [
+      {
+        "metadata": 0,
+        "displayName": "Cake",
+        "blockModel": "cake_uneaten"
+      },
+      {
+        "metadata": 1,
+        "displayName": "Cake",
+        "blockModel": "cake_slice1"
+      },
+      {
+        "metadata": 2,
+        "displayName": "Cake",
+        "blockModel": "cake_slice2"
+      },
+      {
+        "metadata": 3,
+        "displayName": "Cake",
+        "blockModel": "cake_slice3"
+      },
+      {
+        "metadata": 4,
+        "displayName": "Cake",
+        "blockModel": "cake_slice4"
+      },
+      {
+        "metadata": 5,
+        "displayName": "Cake",
+        "blockModel": "cake_slice5"
+      },
+      {
+        "metadata": 6,
+        "displayName": "Cake",
+        "blockModel": "cake_slice6"
+      }
+    ]
   },
   {
     "id": 93,
@@ -3453,7 +3511,29 @@
     "transparent": true,
     "emitLight": 0,
     "filterLight": 0,
-    "resistance": 2
+    "resistance": 2,
+    "variations": [
+      {
+        "metadata": 0,
+        "displayName": "Cauldron",
+        "blockModel": "cauldron_empty"
+      },
+      {
+        "metadata": 1,
+        "displayName": "Cauldron",
+        "blockModel": "cauldron_level1"
+      },
+      {
+        "metadata": 2,
+        "displayName": "Cauldron",
+        "blockModel": "cauldron_level2"
+      },
+      {
+        "metadata": 3,
+        "displayName": "Cauldron",
+        "blockModel": "cauldron_level3"
+      }
+    ]
   },
   {
     "id": 119,

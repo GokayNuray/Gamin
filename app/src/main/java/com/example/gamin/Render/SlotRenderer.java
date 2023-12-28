@@ -28,8 +28,8 @@ import java.util.Set;
  */
 @SuppressLint("DiscouragedApi")
 public class SlotRenderer {
-    static Set<Integer> specialBlocks = new HashSet<>(Arrays.asList(2, 53, 64, 71, 193, 194, 195, 196, 197, 67, 104, 105, 108, 109, 114, 128, 134, 135, 136, 156, 163, 180, 85, 113, 188, 189, 190, 191, 192));
-    static Set<Integer> multiStateBlocks = new HashSet<>(Arrays.asList(17, 23, 158, 26, 27, 28, 66, 157, 29, 33, 34, 59, 60, 61, 62, 65, 69, 70, 72, 147, 148, 162, 43, 125, 141, 142, 154, 175, 181));
+    static Set<Integer> specialBlocks = new HashSet<>(Arrays.asList(2, 53, 64, 71, 193, 194, 195, 196, 197, 67, 104, 105, 106, 108, 109, 114, 128, 131, 132, 134, 135, 136, 139, 156, 163, 180, 85, 113, 188, 189, 190, 191, 192));
+    static Set<Integer> multiStateBlocks = new HashSet<>(Arrays.asList(17, 23, 158, 26, 27, 28, 66, 157, 29, 33, 34, 59, 60, 61, 62, 65, 69, 70, 72, 77, 86, 91, 93, 94, 96, 99, 100, 107, 115, 117, 120, 145, 183, 184, 185, 186, 187, 167, 143, 147, 148, 149, 150, 162, 43, 125, 141, 142, 154, 175, 181));
     static Map<String, List<Square>> models = new HashMap<>();
     List<Square> squares = new ArrayList<>();
     float angle = 0;
@@ -173,7 +173,8 @@ public class SlotRenderer {
                     JSONObject element = elements.getJSONObject(i);
 
                     JSONArray jFrom = element.getJSONArray("from");
-                    for (int j = 0; j < jFrom.length(); j++) from[j] = (float) (jFrom.getDouble(j) / 16);
+                    for (int j = 0; j < jFrom.length(); j++)
+                        from[j] = (float) (jFrom.getDouble(j) / 16);
                     JSONArray jTo = element.getJSONArray("to");
                     for (int j = 0; j < jTo.length(); j++) to[j] = (float) (jTo.getDouble(j) / 16);
 
@@ -184,7 +185,8 @@ public class SlotRenderer {
                         JSONObject rotation = element.getJSONObject("rotation");
                         fOrigin = new float[3];
                         JSONArray jOrigin = rotation.getJSONArray("origin");
-                        for (int j = 0; j < jOrigin.length(); j++) fOrigin[j] = (float)(jOrigin.getDouble(j) / 16);
+                        for (int j = 0; j < jOrigin.length(); j++)
+                            fOrigin[j] = (float) (jOrigin.getDouble(j) / 16);
                         rotAngle = rotation.getInt("angle");
                         axis = rotation.getString("axis");
                     }
@@ -251,7 +253,8 @@ public class SlotRenderer {
                                 color2 = color;
                             }
 
-                            if (face.has("rotation")) textureCoords1 = rotateUV(textureCoords1, face.getInt("rotation"));
+                            if (face.has("rotation"))
+                                textureCoords1 = rotateUV(textureCoords1, face.getInt("rotation"));
 
                             String texture1 = element.getJSONObject("faces").getJSONObject(faces[j]).getString("texture");
                             texture1 = texture1.substring(texture1.lastIndexOf("/") + 1);
@@ -663,6 +666,197 @@ public class SlotRenderer {
                 }
                 break;
 
+            //buttons
+            case 77:
+            case 143:
+                type = "stone";
+                if (id == 143) type = "wooden";
+                if ((metadata & 0x08) == 0x08) {
+                    model = "models/block/" + type + "_button_pressed.json";
+                } else {
+                    model = "models/block/" + type + "_button.json";
+                }
+                if ((metadata & 0x07) == 0x00) {
+                    model = model + "amongus" + "flipped";
+                } else if ((metadata & 0x07) == 0x01) {
+                    model = model + "amongus" + "up";
+                    model = model + "amongus" + "angle090";
+                } else if ((metadata & 0x07) == 0x02) {
+                    model = model + "amongus" + "up";
+                    model = model + "amongus" + "angle270";
+                } else if ((metadata & 0x07) == 0x03) {
+                    model = model + "amongus" + "up";
+                } else if ((metadata & 0x07) == 0x04) {
+                    model = model + "amongus" + "up";
+                    model = model + "amongus" + "angle180";
+
+                }
+                break;
+
+            //pumpkin and jack o lantern
+            case 86:
+            case 91:
+                if ((metadata & 0x07) == 0x00) {
+                    model = model + "amongus" + "angle180";
+                } else if ((metadata & 0x07) == 0x01) {
+                    model = model + "amongus" + "angle090";
+                } else if ((metadata & 0x07) == 0x03) {
+                    model = model + "amongus" + "angle270";
+                }
+                break;
+
+            //repeaters TODO locked repeaters
+            case 93:
+            case 94:
+                type = "repeater";
+                if (id == 94) type = "repeater_on";
+                if ((metadata & 12) == 0) {
+                    model = "models/block/" + type + "_1tick.json";
+                } else if ((metadata & 12) == 4) {
+                    model = "models/block/" + type + "_2tick.json";
+                } else if ((metadata & 12) == 8) {
+                    model = "models/block/" + type + "_3tick.json";
+                } else {
+                    model = "models/block/" + type + "_4tick.json";
+                }
+                if ((metadata & 3) == 1) {
+                    model = model + "amongus" + "angle270";
+                } else if ((metadata & 3) == 0) {
+                    model = model + "amongus" + "angle180";
+                } else if ((metadata & 3) == 3) {
+                    model = model + "amongus" + "angle090";
+                }
+                break;
+
+            //trapdoors
+            case 96:
+            case 167:
+                type = "wooden";
+                if (id == 167) type = "iron";
+                if ((metadata & 0x04) == 0x04) {
+                    model = "models/block/" + type + "_trapdoor_open.json";
+                } else if ((metadata & 0x08) == 0x08) {
+                    model = "models/block/" + type + "_trapdoor_top.json";
+                } else {
+                    model = "models/block/" + type + "_trapdoor_bottom.json";
+                }
+                if ((metadata & 0x03) == 0x01) {
+                    model = model + "amongus" + "angle180";
+                } else if ((metadata & 0x03) == 0x02) {
+                    model = model + "amongus" + "angle090";
+                } else if ((metadata & 0x03) == 0x03) {
+                    model = model + "amongus" + "angle270";
+                }
+                break;
+
+            //mushroom blocks
+            case 99:
+            case 100:
+                type = "brown_mushroom_block";
+                if (id == 100) type = "red_mushroom_block";
+
+                if (metadata == 1) model = "models/block/" + type + "_nw.json";
+                else if (metadata == 2) model = "models/block/" + type + "_n.json";
+                else if (metadata == 3) model = "models/block/" + type + "_ne.json";
+                else if (metadata == 4) model = "models/block/" + type + "_w.json";
+                else if (metadata == 5) model = "models/block/" + type + "_c.json";
+                else if (metadata == 6) model = "models/block/" + type + "_e.json";
+                else if (metadata == 7) model = "models/block/" + type + "_sw.json";
+                else if (metadata == 8) model = "models/block/" + type + "_s.json";
+                else if (metadata == 9) model = "models/block/" + type + "_se.json";
+                else if (metadata == 10) model = "models/block/" + type + "_stem.json";
+                else if (metadata == 14) model = "models/block/" + type + "_cap_all.json";
+                else if (metadata == 15) model = "models/block/" + type + "_stem_all.json";
+                else model = "models/block/" + type + "_inside_all.json";
+                break;
+
+            //fence gates TODO connect fences to this
+            case 107:
+            case 183:
+            case 184:
+            case 185:
+            case 186:
+            case 187:
+                type = "oak";
+                if (id == 183) type = "spruce";
+                else if (id == 184) type = "birch";
+                else if (id == 185) type = "jungle";
+                else if (id == 186) type = "dark_oak";
+                else if (id == 187) type = "acacia";
+
+                if ((metadata & 0x04) == 0x04) {
+                    model = "models/block/" + type + "_fence_gate_open.json";
+                } else {
+                    model = "models/block/" + type + "_fence_gate_closed.json";
+                }
+                if ((metadata & 0x03) == 0x02) {
+                    model = model + "amongus" + "angle180";
+                } else if ((metadata & 0x03) == 0x01) {
+                    model = model + "amongus" + "angle270";
+                } else if ((metadata & 0x03) == 0x03) {
+                    model = model + "amongus" + "angle090";
+                }
+                break;
+
+            //nether wart
+            case 115:
+                int stage3 = 0;
+                if (metadata > 0) stage3 = 1;
+                if (metadata > 2) stage3 = 2;
+                model = "models/block/nether_wart_stage" + stage3 + ".json";
+                break;
+
+                //brewing stand
+            case 117:
+                if (metadata == 0) {
+                    model = "models/block/brewing_stand_empty";
+                } else {
+                    model = "models/block/brewing_stand_bottles_";
+                }
+                if ((metadata & 1) == 1) model = model + 1;
+                if ((metadata & 2) == 2) model = model + 2;
+                if ((metadata & 4) == 4) model = model + 3;
+                model = model + ".json";
+                break;
+
+                //end portal frame
+            case 120:
+                if ((metadata & 4) == 4) {
+                    model = "models/block/end_portal_frame_filled.json";
+                } else {
+                    model = "models/block/end_portal_frame_empty.json";
+                }
+                if ((metadata & 3) == 1) {
+                    model = model + "amongus" + "angle090";
+                } else if ((metadata & 3) == 0) {
+                    model = model + "amongus" + "angle180";
+                } else if ((metadata & 3) == 3) {
+                    model = model + "amongus" + "angle270";
+                }
+                break;
+
+            //comparator
+            case 149:
+            case 150:
+                if ((metadata & 8) == 8) {
+                    model = "models/block/comparator_lit";
+                } else {
+                    model = "models/block/comparator_unlit";
+                }
+                if ((metadata & 4) == 4) {
+                    model = model + "_subtract.json";
+                } else {
+                    model = model + ".json";
+                }
+                if ((metadata & 3) == 1) {
+                    model = model + "amongus" + "angle270";
+                } else if ((metadata & 3) == 2) {
+                    model = model + "amongus" + "angle180";
+                } else if ((metadata & 3) == 3) {
+                    model = model + "amongus" + "angle090";
+                }
+                break;
+
             //carrots
             case 141:
                 int stage = 0;
@@ -679,6 +873,24 @@ public class SlotRenderer {
                 if (metadata > 3) stage2 = 2;
                 if (metadata > 6) stage2 = 3;
                 model = "models/block/potatoes_stage" + stage2 + ".json";
+                break;
+
+                //anvil
+            case 145:
+                if ((metadata & 12) == 0) {
+                    model = "models/block/anvil_undamaged.json";
+                } else if ((metadata & 12) == 4) {
+                    model = "models/block/anvil_slightly_damaged.json";
+                } else if ((metadata & 12) == 8) {
+                    model = "models/block/anvil_very_damaged.json";
+                }
+                if ((metadata & 3) == 1) {
+                    model = model + "amongus" + "angle270";
+                } else if ((metadata & 3) == 2) {
+                    model = model + "amongus" + "angle180";
+                } else if ((metadata & 3) == 3) {
+                    model = model + "amongus" + "angle090";
+                }
                 break;
 
             //hoppers
@@ -900,6 +1112,52 @@ public class SlotRenderer {
                     return "models/block/melon_stem_growth" + metadata + ".json";
                 }
 
+                //vines
+            case 106:
+                boolean up = ChunkColumn.getBlockId(x, y + 1, z) != 0;
+                String u = up ? "u" : "";
+                north = (metadata & 4) == 4;
+                west = (metadata & 2) == 2;
+                south = (metadata & 1) == 1;
+                east = (metadata & 8) == 8;
+                sides = new int[4];
+                if (north) sides[0] = 1;
+                if (west) sides[1] = 1;
+                if (south) sides[2] = 1;
+                if (east) sides[3] = 1;
+                sum = sides[0] + sides[1] + sides[2] + sides[3];
+                if (sum == 0)
+                    return "models/block/vine_u.json";
+                else if (sum == 1) {
+                    angle = 180;
+                    for (int i = 0; i < 4; i++) {
+                        if (sides[i] == 1) {
+                            return "models/block/vine_1" + u + ".json";
+                        }
+                        angle += 90;
+                    }
+                } else if (sum == 2) {
+                    for (int i = 0; i < 4; i++) {
+                        if (sides[i] == 1 && sides[(i + 3) % 4] == 1) {
+                            return "models/block/vine_2" + u + ".json";
+                        }
+                        if (sides[i] == 1 && sides[(i + 2) % 4] == 1) {
+                            angle += 90;
+                            return "models/block/vine_2" + u + "_opposite.json";
+                        }
+                        angle += 90;
+                    }
+                } else if (sum == 3) {
+                    angle = 270;
+                    for (int i = 0; i < 4; i++) {
+                        if (sides[i] == 0) {
+                            return "models/block/vine_3" + u + ".json";
+                        }
+                        angle += 90;
+                    }
+                } else if (sum == 4) {
+                    return "models/block/vine_4" + u + ".json";
+                }
                 //doors FIXME hitboxes are broken
             case 64:
             case 71:
@@ -946,6 +1204,118 @@ public class SlotRenderer {
                 } else {
                     return "models/block/" + type + "_door_" + part + ".json";
                 }
+
+                //tripwire hook
+            case 131:
+                type = "tripwire_hook";
+                if ((metadata & 0x04) == 0x04) {
+                    type = type + "_attached";
+                    if (ChunkColumn.getBlockId(x, y -1,z) == 0) type = type + "_suspended";
+                }
+                if ((metadata & 0x08) == 0x08) type = type + "_powered";
+                if ((metadata & 0x03) == 0x01) {
+                    angle = 90;
+                } else if ((metadata & 0x03) == 0x00) {
+                    angle = 180;
+                } else if ((metadata & 0x03) == 0x03) {
+                    angle = 270;
+                }
+                return "models/block/" + type + ".json";
+
+                //tripwire FIXME fix this sometime because i dont caare enough to fix it rn
+            case 132:
+                type = "tripwire";
+                if ((metadata & 0x04) == 0x04) type = type + "_attached";
+                if (ChunkColumn.getBlockId(x, y - 1, z) == 0) type = type + "_suspended";
+                north = ChunkColumn.getBlockId(x, y, z - 1) == -124;
+                west = ChunkColumn.getBlockId(x - 1, y, z) == -124;
+                south = ChunkColumn.getBlockId(x, y, z + 1) == -124;
+                east = ChunkColumn.getBlockId(x + 1, y, z) == -124;
+                sides = new int[4];
+                if (north) sides[0] = 1;
+                if (west) sides[1] = 1;
+                if (south) sides[2] = 1;
+                if (east) sides[3] = 1;
+                sum = sides[0] + sides[1] + sides[2] + sides[3];
+                if (sum == 0) {
+                    return "models/block/" + type + "_ns.json";
+                } else if (sum == 1) {
+                    for (int i = 0; i < 4; i++) {
+                        if (sides[i] == 1) {
+                            return "models/block/" + type + "_n.json";
+                        }
+                        angle += 90;
+                    }
+                } else if (sum == 2) {
+                    for (int i = 0; i < 4; i++) {
+                        if (sides[i] == 1 && sides[(i + 3) % 4] == 1) {
+                            return "models/block/" + type + "_ne.json";
+                        }
+                        if (sides[i] == 1 && sides[(i + 2) % 4] == 1) {
+                            angle += 90;
+                            return "models/block/" + type + "_ns.json";
+                        }
+                        angle += 90;
+                    }
+                } else if (sum == 3) {
+                    angle = 270;
+                    for (int i = 0; i < 4; i++) {
+                        if (sides[i] == 0) {
+                            return "models/block/" + type + "_nse.json";
+                        }
+                        angle += 90;
+                    }
+                } else if (sum == 4) {
+                    return "models/block/" + type + "_nsew.json";
+                }
+
+                //walls
+            case 139:
+                type = "cobblestone";
+                if (metadata == 1) type = "mossy_cobblestone";
+                //similar to fences
+                north = ChunkColumn.getBlockId(x, y, z - 1) != 0;
+                west = ChunkColumn.getBlockId(x - 1, y, z) != 0;
+                south = ChunkColumn.getBlockId(x, y, z + 1) != 0;
+                east = ChunkColumn.getBlockId(x + 1, y, z) != 0;
+                sides = new int[4];
+                if (north) sides[0] = 1;
+                if (west) sides[1] = 1;
+                if (south) sides[2] = 1;
+                if (east) sides[3] = 1;
+                sum = sides[0] + sides[1] + sides[2] + sides[3];
+                if (sum == 0) {
+                    return "models/block/" + type + "_wall_post.json";
+                } else if (sum == 1) {
+                    for (int i = 0; i < 4; i++) {
+                        if (sides[i] == 1) {
+                            return "models/block/" + type + "_wall_n.json";
+                        }
+                        angle += 90;
+                    }
+                } else if (sum == 2) {
+                    for (int i = 0; i < 4; i++) {
+                        if (sides[i] == 1 && sides[(i + 3) % 4] == 1) {
+                            return "models/block/" + type + "_wall_ne.json";
+                        }
+                        if (sides[i] == 1 && sides[(i + 2) % 4] == 1) {
+                            if (ChunkColumn.getBlockId(x, y+1, z) != 0) return "models/block/" + type + "_wall_ns_above.json";
+                            return "models/block/" + type + "_wall_ns.json";
+                        }
+                        angle += 90;
+                    }
+                } else if (sum == 3) {
+                    angle = 270;
+                    for (int i = 0; i < 4; i++) {
+                        if (sides[i] == 0) {
+                            return "models/block/" + type + "_wall_nse.json";
+                        }
+                        angle += 90;
+                    }
+                } else if (sum == 4) {
+                    return "models/block/" + type + "_wall_nsew.json";
+                }
+
 
 
             default:
