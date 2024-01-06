@@ -257,9 +257,7 @@ public class SlotRenderer {
                                 textureCoords1 = rotateUV(textureCoords1, face.getInt("rotation"));
 
                             String texture1 = element.getJSONObject("faces").getJSONObject(faces[j]).getString("texture");
-                            texture1 = texture1.substring(texture1.lastIndexOf("/") + 1);
-                            int textureId1 = context.getResources().getIdentifier(texture1, "drawable", context.getPackageName());
-                            Square square1 = new Square(context, squareCoords1, color2, textureCoords1, textureId1, j);
+                            Square square1 = new Square(context, squareCoords1, color2, textureCoords1, texture1, j);
                             if (element.has("rotation")) {
                                 int rotationAxis = -1;
                                 if (axis.equals("x")) rotationAxis = 0;

@@ -2,29 +2,55 @@ package com.example.gamin.Render;
 
 import android.content.Context;
 
-import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 public class Square {
-    private static final Map<Integer, Integer> textureMap = new HashMap<>();
-    public int mTextureDataHandle;
     public int direction;
     float[] color;
     float[] squareCoords;
     float[] textureCoords;
-    int resId;
+    String resId;
     Context context;
+    List<Float> coords;
+    List<Float> textures;
+    List<Float> colors;
 
-    public Square(Context context, float[] squareCoords, float[] color, float[] textureCoords, int resId, int direction) {
+    public Square(Context context, float[] squareCoords, float[] color, float[] textureCoords, String resId, int direction) {
         this.color = color;
         this.squareCoords = squareCoords;
-        this.textureCoords = textureCoords;
         this.resId = resId;
         this.context = context;
         this.direction = direction;
+        String type = resId.split("/")[0];
+        String name = resId.split("/")[1];
+        float offset = 0;
+        int atlasWidth = 0;
+        int atlasHeight = 0;
+        if (type.equals("blocks")) {
+            assert YourRenderer.blocksAtlas.offsets.containsKey(name + ".png") : "Texture " + name + " not found in blocks atlas";
+            offset = YourRenderer.blocksAtlas.offsets.get(name + ".png");
+            atlasWidth = YourRenderer.blocksAtlas.width;
+            atlasHeight = YourRenderer.blocksAtlas.height;
+            coords = YourRenderer.blockCoords;
+            textures = YourRenderer.blockTextures;
+            colors = YourRenderer.blockColors;
+        } else {
+            offset = YourRenderer.itemsAtlas.offsets.get(name + ".png");
+            atlasWidth = YourRenderer.itemsAtlas.width;
+            atlasHeight = YourRenderer.itemsAtlas.height;
+            coords = YourRenderer.itemCoords;
+            textures = YourRenderer.itemTextures;
+            colors = YourRenderer.itemColors;
+        }
+        this.textureCoords = new float[textureCoords.length];
+        for (int i = 0; i < textureCoords.length; i++) {
+            if (i % 2 == 0) {
+                this.textureCoords[i] = textureCoords[i] * 16 / atlasWidth + offset;
+            } else {
+                this.textureCoords[i] = textureCoords[i] * 16 / atlasHeight;
+            }
+        }
     }
 
     public void render() {
@@ -43,48 +69,23 @@ public class Square {
         System.arraycopy(Arrays.copyOfRange(textureCoords, 4, 8), 0, textures2, 0, 4);
         System.arraycopy(Arrays.copyOfRange(textureCoords, 0, 2), 0, textures2, 4, 2);
 
-
-        if (textureMap.containsKey(resId)) {
-            //noinspection DataFlowIssue
-            mTextureDataHandle = textureMap.get(resId);
-        } else {
-            mTextureDataHandle = YourRenderer.loadTexture(context, resId);
-            textureMap.put(resId, mTextureDataHandle);
+        for (int i = 0; i < 9; i++) {
+            coords.add(coords1[i]);
+        }
+        for (int i = 0; i < 9; i++) {
+            coords.add(coords2[i]);
         }
 
-        List<float[]> list;
-        List<float[]> list2;
-        List<float[]> list3;
-
-        if (YourRenderer.textures.containsKey(mTextureDataHandle)) {
-            list = YourRenderer.coords.get(mTextureDataHandle);
-            System.out.println();
-            assert list != null;
-            list.add(coords1);
-            list.add(coords2);
-
-            list2 = YourRenderer.textures.get(mTextureDataHandle);
-            assert list2 != null;
-            list2.add(textures1);
-            list2.add(textures2);
-
-            list3 = YourRenderer.colors.get(mTextureDataHandle);
-            assert list3 != null;
-            list3.add(squareColors);
-        } else {
-            list = new ArrayList<>();
-            list.add(coords1);
-            list.add(coords2);
-            YourRenderer.coords.put(mTextureDataHandle, list);
-
-            list2 = new ArrayList<>();
-            list2.add(textures1);
-            list2.add(textures2);
-            YourRenderer.textures.put(mTextureDataHandle, list2);
-
-            list3 = new ArrayList<>();
-            list3.add(squareColors);
-            YourRenderer.colors.put(mTextureDataHandle, list3);
+        for (int i = 0; i < 6; i++) {
+            textures.add(textures1[i]);
         }
+        for (int i = 0; i < 6; i++) {
+            textures.add(textures2[i]);
+        }
+
+        for (int i = 0; i < 24; i++) {
+            colors.add(squareColors[i]);
+        }
+
     }
 }

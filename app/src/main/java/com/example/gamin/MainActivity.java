@@ -107,6 +107,7 @@ public class MainActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         try {
+            YourRenderer.loadTextures(getApplicationContext());
             Slot.loadAssetData(getApplicationContext());
             Collision.loadCollisionData(getApplicationContext());
         } catch (IOException | JSONException e) {
