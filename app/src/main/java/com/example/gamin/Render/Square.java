@@ -1,90 +1,86 @@
 package com.example.gamin.Render;
 
-import android.content.Context;
-
 import java.util.Arrays;
-import java.util.List;
 
 public class Square {
     public int direction;
-    float[] color;
-    float[] squareCoords;
-    float[] textureCoords;
-    String resId;
-    Context context;
-    List<Float> coords;
-    List<Float> textures;
-    List<Float> colors;
+    public float[] squareCoords;
+    float[] squareColors;
+    float[] coords1;
+    float[] coords2;
+    float[] textures1;
+    float[] textures2;
+    TextureAtlas atlas;
 
-    public Square(Context context, float[] squareCoords, float[] color, float[] textureCoords, String resId, int direction) {
-        this.color = color;
+    public Square(float[] squareCoords, float[] color, float[] textureCoords, TextureAtlas atlas, int direction) {
         this.squareCoords = squareCoords;
-        this.resId = resId;
-        this.context = context;
         this.direction = direction;
-        String type = resId.split("/")[0];
-        String name = resId.split("/")[1];
-        float offset = 0;
-        int atlasWidth = 0;
-        int atlasHeight = 0;
-        if (type.equals("blocks")) {
-            assert YourRenderer.blocksAtlas.offsets.containsKey(name + ".png") : "Texture " + name + " not found in blocks atlas";
-            offset = YourRenderer.blocksAtlas.offsets.get(name + ".png");
-            atlasWidth = YourRenderer.blocksAtlas.width;
-            atlasHeight = YourRenderer.blocksAtlas.height;
-            coords = YourRenderer.blockCoords;
-            textures = YourRenderer.blockTextures;
-            colors = YourRenderer.blockColors;
-        } else {
-            offset = YourRenderer.itemsAtlas.offsets.get(name + ".png");
-            atlasWidth = YourRenderer.itemsAtlas.width;
-            atlasHeight = YourRenderer.itemsAtlas.height;
-            coords = YourRenderer.itemCoords;
-            textures = YourRenderer.itemTextures;
-            colors = YourRenderer.itemColors;
-        }
-        this.textureCoords = new float[textureCoords.length];
-        for (int i = 0; i < textureCoords.length; i++) {
-            if (i % 2 == 0) {
-                this.textureCoords[i] = textureCoords[i] * 16 / atlasWidth + offset;
-            } else {
-                this.textureCoords[i] = textureCoords[i] * 16 / atlasHeight;
-            }
-        }
-    }
+        this.atlas = atlas;
 
-    public void render() {
-        float[] squareColors = new float[24];
+        squareColors = new float[24];
         for (int i = 0; i < 6; i++) {
             System.arraycopy(color, 0, squareColors, i * 4, 4);
         }
 
-        float[] coords1 = Arrays.copyOfRange(squareCoords, 0, 9);
-        float[] coords2 = new float[9];
-        System.arraycopy(Arrays.copyOfRange(squareCoords, 6, 12), 0, coords2, 0, 6);
-        System.arraycopy(Arrays.copyOfRange(squareCoords, 0, 3), 0, coords2, 6, 3);
+        splitCoords();
 
-        float[] textures1 = Arrays.copyOfRange(textureCoords, 0, 6);
-        float[] textures2 = new float[6];
+        textures1 = Arrays.copyOfRange(textureCoords, 0, 6);
+        textures2 = new float[6];
         System.arraycopy(Arrays.copyOfRange(textureCoords, 4, 8), 0, textures2, 0, 4);
         System.arraycopy(Arrays.copyOfRange(textureCoords, 0, 2), 0, textures2, 4, 2);
+    }
+    public Square(float[] coords1, float[] coords2, float[] textures1, float[] textures2, float[] squareColors, TextureAtlas atlas, int direction) {
+        this.coords1 = coords1;
+        this.coords2 = coords2;
+        this.textures1 = textures1;
+        this.textures2 = textures2;
+        this.squareColors = squareColors;
+        this.atlas = atlas;
+        this.direction = direction;
+        this.squareCoords = new float[12];
+        System.arraycopy(coords1, 0, squareCoords, 0, 9);
+        System.arraycopy(coords2, 3, squareCoords, 9, 3);
+    }
+
+    public void splitCoords() {
+        coords1 = Arrays.copyOfRange(squareCoords, 0, 9);
+        coords2 = new float[9];
+        System.arraycopy(Arrays.copyOfRange(squareCoords, 6, 12), 0, coords2, 0, 6);
+        System.arraycopy(Arrays.copyOfRange(squareCoords, 0, 3), 0, coords2, 6, 3);
+    }
+
+    public Square copy() {
+        float[] coords1 = new float[9];
+        float[] coords2 = new float[9];
+        float[] textures1 = new float[6];
+        float[] textures2 = new float[6];
+        float[] squareColors = new float[24];
+        System.arraycopy(this.coords1, 0, coords1, 0, 9);
+        System.arraycopy(this.coords2, 0, coords2, 0, 9);
+        System.arraycopy(this.textures1, 0, textures1, 0, 6);
+        System.arraycopy(this.textures2, 0, textures2, 0, 6);
+        System.arraycopy(this.squareColors, 0, squareColors, 0, 24);
+        return new Square(coords1, coords2, textures1, textures2, squareColors, atlas, direction);
+    }
+
+    public void render() {
 
         for (int i = 0; i < 9; i++) {
-            coords.add(coords1[i]);
+            atlas.coords.add(coords1[i]);
         }
         for (int i = 0; i < 9; i++) {
-            coords.add(coords2[i]);
+            atlas.coords.add(coords2[i]);
         }
 
         for (int i = 0; i < 6; i++) {
-            textures.add(textures1[i]);
+            atlas.textures.add(textures1[i]);
         }
         for (int i = 0; i < 6; i++) {
-            textures.add(textures2[i]);
+            atlas.textures.add(textures2[i]);
         }
 
         for (int i = 0; i < 24; i++) {
-            colors.add(squareColors[i]);
+            atlas.colors.add(squareColors[i]);
         }
 
     }

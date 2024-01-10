@@ -15,15 +15,13 @@ import com.example.gamin.Minecraft.ChunkColumn;
 import com.example.gamin.R;
 import com.example.gamin.Utils.PacketUtils;
 
-import org.json.JSONException;
-
 import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 import java.nio.FloatBuffer;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 
 import javax.microedition.khronos.egl.EGLConfig;
@@ -37,26 +35,16 @@ public class YourRenderer implements GLSurfaceView.Renderer {
     public static int colorHandle;
     public static int mTextureUniformHandle;
     public static int mTextureCoordinateHandle;
-    public static List<Float> blockCoords = new ArrayList<>();
-    public static List<Float> blockTextures = new ArrayList<>();
-    public static List<Float> blockColors = new ArrayList<>();
-    public static List<Float> itemCoords = new ArrayList<>();
-    public static List<Float> itemTextures = new ArrayList<>();
-    public static List<Float> itemColors = new ArrayList<>();
     private final float[] projectionMatrix = new float[16];
     private final float[] projectionMatrix2 = new float[16];
     private final float[] viewMatrix = new float[16];
     private final float[] viewMatrix2 = new float[16];
     public String newSlot = "crafting_table.json";
     Context context;
-    float[] color = {1.0f, 1.0f, 1.0f, 1.0f};
     long startTime = System.nanoTime();
     int frames = 0;
     private float ratio;
-    public static TextureAtlas blocksAtlas;
-    public static TextureAtlas itemsAtlas;
-    public static int blocksTextureHandle;
-    public static int itemsTextureHandle;
+    public static int fps = 0;
 
     public YourRenderer(Context context) {
         this.context = context;
@@ -70,8 +58,10 @@ public class YourRenderer implements GLSurfaceView.Renderer {
     }
 
     public static void loadTextures(Context context) throws IOException {
-        blocksAtlas = compressTextures(context, "textures/blocks/");
-        itemsAtlas = compressTextures(context, "textures/items/");
+        String[] paths = {"blocks", "items"};
+        for (String path : paths) {
+            TextureAtlas.atlases.put(path, compressTextures(context, "textures/" + path + "/"));
+        }
     }
 
     public static TextureAtlas compressTextures(Context context, String path) throws IOException {
@@ -120,7 +110,7 @@ public class YourRenderer implements GLSurfaceView.Renderer {
         return textureHandle[0];
     }
 
-    public static int loadTexture(Context context, Bitmap bitmap) {
+    public static int loadTexture(Bitmap bitmap) {
         final int[] textureHandle = new int[1];
         GLES20.glGenTextures(1, textureHandle, 0);
         final BitmapFactory.Options options = new BitmapFactory.Options();
@@ -164,6 +154,13 @@ public class YourRenderer implements GLSurfaceView.Renderer {
         GLES20.glBlendFunc(GLES20.GL_SRC_ALPHA, GLES20.GL_ONE_MINUS_SRC_ALPHA);
         GLES20.glDepthFunc(GLES20.GL_LEQUAL);
         GLES20.glDepthMask(true);
+        //face culling should improve performance but it drops fps from 40 to 35 but why? it should improve performance not drop it :(
+        /*//enable face culling
+        GLES20.glEnable(GLES20.GL_CULL_FACE);
+        //specify which faces to not draw
+        GLES20.glCullFace(GLES20.GL_BACK);
+        //specify the front face
+        GLES20.glFrontFace(GLES20.GL_CCW);*/
         String vertexShaderCode = "uniform mat4 u_MVPMatrix;" +
                 "attribute vec4 a_Position;" +
                 "attribute vec4 a_Color;" +
@@ -198,10 +195,10 @@ public class YourRenderer implements GLSurfaceView.Renderer {
         mTextureUniformHandle = GLES20.glGetUniformLocation(YourRenderer.mProgram, "u_Texture");
         mTextureCoordinateHandle = GLES20.glGetAttribLocation(YourRenderer.mProgram, "a_TexCoordinate");
 
-        Bitmap bitmap = blocksAtlas.bitmap;
-        blocksTextureHandle = loadTexture(context, bitmap);
-        Bitmap bitmap2 = itemsAtlas.bitmap;
-        itemsTextureHandle = loadTexture(context, bitmap2);
+        TextureAtlas.atlases.values().forEach(atlas -> {
+            Bitmap bitmap = atlas.bitmap;
+            atlas.textureHandle = loadTexture(bitmap);
+        });
     }
 
     @Override
@@ -240,24 +237,26 @@ public class YourRenderer implements GLSurfaceView.Renderer {
         Matrix.setLookAtM(viewMatrix2, 0, 0, 0, 0, 0, 0, -1, 0, 10, 0);
         Matrix.multiplyMM(scratch2, 0, projectionMatrix2, 0, viewMatrix2, 0);
 
-        for (int dx = -15; dx < 15; dx++) {
+
+        /*for (int dx = -15; dx < 15; dx++) {
             for (int dy = -45; dy < 45; dy++) {
                 for (int dz = -15; dz < 15; dz++) {
                     short block = ChunkColumn.getBlock((int) PacketUtils.x + dx, (int) PacketUtils.y + dy, (int) PacketUtils.z + dz);
-                    if (block != 0/* && (int) PacketUtils.x != 616*/) {
+                    if (block != 0) {
                         try {
-                            new SlotRenderer(context, color, ChunkColumn.getBlockId(block), ChunkColumn.getBlockMetaData(block), 1, (int) PacketUtils.x + dx, (int) PacketUtils.y + dy, (int) PacketUtils.z + dz);
-                        } catch (IOException | JSONException e) {
+                            SlotRenderer slotRenderer = new SlotRenderer(context, ChunkColumn.getBlockId(block), ChunkColumn.getBlockMetaData(block), 1, (int) PacketUtils.x + dx, (int) PacketUtils.y + dy, (int) PacketUtils.z + dz);
+                            slotRenderer.render();
+                            } catch (IOException | JSONException e) {
                             System.out.println("crush " + ChunkColumn.getBlockId(block) + " " + ChunkColumn.getBlockMetaData(block));
                             throw new RuntimeException(e);
                         }
                     }
                 }
             }
-        }
+        }*/
 
-        rendsera(context, blockCoords, blockTextures, blockColors, blocksTextureHandle);
-        rendsera(context, itemCoords, itemTextures, itemColors, itemsTextureHandle);
+        renderChunks();
+        //rendsera(TextureAtlas.atlases.get("items"));
 
         GLES20.glUniformMatrix4fv(vPMatrixHandle, 1, false, scratch2, 0);
         //System.out.println("ratio: " + ratio);//0.625
@@ -321,6 +320,7 @@ public class YourRenderer implements GLSurfaceView.Renderer {
 
         if (System.nanoTime() - startTime > 1000000000) {
             Log.d("FPS", "fps: " + frames);
+            fps = frames;
             frames = 0;
             startTime = System.nanoTime();
         } else {
@@ -328,24 +328,24 @@ public class YourRenderer implements GLSurfaceView.Renderer {
         }
     }
 
-    public static void rendsera(Context context, List<Float> coords, List<Float> textures, List<Float> colors, int textureHandle) {
-        GLES20.glBindTexture(GLES20.GL_TEXTURE_2D, textureHandle);
+    public void rendsera(TextureAtlas atlas) {
+        GLES20.glBindTexture(GLES20.GL_TEXTURE_2D, atlas.textureHandle);
 
-        FloatBuffer colorBuffer = ByteBuffer.allocateDirect(colors.size() * 4).order(ByteOrder.nativeOrder()).asFloatBuffer();
-        FloatBuffer coordsBuffer = ByteBuffer.allocateDirect(coords.size() * 4).order(ByteOrder.nativeOrder()).asFloatBuffer();
-        FloatBuffer textureBuffer = ByteBuffer.allocateDirect(textures.size() * 4).order(ByteOrder.nativeOrder()).asFloatBuffer();
+        FloatBuffer colorBuffer = ByteBuffer.allocateDirect(atlas.colors.size() * 4).order(ByteOrder.nativeOrder()).asFloatBuffer();
+        FloatBuffer coordsBuffer = ByteBuffer.allocateDirect(atlas.coords.size() * 4).order(ByteOrder.nativeOrder()).asFloatBuffer();
+        FloatBuffer textureBuffer = ByteBuffer.allocateDirect(atlas.textures.size() * 4).order(ByteOrder.nativeOrder()).asFloatBuffer();
 
-        for (float f : coords) {
+        for (float f : atlas.coords) {
             coordsBuffer.put(f);
         }
         coordsBuffer.position(0);
 
-        for (float f : textures) {
+        for (float f : atlas.textures) {
             textureBuffer.put(f);
         }
         textureBuffer.position(0);
 
-        for (float f : colors) {
+        for (float f : atlas.colors) {
             colorBuffer.put(f);
         }
         colorBuffer.position(0);
@@ -359,11 +359,57 @@ public class YourRenderer implements GLSurfaceView.Renderer {
         GLES20.glEnableVertexAttribArray(YourRenderer.mTextureCoordinateHandle);
         GLES20.glVertexAttribPointer(YourRenderer.mTextureCoordinateHandle, 2, GLES20.GL_FLOAT, false, 0, textureBuffer);
 
-        GLES20.glDrawArrays(GLES20.GL_TRIANGLES, 0, coords.size() / 3);
+        GLES20.glDrawArrays(GLES20.GL_TRIANGLES, 0, atlas.coords.size() / 3);
 
-        coords.clear();
-        textures.clear();
-        colors.clear();
+        atlas.coords.clear();
+        atlas.textures.clear();
+        atlas.colors.clear();
 
+    }
+
+    public void renderChunks() {
+        GLES20.glBindTexture(GLES20.GL_TEXTURE_2D, TextureAtlas.atlases.get("blocks").textureHandle);
+
+        Collection<ChunkColumn> chunkss = PacketUtils.chunkColumnMap.values();
+        Collection<ChunkColumn> chunks = new ArrayList<>(chunkss);
+        int squareCount = 0;
+        for (ChunkColumn chunk : chunks) {
+            synchronized (chunk) {
+                squareCount += chunk.squareCount;
+            }
+        }
+
+        FloatBuffer coordsBuffer = ByteBuffer.allocateDirect(squareCount * 6 * 3 * 4).order(ByteOrder.nativeOrder()).asFloatBuffer();
+        FloatBuffer colorsBuffer = ByteBuffer.allocateDirect(squareCount * 6 * 4 * 4).order(ByteOrder.nativeOrder()).asFloatBuffer();
+        FloatBuffer texturesBuffer = ByteBuffer.allocateDirect(squareCount * 6 * 2 * 4).order(ByteOrder.nativeOrder()).asFloatBuffer();
+
+        for (ChunkColumn chunk : chunks) {
+            if (!chunk.isLoaded || chunk.coordsBuffer == null) {
+                continue;
+            }
+            synchronized (chunk) {
+                coordsBuffer.put(chunk.coordsBuffer);
+                colorsBuffer.put(chunk.colorsBuffer);
+                texturesBuffer.put(chunk.texturesBuffer);
+                chunk.coordsBuffer.position(0);
+                chunk.colorsBuffer.position(0);
+                chunk.texturesBuffer.position(0);
+            }
+        }
+
+        coordsBuffer.position(0);
+        colorsBuffer.position(0);
+        texturesBuffer.position(0);
+
+        GLES20.glEnableVertexAttribArray(YourRenderer.colorHandle);
+        GLES20.glVertexAttribPointer(YourRenderer.colorHandle, 4, GLES20.GL_FLOAT, false, 0, colorsBuffer);
+
+        GLES20.glEnableVertexAttribArray(YourRenderer.positionHandle);
+        GLES20.glVertexAttribPointer(YourRenderer.positionHandle, 3, GLES20.GL_FLOAT, false, 0, coordsBuffer);
+
+        GLES20.glEnableVertexAttribArray(YourRenderer.mTextureCoordinateHandle);
+        GLES20.glVertexAttribPointer(YourRenderer.mTextureCoordinateHandle, 2, GLES20.GL_FLOAT, false, 0, texturesBuffer);
+
+        GLES20.glDrawArrays(GLES20.GL_TRIANGLES, 0, squareCount * 6);
     }
 }

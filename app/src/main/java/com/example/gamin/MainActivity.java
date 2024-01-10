@@ -3,6 +3,7 @@ package com.example.gamin;
 import android.annotation.SuppressLint;
 import android.opengl.GLSurfaceView;
 import android.os.Bundle;
+import android.os.StrictMode;
 import android.text.method.ScrollingMovementMethod;
 import android.view.MotionEvent;
 import android.view.View;
@@ -106,6 +107,7 @@ public class MainActivity extends AppCompatActivity {
     @SuppressLint({"SetTextI18n", "DiscouragedApi", "ClickableViewAccessibility"})
     @Override
     protected void onCreate(Bundle savedInstanceState) {
+        StrictMode.setVmPolicy(new StrictMode.VmPolicy.Builder().detectLeakedClosableObjects().penaltyLog().build());
         try {
             YourRenderer.loadTextures(getApplicationContext());
             Slot.loadAssetData(getApplicationContext());
@@ -315,13 +317,6 @@ public class MainActivity extends AppCompatActivity {
             respawnButton.setOnClickListener(view14 -> {
                 PacketUtils.motionY = 0;
                 PacketUtils.write((byte) 0x16, Collections.singletonList((byte) 0), PacketUtils.isPremium);
-                try {
-                    long d1 = System.currentTimeMillis();
-                    System.out.println(Arrays.toString(Collision.calculateMovement(615.5, 1.5, -169.5, 1, 1)));
-                    System.out.println("cczx" + (System.currentTimeMillis() - d1));
-                } catch (JSONException e) {
-                    throw new RuntimeException(e);
-                }
             });
 
             @SuppressLint("UseSwitchCompatOrMaterialCode") Switch toggleSprint = findViewById(R.id.toggleSprint);
@@ -449,6 +444,7 @@ public class MainActivity extends AppCompatActivity {
                                         }
                                     });
                                 }
+                                inflater.end();
 
                             } else {
                                 byte packetid = is.readByte();
@@ -456,7 +452,6 @@ public class MainActivity extends AppCompatActivity {
                                 if (packetid == packetlen && packetid == 3) {
                                     compression = VarInt.readVarInt(new ByteArrayInputStream(packetdata));
                                     PacketUtils.isCompressed = true;
-                                    System.out.println(compression);
                                 }
                                 runOnUiThread(() -> {
                                     try {
@@ -599,7 +594,7 @@ public class MainActivity extends AppCompatActivity {
                         runOnUiThread(() -> {
                             textViewX.setText("X:" + PacketUtils.x + " Yaw:" + PacketUtils.x_rot);
                             textViewY.setText("Y:" + PacketUtils.y + " Pitch:" + PacketUtils.y_rot);
-                            textViewZ.setText("Z:" + PacketUtils.z);
+                            textViewZ.setText("Z:" + PacketUtils.z + " FPS:" + YourRenderer.fps);
                         });
 
                     }

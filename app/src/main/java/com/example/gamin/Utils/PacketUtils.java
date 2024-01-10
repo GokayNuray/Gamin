@@ -98,7 +98,6 @@ public final class PacketUtils extends AppCompatActivity {
 
         if (jump && isOnGround) {//TODO water and lava jumping and maybe add jumpticks and head collision
             motionY = 0.42D;
-            System.out.println("jump");
             float f = x_rot * 0.017453292F; //toRadians
             if (canSprint) {
                 motionX -= Math.sin(f) * 0.2F;
@@ -331,6 +330,8 @@ public final class PacketUtils extends AppCompatActivity {
                     }
                 }
                 chunkColumnMap.put(chunkColumn21.pos, chunkColumn21);
+                chunkColumn21.setRenders(glSurfaceView.getContext(), chunkX21, chunkZ21);
+                ChunkColumn.setUpdatedBuffers();
             }
 
             break;
@@ -346,12 +347,11 @@ public final class PacketUtils extends AppCompatActivity {
                     byte vertPos = dataStream22.readByte();
                     int relativeX = (horizPos >> 4);
                     int relativeZ = (horizPos & 0x0F);
-                    System.out.println(horizPos + " " + vertPos + " " + relativeX + " " + relativeZ);
                     short blockraw = (short)VarInt.readVarInt(dataStream22);
                     short block = (short) ((blockraw & 255) << 8 | (blockraw >> 8));
-                    System.out.println(chunkX22 * 16 + relativeX + " " + vertPos + " " + chunkZ22 * 16 + relativeZ + " " + block);
-                    ChunkColumn.setBlock(chunkX22 * 16 + relativeX, vertPos, chunkZ22 * 16 + relativeZ, block);
+                    ChunkColumn.setBlock(glSurfaceView.getContext(), chunkX22 * 16 + relativeX, vertPos, chunkZ22 * 16 + relativeZ, block);
                 }
+                ChunkColumn.setUpdatedBuffers();
             }
             break;
             case 0x23://block change
@@ -364,11 +364,13 @@ public final class PacketUtils extends AppCompatActivity {
                 long BlockZ = (blockPos << 38) >> 38;
                 short blockraw = (short)VarInt.readVarInt(dataStream23);
                 short block = (short) ((blockraw & 255) << 8 | (blockraw >> 8));
-                ChunkColumn.setBlock((int) BlockX, (int) BlockY, (int) BlockZ, block);
+                ChunkColumn.setBlock(glSurfaceView.getContext(), (int) BlockX, (int) BlockY, (int) BlockZ, block);
+                ChunkColumn.setUpdatedBuffers();
             }
             break;
             case 0x26://multiple chunks
             {
+                long time = System.currentTimeMillis();
                 ByteArrayInputStream datastream26 = new ByteArrayInputStream(data);
                 DataInputStream dataStream26 = new DataInputStream(datastream26);
                 boolean skylight = dataStream26.readBoolean();
@@ -397,12 +399,14 @@ public final class PacketUtils extends AppCompatActivity {
                         }
                     }
                     chunkColumnMap.put(chunkColumns[i].pos, chunkColumns[i]);
+                    chunkColumns[i].setRenders(glSurfaceView.getContext(), (int) (chunkColumns[i].pos >> 32), (int) (chunkColumns[i].pos & 0xffffffffL));
                     if (skylight) {
                         dataStream26.skipBytes(chunkCount * 2048);
                     }
                     dataStream26.skipBytes(chunkCount * 2048);
                     dataStream26.skipBytes(256);
                 }
+                ChunkColumn.setUpdatedBuffers();
             }
             break;
             case 0x2D://open Window

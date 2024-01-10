@@ -14,6 +14,9 @@ import org.json.JSONObject;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.nio.ByteBuffer;
+import java.nio.ByteOrder;
+import java.nio.FloatBuffer;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -31,11 +34,37 @@ public class SlotRenderer {
     static Set<Integer> specialBlocks = new HashSet<>(Arrays.asList(2, 53, 64, 71, 193, 194, 195, 196, 197, 67, 104, 105, 106, 108, 109, 114, 128, 131, 132, 134, 135, 136, 139, 156, 163, 180, 85, 113, 188, 189, 190, 191, 192));
     static Set<Integer> multiStateBlocks = new HashSet<>(Arrays.asList(17, 23, 158, 26, 27, 28, 66, 157, 29, 33, 34, 59, 60, 61, 62, 65, 69, 70, 72, 77, 86, 91, 93, 94, 96, 99, 100, 107, 115, 117, 120, 145, 183, 184, 185, 186, 187, 167, 143, 147, 148, 149, 150, 162, 43, 125, 141, 142, 154, 175, 181));
     static Map<String, List<Square>> models = new HashMap<>();
-    List<Square> squares = new ArrayList<>();
+    public List<Square> squares = new ArrayList<>();
+    public FloatBuffer coordsBuffer;
+    public FloatBuffer colorsBuffer;
+    public FloatBuffer texturesBuffer;
     float angle = 0;
     boolean upsideDown = false;
+    Context context;
+    short id;
+    byte metadata;
+    int type;
+    int x;
+    int y;
+    int z;
 
-    public SlotRenderer(Context context, float[] color, short id, byte metadata, int type, int x, int y, int z) throws IOException, JSONException {
+    public SlotRenderer update() {
+        if (!specialBlocks.contains((int) id)) return null;
+        try {
+            return new SlotRenderer(context, id, metadata, type, x, y, z);
+        } catch (IOException | JSONException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    public SlotRenderer(Context context, short id, byte metadata, int type, int x, int y, int z) throws IOException, JSONException {
+        this.context = context;
+        this.id = id;
+        this.metadata = metadata;
+        this.type = type;
+        this.x = x;
+        this.y = y;
+        this.z = z;
         String model;
         float modelAngle = 0;
         float modelXAngle = 0;
@@ -96,6 +125,7 @@ public class SlotRenderer {
         }
         if (!models.containsKey(model + id + " " + metadata)) {
             InputStream is;
+            List<Square> modelSquares = new ArrayList<>();
             String newModel = model;
             try {
                 context.getAssets().open(model).close();
@@ -149,11 +179,9 @@ public class SlotRenderer {
                         int j = object.indexOf("\"", i);
                         String newString;
                         if (textures != null) {
-
                             if (textures.has(object.substring(i + 1, j))) {
                                 newString = textures.getString(object.substring(i + 1, j));
                             } else {
-                                if (id == 34) System.out.println(textures);
                                 newString = jsonObject.getJSONObject("textures").getString(object.substring(i + 1, j));
                             }
                         } else {
@@ -250,14 +278,31 @@ public class SlotRenderer {
                             if (face.has("tintindex")) {
                                 color2 = new float[]{0.0f, 1.0f, 0.0f, 1.0f};
                             } else {
-                                color2 = color;
+                                color2 = new float[]{1.0f, 1.0f, 1.0f, 1.0f};
                             }
 
                             if (face.has("rotation"))
                                 textureCoords1 = rotateUV(textureCoords1, face.getInt("rotation"));
 
                             String texture1 = element.getJSONObject("faces").getJSONObject(faces[j]).getString("texture");
-                            Square square1 = new Square(context, squareCoords1, color2, textureCoords1, texture1, j);
+                            String textureType = texture1.split("/")[0];
+                            String textureName = texture1.split("/")[1];
+                            TextureAtlas atlas = TextureAtlas.atlases.get(textureType);
+                            assert atlas != null : "Atlas is null: " + textureType;
+                            assert atlas.offsets.containsKey(textureName + ".png") : "Texture " + textureName + " not found in " + textureType + " atlas";
+                            float offset = atlas.offsets.get(textureName + ".png");
+                            int atlasWidth = atlas.width;
+                            int atlasHeight = atlas.height;
+                            float[] textureCoords2 = new float[textureCoords1.length];
+                            for (int k = 0; k < textureCoords1.length; k++) {
+                                if (k % 2 == 0) {
+                                    textureCoords2[k] = textureCoords1[k] * 16 / atlasWidth + offset;
+                                } else {
+                                    textureCoords2[k] = textureCoords1[k] * 16 / atlasHeight;
+                                }
+                            }
+
+                            Square square1 = new Square(squareCoords1, color2, textureCoords2, atlas, j);
                             if (element.has("rotation")) {
                                 int rotationAxis = -1;
                                 if (axis.equals("x")) rotationAxis = 0;
@@ -265,80 +310,98 @@ public class SlotRenderer {
                                 if (axis.equals("z")) rotationAxis = 2;
                                 assert rotationAxis != -1;
                                 rotateSquare(square1, rotAngle, rotationAxis, fOrigin[0], fOrigin[1], fOrigin[2]);
+                                square1.splitCoords();
                             }
-                            squares.add(square1);
+                            modelSquares.add(square1);
                         }
                     }
                 }
             }
             if (modelXAngle != 0) {
                 int[] xRotationsTable = {4, 1, 5, 3, 2, 0};
-                for (Square square : squares) {
+                for (Square square : modelSquares) {
                     rotateSquare(square, modelXAngle, 0, 0.5f, 0.5f, 0.5f);
+                    square.splitCoords();
                     for (float i = modelXAngle; i > 0; i -= 90)
                         square.direction = xRotationsTable[square.direction];
                 }
             }
             if (modelAngle != 0)
-                for (Square square : squares) {
+                for (Square square : modelSquares) {
                     rotateSquare(square, modelAngle, 1, 0.5f, 0.5f, 0.5f);
+                    square.splitCoords();
                     if (square.direction < 4)
                         square.direction = (square.direction + ((int) modelAngle) / 90) % 4;
                 }
-            models.put(model + id + " " + metadata, squares);
+            models.put(model + id + " " + metadata, modelSquares);
         }
 
-        for (Square square : Objects.requireNonNull(models.get(model + id + " " + metadata))
+        for (Square modelSquare : Objects.requireNonNull(models.get(model + id + " " + metadata))
         ) {
-            float[] old = square.squareCoords;
+            Square square = modelSquare.copy();
             if (angle != 0) {
                 rotateSquare(square, angle, 1, 0.5f, 0.5f, 0.5f);
+                square.splitCoords();
             }
             if (upsideDown) {
                 flipSquare(square);
+                square.splitCoords();
             }
-            float[] newCoords = addCoordinates(square.squareCoords, x, y, z);
-            int newDirection = square.direction;
-            if (newDirection < 4) newDirection = (newDirection + ((int) angle) / 90) % 4;
-            if (upsideDown && (square.direction > 3)) newDirection = (newDirection + 1) % 2 + 4;
+            addCoordinates(square.coords1, x, y, z);
+            addCoordinates(square.coords2, x, y, z);
+            if (square.direction < 4)
+                square.direction = (square.direction + ((int) angle) / 90) % 4;
+            if (upsideDown && (square.direction > 3))
+                square.direction = (square.direction + 1) % 2 + 4;
+            squares.add(square);
+        }
+        coordsBuffer = ByteBuffer.allocateDirect(squares.size() * 6 * 3 * 4).order(ByteOrder.nativeOrder()).asFloatBuffer();
+        colorsBuffer = ByteBuffer.allocateDirect(squares.size() * 6 * 4 * 4).order(ByteOrder.nativeOrder()).asFloatBuffer();
+        texturesBuffer = ByteBuffer.allocateDirect(squares.size() * 6 * 2 * 4).order(ByteOrder.nativeOrder()).asFloatBuffer();
+        for (Square square : squares) {
+            coordsBuffer.put(square.coords1);
+            coordsBuffer.put(square.coords2);
+            colorsBuffer.put(square.squareColors);
+            texturesBuffer.put(square.textures1);
+            texturesBuffer.put(square.textures2);
+        }
+        coordsBuffer.position(0);
+        colorsBuffer.position(0);
+        texturesBuffer.position(0);
+    }
 
+    public void render() {
+        for (Square square : squares) {
 
             //skip rendering if the square is not visible
-            boolean doNotRender = false;
-            switch (newDirection) {
+            switch (square.direction) {
                 //north
                 case 0:
-                    if (PacketUtils.z > newCoords[2]) doNotRender = true;
+                    if (PacketUtils.z > square.coords1[2]) continue;
                     break;
                 //west
                 case 1:
-                    if (PacketUtils.x > newCoords[0]) doNotRender = true;
+                    if (PacketUtils.x > square.coords1[0]) continue;
                     break;
                 //south
                 case 2:
-                    if (PacketUtils.z < newCoords[2]) doNotRender = true;
+                    if (PacketUtils.z < square.coords1[2]) continue;
                     break;
                 //east
                 case 3:
-                    if (PacketUtils.x < newCoords[0]) doNotRender = true;
+                    if (PacketUtils.x < square.coords1[0]) continue;
                     break;
                 //up
                 case 4:
-                    if (PacketUtils.y + 1.62 < newCoords[1]) doNotRender = true;
+                    if (PacketUtils.y + 1.62 < square.coords1[1]) continue;
                     break;
                 //down
                 case 5:
-                    if (PacketUtils.y + 1.62 > newCoords[1]) doNotRender = true;
+                    if (PacketUtils.y + 1.62 > square.coords1[1]) continue;
                     break;
             }
-            if (doNotRender) {
-                square.squareCoords = old;
-                continue;
-            }
-            square.squareCoords = newCoords;
 
             square.render();
-            square.squareCoords = old;
         }
     }
 
@@ -432,23 +495,21 @@ public class SlotRenderer {
         return result;
     }
 
-    static float[] addCoordinates(float[] old, float x, float y, float z) {
-        float[] newCoords = new float[old.length];
-        for (int i = 0; i < old.length; i++) {
+    static void addCoordinates(float[] in, float x, float y, float z) {
+        for (int i = 0; i < in.length; i++) {
             int a = i % 3;
             switch (a) {
                 case 0:
-                    newCoords[i] = old[i] + x;
+                    in[i] = in[i] + x;
                     break;
                 case 1:
-                    newCoords[i] = old[i] + y;
+                    in[i] = in[i] + y;
                     break;
                 case 2:
-                    newCoords[i] = old[i] + z;
+                    in[i] = in[i] + z;
                     break;
             }
         }
-        return newCoords;
     }
 
     static String getMultiStateBlockModel(int id, int metadata, String model) {
@@ -804,7 +865,7 @@ public class SlotRenderer {
                 model = "models/block/nether_wart_stage" + stage3 + ".json";
                 break;
 
-                //brewing stand
+            //brewing stand
             case 117:
                 if (metadata == 0) {
                     model = "models/block/brewing_stand_empty";
@@ -817,7 +878,7 @@ public class SlotRenderer {
                 model = model + ".json";
                 break;
 
-                //end portal frame
+            //end portal frame
             case 120:
                 if ((metadata & 4) == 4) {
                     model = "models/block/end_portal_frame_filled.json";
@@ -873,7 +934,7 @@ public class SlotRenderer {
                 model = "models/block/potatoes_stage" + stage2 + ".json";
                 break;
 
-                //anvil
+            //anvil
             case 145:
                 if ((metadata & 12) == 0) {
                     model = "models/block/anvil_undamaged.json";
@@ -1208,7 +1269,7 @@ public class SlotRenderer {
                 type = "tripwire_hook";
                 if ((metadata & 0x04) == 0x04) {
                     type = type + "_attached";
-                    if (ChunkColumn.getBlockId(x, y -1,z) == 0) type = type + "_suspended";
+                    if (ChunkColumn.getBlockId(x, y - 1, z) == 0) type = type + "_suspended";
                 }
                 if ((metadata & 0x08) == 0x08) type = type + "_powered";
                 if ((metadata & 0x03) == 0x01) {
@@ -1220,7 +1281,7 @@ public class SlotRenderer {
                 }
                 return "models/block/" + type + ".json";
 
-                //tripwire FIXME fix this sometime because i dont caare enough to fix it rn
+            //tripwire FIXME fix this sometime because i dont caare enough to fix it rn
             case 132:
                 type = "tripwire";
                 if ((metadata & 0x04) == 0x04) type = type + "_attached";
@@ -1297,7 +1358,8 @@ public class SlotRenderer {
                             return "models/block/" + type + "_wall_ne.json";
                         }
                         if (sides[i] == 1 && sides[(i + 2) % 4] == 1) {
-                            if (ChunkColumn.getBlockId(x, y+1, z) != 0) return "models/block/" + type + "_wall_ns_above.json";
+                            if (ChunkColumn.getBlockId(x, y + 1, z) != 0)
+                                return "models/block/" + type + "_wall_ns_above.json";
                             return "models/block/" + type + "_wall_ns.json";
                         }
                         angle += 90;
@@ -1313,7 +1375,6 @@ public class SlotRenderer {
                 } else if (sum == 4) {
                     return "models/block/" + type + "_wall_nsew.json";
                 }
-
 
 
             default:
