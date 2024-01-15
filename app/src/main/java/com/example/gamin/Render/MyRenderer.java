@@ -12,19 +12,19 @@ import javax.microedition.khronos.egl.EGLConfig;
 import javax.microedition.khronos.opengles.GL10;
 
 public class MyRenderer implements GLSurfaceView.Renderer {
-    Context context;
+    private final Context context;
     float[] color = {1.0f, 1.0f, 1.0f, 1.0f};
 
     public String newSlot = "bedrock.json";
     public static boolean bitvar = false;
     public static Bitmap bitmap;
 
-    public static int mProgram;
-    public static int vPMatrixHandle;
-    public static int positionHandle;
-    public static int colorHandle;
-    public static int mTextureUniformHandle;
-    public static int mTextureCoordinateHandle;
+    private static int mProgram;
+    private static int vPMatrixHandle;
+    private static int positionHandle;
+    private static int colorHandle;
+    private static int mTextureUniformHandle;
+    private static int mTextureCoordinateHandle;
     public MyRenderer(Context context) {
         this.context = context;
     }
@@ -114,7 +114,7 @@ public class MyRenderer implements GLSurfaceView.Renderer {
             }*/
     }
 
-    public static int loadShader(int type, String shaderCode){
+    private static int loadShader(int type, String shaderCode){
         int shader = GLES20.glCreateShader(type);
         GLES20.glShaderSource(shader,shaderCode);
         GLES20.glCompileShader(shader);
@@ -133,7 +133,7 @@ public class MyRenderer implements GLSurfaceView.Renderer {
         bitmap.recycle();
         return textureHandle[0];
     }
-    public static int createAndLinkProgram(final int vertexShaderHandle, final int fragmentShaderHandle, final String[] attributes)
+    private static int createAndLinkProgram(final int vertexShaderHandle, final int fragmentShaderHandle, final String[] attributes)
     {
         int programHandle = GLES20.glCreateProgram();
 

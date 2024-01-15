@@ -10,9 +10,9 @@ import java.util.HashMap;
 import java.util.Map;
 
 public class Inventory {
-    public static Map<Byte, Inventory> inventoryMap = new HashMap<>();
-    public Slot[] contents;
-    String name;
+    public static final Map<Byte, Inventory> inventoryMap = new HashMap<>();
+    public final Slot[] contents;
+    private final String name;
 
     public Inventory(byte id, String name, int size) {
         this.name = name;

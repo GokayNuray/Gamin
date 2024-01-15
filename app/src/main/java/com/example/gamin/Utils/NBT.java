@@ -8,7 +8,7 @@ import java.io.DataInputStream;
 import java.io.IOException;
 
 @SuppressWarnings("ResultOfMethodCallIgnored")
-public final class NBT {
+final class NBT {
     public static JSONObject readtoJson(DataInputStream is) {
         try {
             if(is.readByte()==0) return new JSONObject("{}");
@@ -21,7 +21,7 @@ public final class NBT {
 
     }
 
-    public static JSONObject readObject(DataInputStream is) throws IOException, JSONException {
+    private static JSONObject readObject(DataInputStream is) throws IOException, JSONException {
         JSONObject out = new JSONObject();
         boolean devam = true;
         while (devam) {
@@ -72,7 +72,7 @@ public final class NBT {
         return out;
     }
 
-    public static JSONArray readArray(DataInputStream is) throws JSONException, IOException {
+    private static JSONArray readArray(DataInputStream is) throws JSONException, IOException {
         byte listId = is.readByte();
         int listLen = is.readInt();
         JSONArray out = new JSONArray();

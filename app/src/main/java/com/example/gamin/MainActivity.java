@@ -75,24 +75,24 @@ import javax.crypto.spec.SecretKeySpec;
 @SuppressWarnings({"BusyWait", "UseOfSystemOutOrSystemErr"})
 public class MainActivity extends AppCompatActivity {
 
-    Socket socket;
-    String serverhash;
-    String accestoken;
-    DataInputStream is = null;
-    TextView chatMessages;
-    ImageButton[] imageButtons;
-    GLSurfaceView glSurfaceView;
-    YourRenderer renderer;
+    private Socket socket;
+    private String serverhash;
+    private String accestoken;
+    private DataInputStream is = null;
+    private TextView chatMessages;
+    private ImageButton[] imageButtons;
+    private GLSurfaceView glSurfaceView;
+    private YourRenderer renderer;
 
-    int otizmi = 0;
+    private int otizmi = 0;
 
 
-    public static List<Byte> bytetoByte(@NonNull byte[] bytes) {
+    private static List<Byte> bytetoByte(@NonNull byte[] bytes) {
         return IntStream.range(0, bytes.length).mapToObj(i -> bytes[i]).collect(Collectors.toList());
     }
 
     @NonNull
-    public static byte[] readNBytes(InputStream is, int len) {
+    private static byte[] readNBytes(InputStream is, int len) {
         byte[] out = new byte[len];
         for (int i = 0; i < len; i++) {
             try {
@@ -230,15 +230,15 @@ public class MainActivity extends AppCompatActivity {
                 float x = motionEvent.getX();
                 float y = motionEvent.getY();
 
-                if (!(x > width * 1.7/2 && y > height * (ratio * 2 - 0.3)/(ratio * 2))) {
+                if (!(x > width * 1.7 / 2 && y > height * (ratio * 2 - 0.3) / (ratio * 2))) {
                     PacketUtils.isSneaking = false;
                 }
 
-                if (x > width/2.0) {
+                if (x > width / 2.0) {
                     PacketUtils.moveLeftRight = 0;
                     PacketUtils.moveForwardBack = 0;
                     PacketUtils.jump = false;
-                    if ((x > width * 1.7/2 && y > height * (ratio * 2 - 0.3)/(ratio * 2))) {
+                    if ((x > width * 1.7 / 2 && y > height * (ratio * 2 - 0.3) / (ratio * 2))) {
                         PacketUtils.isSneaking = true;
                     }
                     if (motionEvent.getAction() == MotionEvent.ACTION_MOVE) {
@@ -255,15 +255,23 @@ public class MainActivity extends AppCompatActivity {
 
                     mPreviousX[0] = x;
                     mPreviousY[0] = y;
-                } else if (x > 0 && x < width * 0.6/2 && y < height && y > height * (ratio * 2 - 0.6)/(ratio * 2)) {
+                } else if (x > 0 && x < width * 0.6 / 2 && y < height && y > height * (ratio * 2 - 0.6) / (ratio * 2)) {
                     //System.out.printf("x: %f  y: %f\n", x, y);
-                    if (x < width * 0.2/2) PacketUtils.moveLeftRight = 1;//sol
-                    if (x > width * 0.4/2) PacketUtils.moveLeftRight = -1;
-                    if (y > height * (ratio * 2 - 0.2)/(ratio * 2)) PacketUtils.moveForwardBack = -1;//arka
-                    if (y < height * (ratio * 2 - 0.4)/(ratio * 2)) PacketUtils.moveForwardBack = 1;
-                    if (x > width * 0.2/2 && x < width * 0.4/2 && y > height * (ratio * 2 - 0.4)/(ratio * 2) && y < height * (ratio * 2 - 0.2)/(ratio * 2)) PacketUtils.jump = true;
-                    else if (x > width * 0.2/2 && x < width * 0.4/2){ PacketUtils.moveLeftRight = 0; PacketUtils.jump = false;}
-                    else if (y > height * (ratio * 2 - 0.4)/(ratio * 2) && y < height * (ratio * 2 - 0.2)/(ratio * 2)){ PacketUtils.moveForwardBack = 0; PacketUtils.jump = false;}
+                    if (x < width * 0.2 / 2) PacketUtils.moveLeftRight = 1;//sol
+                    if (x > width * 0.4 / 2) PacketUtils.moveLeftRight = -1;
+                    if (y > height * (ratio * 2 - 0.2) / (ratio * 2))
+                        PacketUtils.moveForwardBack = -1;//arka
+                    if (y < height * (ratio * 2 - 0.4) / (ratio * 2))
+                        PacketUtils.moveForwardBack = 1;
+                    if (x > width * 0.2 / 2 && x < width * 0.4 / 2 && y > height * (ratio * 2 - 0.4) / (ratio * 2) && y < height * (ratio * 2 - 0.2) / (ratio * 2))
+                        PacketUtils.jump = true;
+                    else if (x > width * 0.2 / 2 && x < width * 0.4 / 2) {
+                        PacketUtils.moveLeftRight = 0;
+                        PacketUtils.jump = false;
+                    } else if (y > height * (ratio * 2 - 0.4) / (ratio * 2) && y < height * (ratio * 2 - 0.2) / (ratio * 2)) {
+                        PacketUtils.moveForwardBack = 0;
+                        PacketUtils.jump = false;
+                    }
                 } else {
                     PacketUtils.moveLeftRight = 0;
                     PacketUtils.moveForwardBack = 0;
@@ -326,7 +334,7 @@ public class MainActivity extends AppCompatActivity {
         });
     }
 
-    public void eskimain(String serverip, String name, boolean isPremium) {
+    private void eskimain(String serverip, String name, boolean isPremium) {
         try {
             new Inventory((byte) 0, "playerInventory", 45);
             socket = new Socket(serverip, 25565);
@@ -529,7 +537,7 @@ public class MainActivity extends AppCompatActivity {
                         }
                         if (onGround) {
                             PacketUtils.motionY = 0;
-                            if ((timeSincePos == 20 || PacketUtils.jump || PacketUtils.motionX != 0 || PacketUtils.motionZ != 0 ||PacketUtils.moveLeftRight != 0|| PacketUtils.moveForwardBack != 0) && !PacketUtils.isRotating) {
+                            if ((timeSincePos == 20 || PacketUtils.jump || PacketUtils.motionX != 0 || PacketUtils.motionZ != 0 || PacketUtils.moveLeftRight != 0 || PacketUtils.moveForwardBack != 0) && !PacketUtils.isRotating) {
                                 List<Byte> playerpos = new ArrayList<>();
 
                                 PacketUtils.calculateMovements();

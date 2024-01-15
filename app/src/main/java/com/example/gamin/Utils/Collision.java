@@ -18,7 +18,7 @@ import java.util.Objects;
  * @noinspection ResultOfMethodCallIgnored
  */
 public final class Collision {
-    public static JSONObject blockCollisionShapesJSON;
+    private static JSONObject blockCollisionShapesJSON;
 
     /**
      * @noinspection ComparatorResultComparison
@@ -87,7 +87,7 @@ public final class Collision {
     }
 
 
-    public static boolean isCubeFull(double x1, double y1, double z1, double x2, double y2, double z2, int direction) throws JSONException {
+    private static boolean isCubeFull(double x1, double y1, double z1, double x2, double y2, double z2, int direction) throws JSONException {
 
         for (int ix = -1; ix < (int) (Math.floor(x2) - Math.floor(x1) + 1); ix++) {
             for (int iy = -1; iy < (int) (Math.floor(y2) - Math.floor(y1) + 1); iy++) {
@@ -136,8 +136,8 @@ public final class Collision {
     }
 
     //TODO: 20.11.2023 check by direction to phase through blocks we are already in
-    public static boolean doesCubesCollide(double ax1, double ay1, double az1, double ax2, double ay2, double az2,
-                                           double bx1, double by1, double bz1, double bx2, double by2, double bz2, int direction) {
+    private static boolean doesCubesCollide(double ax1, double ay1, double az1, double ax2, double ay2, double az2,
+                                            double bx1, double by1, double bz1, double bx2, double by2, double bz2, int direction) {
         if (direction == 1)
             return Math.min(ax2, bx2) >= Math.max(ax1, bx1) && Math.min(ay2, by2) >= Math.max(ay1, by1) && Math.min(az2, bz2) >= Math.max(az1, bz1);
         if (direction == 0)
@@ -147,7 +147,7 @@ public final class Collision {
         else return Boolean.TRUE;
     }
 
-    public static JSONArray getCollisionData(byte id, byte metadata) throws JSONException {
+    private static JSONArray getCollisionData(byte id, byte metadata) throws JSONException {
         String name = Objects.requireNonNull(Slot.blocksMap.get(Byte.toUnsignedInt(id))).getString("name");
         Object block = blockCollisionShapesJSON.getJSONObject("blocks").get(name);
         int collisionId;

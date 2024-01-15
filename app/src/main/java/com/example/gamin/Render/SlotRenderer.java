@@ -1,12 +1,10 @@
 package com.example.gamin.Render;
 
-import android.annotation.SuppressLint;
 import android.content.Context;
 import android.opengl.Matrix;
 
 import com.example.gamin.Minecraft.ChunkColumn;
 import com.example.gamin.Minecraft.Slot;
-import com.example.gamin.Utils.PacketUtils;
 
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -14,9 +12,6 @@ import org.json.JSONObject;
 
 import java.io.IOException;
 import java.io.InputStream;
-import java.nio.ByteBuffer;
-import java.nio.ByteOrder;
-import java.nio.FloatBuffer;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -29,33 +24,20 @@ import java.util.Set;
 /**
  * @noinspection ResultOfMethodCallIgnored
  */
-@SuppressLint("DiscouragedApi")
 public class SlotRenderer {
-    static Set<Integer> specialBlocks = new HashSet<>(Arrays.asList(2, 53, 64, 71, 193, 194, 195, 196, 197, 67, 104, 105, 106, 108, 109, 114, 128, 131, 132, 134, 135, 136, 139, 156, 163, 180, 85, 113, 188, 189, 190, 191, 192));
-    static Set<Integer> multiStateBlocks = new HashSet<>(Arrays.asList(17, 23, 158, 26, 27, 28, 66, 157, 29, 33, 34, 59, 60, 61, 62, 65, 69, 70, 72, 77, 86, 91, 93, 94, 96, 99, 100, 107, 115, 117, 120, 145, 183, 184, 185, 186, 187, 167, 143, 147, 148, 149, 150, 162, 43, 125, 141, 142, 154, 175, 181));
-    static Map<String, List<Square>> models = new HashMap<>();
-    public List<Square> squares = new ArrayList<>();
-    public FloatBuffer coordsBuffer;
-    public FloatBuffer colorsBuffer;
-    public FloatBuffer texturesBuffer;
-    float angle = 0;
-    boolean upsideDown = false;
-    Context context;
-    short id;
-    byte metadata;
-    int type;
-    int x;
-    int y;
-    int z;
-
-    public SlotRenderer update() {
-        if (!specialBlocks.contains((int) id)) return null;
-        try {
-            return new SlotRenderer(context, id, metadata, type, x, y, z);
-        } catch (IOException | JSONException e) {
-            throw new RuntimeException(e);
-        }
-    }
+    private static final Set<Integer> specialBlocks = new HashSet<>(Arrays.asList(2, 53, 64, 71, 193, 194, 195, 196, 197, 67, 104, 105, 106, 108, 109, 114, 128, 131, 132, 134, 135, 136, 139, 156, 163, 180, 85, 113, 188, 189, 190, 191, 192));
+    private static final Set<Integer> multiStateBlocks = new HashSet<>(Arrays.asList(17, 23, 158, 26, 27, 28, 66, 157, 29, 33, 34, 59, 60, 61, 62, 65, 69, 70, 72, 77, 86, 91, 93, 94, 96, 99, 100, 107, 115, 117, 120, 145, 183, 184, 185, 186, 187, 167, 143, 147, 148, 149, 150, 162, 43, 125, 141, 142, 154, 175, 181));
+    private static final Map<String, List<Square>> models = new HashMap<>();
+    public final List<Square> squares = new ArrayList<>();
+    private final Context context;
+    private final short id;
+    private final byte metadata;
+    private final int type;
+    private final int x;
+    private final int y;
+    private final int z;
+    private float angle = 0;
+    private boolean upsideDown = false;
 
     public SlotRenderer(Context context, short id, byte metadata, int type, int x, int y, int z) throws IOException, JSONException {
         this.context = context;
@@ -355,58 +337,10 @@ public class SlotRenderer {
                 square.direction = (square.direction + 1) % 2 + 4;
             squares.add(square);
         }
-        coordsBuffer = ByteBuffer.allocateDirect(squares.size() * 6 * 3 * 4).order(ByteOrder.nativeOrder()).asFloatBuffer();
-        colorsBuffer = ByteBuffer.allocateDirect(squares.size() * 6 * 4 * 4).order(ByteOrder.nativeOrder()).asFloatBuffer();
-        texturesBuffer = ByteBuffer.allocateDirect(squares.size() * 6 * 2 * 4).order(ByteOrder.nativeOrder()).asFloatBuffer();
-        for (Square square : squares) {
-            coordsBuffer.put(square.coords1);
-            coordsBuffer.put(square.coords2);
-            colorsBuffer.put(square.squareColors);
-            texturesBuffer.put(square.textures1);
-            texturesBuffer.put(square.textures2);
-        }
-        coordsBuffer.position(0);
-        colorsBuffer.position(0);
-        texturesBuffer.position(0);
-    }
-
-    public void render() {
-        for (Square square : squares) {
-
-            //skip rendering if the square is not visible
-            switch (square.direction) {
-                //north
-                case 0:
-                    if (PacketUtils.z > square.coords1[2]) continue;
-                    break;
-                //west
-                case 1:
-                    if (PacketUtils.x > square.coords1[0]) continue;
-                    break;
-                //south
-                case 2:
-                    if (PacketUtils.z < square.coords1[2]) continue;
-                    break;
-                //east
-                case 3:
-                    if (PacketUtils.x < square.coords1[0]) continue;
-                    break;
-                //up
-                case 4:
-                    if (PacketUtils.y + 1.62 < square.coords1[1]) continue;
-                    break;
-                //down
-                case 5:
-                    if (PacketUtils.y + 1.62 > square.coords1[1]) continue;
-                    break;
-            }
-
-            square.render();
-        }
     }
 
     //flip the square upside down
-    static void flipSquare(Square square) {
+    private static void flipSquare(Square square) {
         float[] coords = square.squareCoords;
         for (int i = 1; i < coords.length; i += 3) {
             coords[i] = coords[i] - 0.5f;
@@ -415,7 +349,7 @@ public class SlotRenderer {
         }
     }
 
-    static void rotateSquare(Square square, float angle, int rotationAxis, float originX, float originY, float originZ) {
+    private static void rotateSquare(Square square, float angle, int rotationAxis, float originX, float originY, float originZ) {
         float x = 0;
         float y = 0;
         float z = 0;
@@ -466,7 +400,7 @@ public class SlotRenderer {
         square.squareCoords = result;
     }
 
-    static float[] rotateUV(float[] uv, float angle) {
+    private static float[] rotateUV(float[] uv, float angle) {
         List<Float> coords = new ArrayList<>();
         for (float f : uv) {
             coords.add(f);
@@ -495,7 +429,7 @@ public class SlotRenderer {
         return result;
     }
 
-    static void addCoordinates(float[] in, float x, float y, float z) {
+    private static void addCoordinates(float[] in, float x, float y, float z) {
         for (int i = 0; i < in.length; i++) {
             int a = i % 3;
             switch (a) {
@@ -512,7 +446,7 @@ public class SlotRenderer {
         }
     }
 
-    static String getMultiStateBlockModel(int id, int metadata, String model) {
+    private static String getMultiStateBlockModel(int id, int metadata, String model) {
         switch (id) {
 
             //logs
@@ -985,7 +919,16 @@ public class SlotRenderer {
         return model;
     }
 
-    String getSpecialBlockModel(int id, int metadata, int x, int y, int z) {
+    public SlotRenderer update() {
+        if (!specialBlocks.contains((int) id)) return null;
+        try {
+            return new SlotRenderer(context, id, metadata, type, x, y, z);
+        } catch (IOException | JSONException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    private String getSpecialBlockModel(int id, int metadata, int x, int y, int z) {
         String type = null;
         switch (id) {
             case 2:

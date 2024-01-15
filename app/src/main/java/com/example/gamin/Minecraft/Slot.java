@@ -11,20 +11,22 @@ import java.io.InputStream;
 import java.util.HashMap;
 import java.util.Map;
 
-/** @noinspection ResultOfMethodCallIgnored*/
+/**
+ * @noinspection ResultOfMethodCallIgnored
+ */
 public class Slot {
-    public static Map<Integer,JSONObject> blocksMap;
-    public static Map<Integer,JSONObject> itemsMap;
+    public static Map<Integer, JSONObject> blocksMap;
+    public static Map<Integer, JSONObject> itemsMap;
 
-    byte count;
-    byte damage;
-    byte metaData;
-    JSONObject nbt;
-    public String displayName;
-    public String textId;
+    private final byte count;
+    private final byte damage;
+    private final byte metaData;
+    private final JSONObject nbt;
+    private final String displayName;
     public String itemModel;
+    private String textId;
 
-    public Slot(Short id, byte count, byte damage, byte metaData,JSONObject nbt) {
+    public Slot(Short id, byte count, byte damage, byte metaData, JSONObject nbt) {
 
         this.count = count;
         this.damage = damage;
@@ -33,17 +35,15 @@ public class Slot {
         JSONObject item = new JSONObject();
 
         try {
-            if (id<0) id = (short)(id + 256);
+            if (id < 0) id = (short) (id + 256);
             if (id < 255) {
                 item = blocksMap.get(Integer.valueOf(id));
-            }
-            else {
+            } else {
                 item = itemsMap.get(Integer.valueOf(id));
             }
             if (item != null) {
                 this.textId = item.getString("name");
-            }
-            else {
+            } else {
                 System.out.println(id);
                 System.out.println("AAAAAAAAAAA");
             }
@@ -62,9 +62,8 @@ public class Slot {
             this.displayName = item.getString("displayName");
             if (item.has("itemModel")) {
                 this.itemModel = item.getString("itemModel");
-            }
-            else {
-                this.itemModel = displayName.trim().toLowerCase().replaceAll(" ","_");
+            } else {
+                this.itemModel = displayName.trim().toLowerCase().replaceAll(" ", "_");
             }
 
         } catch (JSONException e) {
@@ -74,6 +73,7 @@ public class Slot {
 
 
     }
+
     public static void loadAssetData(Context context) throws IOException, JSONException {
         InputStream is = context.getAssets().open("data/blocks.json");
         byte[] b = new byte[is.available()];
@@ -90,11 +90,11 @@ public class Slot {
         itemsMap = new HashMap<>();
         for (int i = 0; i < blocksJson.length(); i++) {
             JSONObject jsonObject = blocksJson.getJSONObject(i);
-            blocksMap.put(jsonObject.getInt("id"),jsonObject);
+            blocksMap.put(jsonObject.getInt("id"), jsonObject);
         }
         for (int i = 0; i < itemsJson.length(); i++) {
             JSONObject jsonObject = itemsJson.getJSONObject(i);
-            itemsMap.put(jsonObject.getInt("id"),jsonObject);
+            itemsMap.put(jsonObject.getInt("id"), jsonObject);
         }
     }
 }

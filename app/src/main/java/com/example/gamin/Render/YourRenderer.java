@@ -20,7 +20,6 @@ import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 import java.nio.FloatBuffer;
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -29,28 +28,27 @@ import javax.microedition.khronos.opengles.GL10;
 
 //TODO use VBOs to improve performance
 public class YourRenderer implements GLSurfaceView.Renderer {
-    public static int mProgram;
-    public static int vPMatrixHandle;
-    public static int positionHandle;
-    public static int colorHandle;
-    public static int mTextureUniformHandle;
-    public static int mTextureCoordinateHandle;
+    public static int fps = 0;
+    private static int mProgram;
+    private static int vPMatrixHandle;
+    private static int positionHandle;
+    private static int colorHandle;
+    private static int mTextureCoordinateHandle;
     private final float[] projectionMatrix = new float[16];
     private final float[] projectionMatrix2 = new float[16];
     private final float[] viewMatrix = new float[16];
     private final float[] viewMatrix2 = new float[16];
+    private final Context context;
     public String newSlot = "crafting_table.json";
-    Context context;
-    long startTime = System.nanoTime();
-    int frames = 0;
+    private long startTime = System.nanoTime();
+    private int frames = 0;
     private float ratio;
-    public static int fps = 0;
 
     public YourRenderer(Context context) {
         this.context = context;
     }
 
-    public static int loadShader(int type, String shaderCode) {
+    private static int loadShader(int type, String shaderCode) {
         int shader = GLES20.glCreateShader(type);
         GLES20.glShaderSource(shader, shaderCode);
         GLES20.glCompileShader(shader);
@@ -58,13 +56,13 @@ public class YourRenderer implements GLSurfaceView.Renderer {
     }
 
     public static void loadTextures(Context context) throws IOException {
-        String[] paths = {"blocks", "items"};
+        String[] paths = {"blocks", "items", "entity"};
         for (String path : paths) {
             TextureAtlas.atlases.put(path, compressTextures(context, "textures/" + path + "/"));
         }
     }
 
-    public static TextureAtlas compressTextures(Context context, String path) throws IOException {
+    private static TextureAtlas compressTextures(Context context, String path) throws IOException {
         AssetManager assetManager = context.getAssets();
         String[] names = assetManager.list(path);
 
@@ -81,6 +79,14 @@ public class YourRenderer implements GLSurfaceView.Renderer {
                 textureOffsets.put(texture, offset);
                 offset += bitmap.getWidth();
                 height = Math.max(height, bitmap.getHeight());
+            } else {
+                for (String s : assetManager.list(path + "/" + texture + "/")) {
+                    Bitmap bitmap = BitmapFactory.decodeStream(assetManager.open(path + "/" + texture + "/" + s));
+                    textures.add(bitmap);
+                    textureOffsets.put(texture + "/" + s, offset);
+                    offset += bitmap.getWidth();
+                    height = Math.max(height, bitmap.getHeight());
+                }
             }
         }
         Bitmap blockAtlas = Bitmap.createBitmap(offset, height, Bitmap.Config.ARGB_8888);
@@ -94,7 +100,7 @@ public class YourRenderer implements GLSurfaceView.Renderer {
         return new TextureAtlas(blockAtlas, textureOffsets);
     }
 
-    public static int loadTexture(Context context, int resId) {
+    private static int loadTexture(Context context, int resId) {
         final int[] textureHandle = new int[1];
         GLES20.glGenTextures(1, textureHandle, 0);
         final BitmapFactory.Options options = new BitmapFactory.Options();
@@ -110,7 +116,7 @@ public class YourRenderer implements GLSurfaceView.Renderer {
         return textureHandle[0];
     }
 
-    public static int loadTexture(Bitmap bitmap) {
+    private static int loadTexture(Bitmap bitmap) {
         final int[] textureHandle = new int[1];
         GLES20.glGenTextures(1, textureHandle, 0);
         final BitmapFactory.Options options = new BitmapFactory.Options();
@@ -124,7 +130,7 @@ public class YourRenderer implements GLSurfaceView.Renderer {
         return textureHandle[0];
     }
 
-    public static int createAndLinkProgram(final int vertexShaderHandle, final int fragmentShaderHandle, final String[] attributes) {
+    private static int createAndLinkProgram(final int vertexShaderHandle, final int fragmentShaderHandle, final String[] attributes) {
         int programHandle = GLES20.glCreateProgram();
 
         if (programHandle != 0) {
@@ -155,12 +161,12 @@ public class YourRenderer implements GLSurfaceView.Renderer {
         GLES20.glDepthFunc(GLES20.GL_LEQUAL);
         GLES20.glDepthMask(true);
         //face culling should improve performance but it drops fps from 40 to 35 but why? it should improve performance not drop it :(
-        /*//enable face culling
+        //enable face culling
         GLES20.glEnable(GLES20.GL_CULL_FACE);
         //specify which faces to not draw
         GLES20.glCullFace(GLES20.GL_BACK);
         //specify the front face
-        GLES20.glFrontFace(GLES20.GL_CCW);*/
+        GLES20.glFrontFace(GLES20.GL_CCW);
         String vertexShaderCode = "uniform mat4 u_MVPMatrix;" +
                 "attribute vec4 a_Position;" +
                 "attribute vec4 a_Color;" +
@@ -192,7 +198,6 @@ public class YourRenderer implements GLSurfaceView.Renderer {
         vPMatrixHandle = GLES20.glGetUniformLocation(YourRenderer.mProgram, "u_MVPMatrix");
         positionHandle = GLES20.glGetAttribLocation(YourRenderer.mProgram, "a_Position");
         colorHandle = GLES20.glGetAttribLocation(YourRenderer.mProgram, "a_Color");
-        mTextureUniformHandle = GLES20.glGetUniformLocation(YourRenderer.mProgram, "u_Texture");
         mTextureCoordinateHandle = GLES20.glGetAttribLocation(YourRenderer.mProgram, "a_TexCoordinate");
 
         TextureAtlas.atlases.values().forEach(atlas -> {
@@ -238,25 +243,15 @@ public class YourRenderer implements GLSurfaceView.Renderer {
         Matrix.multiplyMM(scratch2, 0, projectionMatrix2, 0, viewMatrix2, 0);
 
 
-        /*for (int dx = -15; dx < 15; dx++) {
-            for (int dy = -45; dy < 45; dy++) {
-                for (int dz = -15; dz < 15; dz++) {
-                    short block = ChunkColumn.getBlock((int) PacketUtils.x + dx, (int) PacketUtils.y + dy, (int) PacketUtils.z + dz);
-                    if (block != 0) {
-                        try {
-                            SlotRenderer slotRenderer = new SlotRenderer(context, ChunkColumn.getBlockId(block), ChunkColumn.getBlockMetaData(block), 1, (int) PacketUtils.x + dx, (int) PacketUtils.y + dy, (int) PacketUtils.z + dz);
-                            slotRenderer.render();
-                            } catch (IOException | JSONException e) {
-                            System.out.println("crush " + ChunkColumn.getBlockId(block) + " " + ChunkColumn.getBlockMetaData(block));
-                            throw new RuntimeException(e);
-                        }
-                    }
-                }
-            }
-        }*/
-
-        renderChunks();
-        //rendsera(TextureAtlas.atlases.get("items"));
+        ChunkColumn[] chunks = PacketUtils.chunkColumnMap.values().toArray(new ChunkColumn[0]);
+        TextureAtlas blocks = TextureAtlas.atlases.get("blocks");
+        TextureAtlas items = TextureAtlas.atlases.get("items");
+        assert blocks != null;
+        assert items != null;
+        blocks.setBuffers(chunks);
+        items.setBuffers(chunks);
+        rendsera(blocks);
+        rendsera(items);
 
         GLES20.glUniformMatrix4fv(vPMatrixHandle, 1, false, scratch2, 0);
         //System.out.println("ratio: " + ratio);//0.625
@@ -328,88 +323,24 @@ public class YourRenderer implements GLSurfaceView.Renderer {
         }
     }
 
-    public void rendsera(TextureAtlas atlas) {
+    private void rendsera(TextureAtlas atlas) {
         GLES20.glBindTexture(GLES20.GL_TEXTURE_2D, atlas.textureHandle);
 
-        FloatBuffer colorBuffer = ByteBuffer.allocateDirect(atlas.colors.size() * 4).order(ByteOrder.nativeOrder()).asFloatBuffer();
-        FloatBuffer coordsBuffer = ByteBuffer.allocateDirect(atlas.coords.size() * 4).order(ByteOrder.nativeOrder()).asFloatBuffer();
-        FloatBuffer textureBuffer = ByteBuffer.allocateDirect(atlas.textures.size() * 4).order(ByteOrder.nativeOrder()).asFloatBuffer();
-
-        for (float f : atlas.coords) {
-            coordsBuffer.put(f);
-        }
-        coordsBuffer.position(0);
-
-        for (float f : atlas.textures) {
-            textureBuffer.put(f);
-        }
-        textureBuffer.position(0);
-
-        for (float f : atlas.colors) {
-            colorBuffer.put(f);
-        }
-        colorBuffer.position(0);
-
         GLES20.glEnableVertexAttribArray(YourRenderer.colorHandle);
-        GLES20.glVertexAttribPointer(YourRenderer.colorHandle, 4, GLES20.GL_FLOAT, false, 0, colorBuffer);
+        GLES20.glVertexAttribPointer(YourRenderer.colorHandle, 4, GLES20.GL_FLOAT, false, 0, atlas.colorsBuffer);
 
         GLES20.glEnableVertexAttribArray(YourRenderer.positionHandle);
-        GLES20.glVertexAttribPointer(YourRenderer.positionHandle, 3, GLES20.GL_FLOAT, false, 0, coordsBuffer);
+        GLES20.glVertexAttribPointer(YourRenderer.positionHandle, 3, GLES20.GL_FLOAT, false, 0, atlas.coordsBuffer);
 
         GLES20.glEnableVertexAttribArray(YourRenderer.mTextureCoordinateHandle);
-        GLES20.glVertexAttribPointer(YourRenderer.mTextureCoordinateHandle, 2, GLES20.GL_FLOAT, false, 0, textureBuffer);
+        GLES20.glVertexAttribPointer(YourRenderer.mTextureCoordinateHandle, 2, GLES20.GL_FLOAT, false, 0, atlas.texturesBuffer);
 
-        GLES20.glDrawArrays(GLES20.GL_TRIANGLES, 0, atlas.coords.size() / 3);
+        GLES20.glDrawArrays(GLES20.GL_TRIANGLES, 0, atlas.coordsBuffer.capacity() / 3);
 
-        atlas.coords.clear();
-        atlas.textures.clear();
-        atlas.colors.clear();
+        atlas.coordsBuffer.position(0);
+        atlas.colorsBuffer.position(0);
+        atlas.texturesBuffer.position(0);
 
     }
 
-    public void renderChunks() {
-        GLES20.glBindTexture(GLES20.GL_TEXTURE_2D, TextureAtlas.atlases.get("blocks").textureHandle);
-
-        Collection<ChunkColumn> chunkss = PacketUtils.chunkColumnMap.values();
-        Collection<ChunkColumn> chunks = new ArrayList<>(chunkss);
-        int squareCount = 0;
-        for (ChunkColumn chunk : chunks) {
-            synchronized (chunk) {
-                squareCount += chunk.squareCount;
-            }
-        }
-
-        FloatBuffer coordsBuffer = ByteBuffer.allocateDirect(squareCount * 6 * 3 * 4).order(ByteOrder.nativeOrder()).asFloatBuffer();
-        FloatBuffer colorsBuffer = ByteBuffer.allocateDirect(squareCount * 6 * 4 * 4).order(ByteOrder.nativeOrder()).asFloatBuffer();
-        FloatBuffer texturesBuffer = ByteBuffer.allocateDirect(squareCount * 6 * 2 * 4).order(ByteOrder.nativeOrder()).asFloatBuffer();
-
-        for (ChunkColumn chunk : chunks) {
-            if (!chunk.isLoaded || chunk.coordsBuffer == null) {
-                continue;
-            }
-            synchronized (chunk) {
-                coordsBuffer.put(chunk.coordsBuffer);
-                colorsBuffer.put(chunk.colorsBuffer);
-                texturesBuffer.put(chunk.texturesBuffer);
-                chunk.coordsBuffer.position(0);
-                chunk.colorsBuffer.position(0);
-                chunk.texturesBuffer.position(0);
-            }
-        }
-
-        coordsBuffer.position(0);
-        colorsBuffer.position(0);
-        texturesBuffer.position(0);
-
-        GLES20.glEnableVertexAttribArray(YourRenderer.colorHandle);
-        GLES20.glVertexAttribPointer(YourRenderer.colorHandle, 4, GLES20.GL_FLOAT, false, 0, colorsBuffer);
-
-        GLES20.glEnableVertexAttribArray(YourRenderer.positionHandle);
-        GLES20.glVertexAttribPointer(YourRenderer.positionHandle, 3, GLES20.GL_FLOAT, false, 0, coordsBuffer);
-
-        GLES20.glEnableVertexAttribArray(YourRenderer.mTextureCoordinateHandle);
-        GLES20.glVertexAttribPointer(YourRenderer.mTextureCoordinateHandle, 2, GLES20.GL_FLOAT, false, 0, texturesBuffer);
-
-        GLES20.glDrawArrays(GLES20.GL_TRIANGLES, 0, squareCount * 6);
-    }
 }

@@ -30,30 +30,29 @@ import java.util.Map;
 
 @SuppressWarnings({"ResultOfMethodCallIgnored"})
 public final class PacketUtils extends AppCompatActivity {
+    public static final Map<Long, ChunkColumn> chunkColumnMap = new HashMap<>();
     public static OutputStream os;
     public static OutputStream ecos;
     public static boolean isPremium;
     public static boolean isCompressed = false;
-    public static int playerId;
     public static int moveLeftRight = 0;
     public static int moveForwardBack = 0;
     public static boolean isRotating = false;
     public static double x;
     public static double y;
     public static double z;
-    public static double generic_movementSpeed;
     public static double motionX = 0;
     public static double motionY = 0;
     public static double motionZ = 0;
-    public static boolean isOnGround = false;
     public static boolean jump;
     public static boolean isSneaking;
     public static boolean didHorizontalCollide = false;
     public static boolean isSprinting = true;
     public static float x_rot = 0.0F;
     public static float y_rot = 0.0F;
-    public static Map<Long, ChunkColumn> chunkColumnMap = new HashMap<>();
-
+    private static int playerId;
+    private static double generic_movementSpeed;
+    private static boolean isOnGround = false;
 
     public static void calculateMovements() {
         float strafe = moveLeftRight * 0.98F;
@@ -126,7 +125,7 @@ public final class PacketUtils extends AppCompatActivity {
 
     //TODO add step assist and maybe add ladder climbing and maybe add water and lava movement and
     //TODO special block movement like soul sand and honey block and maybe add ice and slime block movement
-    public static void moveEntity(double motionX, double motionY, double motionZ) {
+    private static void moveEntity(double motionX, double motionY, double motionZ) {
         try {
             PacketUtils.y = Collision.calculateMovement(PacketUtils.x, PacketUtils.y, PacketUtils.z, 1, motionY)[1];
             isOnGround = Collision.calculateMovement(PacketUtils.x, PacketUtils.y, PacketUtils.z, 1, 0.0)[3] == 1.0;
@@ -347,7 +346,7 @@ public final class PacketUtils extends AppCompatActivity {
                     byte vertPos = dataStream22.readByte();
                     int relativeX = (horizPos >> 4);
                     int relativeZ = (horizPos & 0x0F);
-                    short blockraw = (short)VarInt.readVarInt(dataStream22);
+                    short blockraw = (short) VarInt.readVarInt(dataStream22);
                     short block = (short) ((blockraw & 255) << 8 | (blockraw >> 8));
                     ChunkColumn.setBlock(glSurfaceView.getContext(), chunkX22 * 16 + relativeX, vertPos, chunkZ22 * 16 + relativeZ, block);
                 }
@@ -362,7 +361,7 @@ public final class PacketUtils extends AppCompatActivity {
                 long BlockX = blockPos >> 38;
                 long BlockY = (blockPos >> 26) & 0xFFF;
                 long BlockZ = (blockPos << 38) >> 38;
-                short blockraw = (short)VarInt.readVarInt(dataStream23);
+                short blockraw = (short) VarInt.readVarInt(dataStream23);
                 short block = (short) ((blockraw & 255) << 8 | (blockraw >> 8));
                 ChunkColumn.setBlock(glSurfaceView.getContext(), (int) BlockX, (int) BlockY, (int) BlockZ, block);
                 ChunkColumn.setUpdatedBuffers();
@@ -370,7 +369,6 @@ public final class PacketUtils extends AppCompatActivity {
             break;
             case 0x26://multiple chunks
             {
-                long time = System.currentTimeMillis();
                 ByteArrayInputStream datastream26 = new ByteArrayInputStream(data);
                 DataInputStream dataStream26 = new DataInputStream(datastream26);
                 boolean skylight = dataStream26.readBoolean();

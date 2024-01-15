@@ -3,16 +3,16 @@ package com.example.gamin.Render;
 import java.util.Arrays;
 
 public class Square {
+    public final TextureAtlas atlas;
+    public final float[] squareColors;
+    public final float[] textures1;
+    public final float[] textures2;
     public int direction;
-    public float[] squareCoords;
-    float[] squareColors;
-    float[] coords1;
-    float[] coords2;
-    float[] textures1;
-    float[] textures2;
-    TextureAtlas atlas;
+    public float[] coords1;
+    public float[] coords2;
+    float[] squareCoords;
 
-    public Square(float[] squareCoords, float[] color, float[] textureCoords, TextureAtlas atlas, int direction) {
+    Square(float[] squareCoords, float[] color, float[] textureCoords, TextureAtlas atlas, int direction) {
         this.squareCoords = squareCoords;
         this.direction = direction;
         this.atlas = atlas;
@@ -29,7 +29,8 @@ public class Square {
         System.arraycopy(Arrays.copyOfRange(textureCoords, 4, 8), 0, textures2, 0, 4);
         System.arraycopy(Arrays.copyOfRange(textureCoords, 0, 2), 0, textures2, 4, 2);
     }
-    public Square(float[] coords1, float[] coords2, float[] textures1, float[] textures2, float[] squareColors, TextureAtlas atlas, int direction) {
+
+    private Square(float[] coords1, float[] coords2, float[] textures1, float[] textures2, float[] squareColors, TextureAtlas atlas, int direction) {
         this.coords1 = coords1;
         this.coords2 = coords2;
         this.textures1 = textures1;
@@ -42,7 +43,7 @@ public class Square {
         System.arraycopy(coords2, 3, squareCoords, 9, 3);
     }
 
-    public void splitCoords() {
+    void splitCoords() {
         coords1 = Arrays.copyOfRange(squareCoords, 0, 9);
         coords2 = new float[9];
         System.arraycopy(Arrays.copyOfRange(squareCoords, 6, 12), 0, coords2, 0, 6);
@@ -61,27 +62,5 @@ public class Square {
         System.arraycopy(this.textures2, 0, textures2, 0, 6);
         System.arraycopy(this.squareColors, 0, squareColors, 0, 24);
         return new Square(coords1, coords2, textures1, textures2, squareColors, atlas, direction);
-    }
-
-    public void render() {
-
-        for (int i = 0; i < 9; i++) {
-            atlas.coords.add(coords1[i]);
-        }
-        for (int i = 0; i < 9; i++) {
-            atlas.coords.add(coords2[i]);
-        }
-
-        for (int i = 0; i < 6; i++) {
-            atlas.textures.add(textures1[i]);
-        }
-        for (int i = 0; i < 6; i++) {
-            atlas.textures.add(textures2[i]);
-        }
-
-        for (int i = 0; i < 24; i++) {
-            atlas.colors.add(squareColors[i]);
-        }
-
     }
 }

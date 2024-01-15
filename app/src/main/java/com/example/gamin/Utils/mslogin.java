@@ -18,25 +18,25 @@ import java.time.LocalDate;
 
 public final class mslogin {
 
-    public static boolean isFinished = false;
-    public static String accessToken;
+    private static boolean isFinished = false;
+    private static String accessToken;
 
 
-    final static String loginUrl = "https://login.microsoftonline.com/consumers/oauth2/v2.0/authorize?"
+    private final static String loginUrl = "https://login.microsoftonline.com/consumers/oauth2/v2.0/authorize?"
             + "client_id=36c6ad8b-d9c9-43ed-aca0-56d694849ac1&"
             + "response_type=code&"
             + "scope=XboxLive.signin%20offline_access&"
             + "redirect_uri=https%3A%2F%2Flogin.live.com%2Foauth20_desktop.srf";
     //final static String redirectUrlSuffix = "https://login.live.com/oauth20_desktop.srf?code=";
-    final static String authTokenUrl = "https://login.microsoftonline.com/consumers/oauth2/v2.0/token";
+    private final static String authTokenUrl = "https://login.microsoftonline.com/consumers/oauth2/v2.0/token";
 
-    final static String xblAuthUrl = "https://user.auth.xboxlive.com/user/authenticate";
+    private final static String xblAuthUrl = "https://user.auth.xboxlive.com/user/authenticate";
 
-    final static String xstsAuthUrl = "https://xsts.auth.xboxlive.com/xsts/authorize";
+    private final static String xstsAuthUrl = "https://xsts.auth.xboxlive.com/xsts/authorize";
 
     //final String mcStoreUrl = "https://api.minecraftservices.com/entitlements/mcstore";
 
-    final static String mcLoginUrl = "https://api.minecraftservices.com/authentication/login_with_xbox";
+    private final static String mcLoginUrl = "https://api.minecraftservices.com/authentication/login_with_xbox";
 
     //final String mcProfileUrl = "https://api.minecraftservices.com/minecraft/profile";
 
@@ -86,7 +86,7 @@ public final class mslogin {
 
     }
 
-    public static void xboxLogin(String code, File file) {
+    private static void xboxLogin(String code, File file) {
         try {
             URL url = new URL(xblAuthUrl);
             HttpURLConnection con = (HttpURLConnection) url.openConnection();
@@ -128,7 +128,7 @@ public final class mslogin {
         }
     }
 
-    public static void xsts(String code, File file) {
+    private static void xsts(String code, File file) {
 
         try {
             URL url = new URL(xstsAuthUrl);
@@ -173,7 +173,7 @@ public final class mslogin {
         }
     }
 
-    public static void getAccessToken(String token, String uhs, File file) {
+    private static void getAccessToken(String token, String uhs, File file) {
         try {
             URL url = new URL(mcLoginUrl);
             HttpURLConnection con = (HttpURLConnection) url.openConnection();

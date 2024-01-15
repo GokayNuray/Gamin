@@ -13,7 +13,7 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 
-public final class ChatToTextView {
+final class ChatToTextView {
 
     public static SpannableStringBuilder convert(String chat) {
         SpannableStringBuilder builder;
@@ -26,13 +26,13 @@ public final class ChatToTextView {
                 boolean bold = jsonObject.optBoolean("bold");
                 boolean strikethrough = jsonObject.optBoolean("strikethrough");
                 String color = jsonObject.optString("color");
-                if (text.length() != 0) {
-                    builder.setSpan(new ForegroundColorSpan(getMcColor(color)),builder.length()-text.length(),builder.length(), Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
+                if (!text.isEmpty()) {
+                    builder.setSpan(new ForegroundColorSpan(getMcColor(color)), builder.length() - text.length(), builder.length(), Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
                     if (bold) {
-                        builder.setSpan(new StyleSpan(Typeface.BOLD),builder.length()-text.length(),builder.length(), Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
+                        builder.setSpan(new StyleSpan(Typeface.BOLD), builder.length() - text.length(), builder.length(), Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
                     }
                     if (strikethrough) {
-                        builder.setSpan(new StrikethroughSpan(),builder.length()-text.length(),builder.length(),Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
+                        builder.setSpan(new StrikethroughSpan(), builder.length() - text.length(), builder.length(), Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
                     }
                 }
                 if (jsonObject.has("extra")) {
@@ -52,14 +52,14 @@ public final class ChatToTextView {
                             localstrikethrough = object.getBoolean("strikethrough");
                         }
                         text = object.getString("text");
-                        if (text.length() != 0) {
+                        if (!text.isEmpty()) {
                             builder.append(text);
-                            builder.setSpan(new ForegroundColorSpan(getMcColor(localcolor)),builder.length()-text.length(),builder.length(), Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
+                            builder.setSpan(new ForegroundColorSpan(getMcColor(localcolor)), builder.length() - text.length(), builder.length(), Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
                             if (localbold) {
-                                builder.setSpan(new StyleSpan(Typeface.BOLD),builder.length()-text.length(),builder.length(),Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
+                                builder.setSpan(new StyleSpan(Typeface.BOLD), builder.length() - text.length(), builder.length(), Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
                             }
                             if (localstrikethrough) {
-                                builder.setSpan(new StrikethroughSpan(),builder.length()-text.length(),builder.length(),Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
+                                builder.setSpan(new StrikethroughSpan(), builder.length() - text.length(), builder.length(), Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
                             }
                         }
 
@@ -67,8 +67,7 @@ public final class ChatToTextView {
                 }
 
 
-            }
-            else {
+            } else {
                 builder = new SpannableStringBuilder();
                 builder.append(chat);
             }
@@ -77,15 +76,14 @@ public final class ChatToTextView {
             builder = new SpannableStringBuilder();
             builder.append(chat);
         }
-        if (builder.length()>2) {
+        if (builder.length() > 2) {
             return builder.append("\n");
-        }
-        else {
+        } else {
             return SpannableStringBuilder.valueOf("");
         }
     }
 
-    public static int getMcColor(String color) {
+    private static int getMcColor(String color) {
         int renk;
         switch (color) {
             case "black":
