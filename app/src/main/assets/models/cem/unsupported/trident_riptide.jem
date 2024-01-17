@@ -1,0 +1,15 @@
+{
+	"texture": "trident_riptide.png",
+	"textureSize": [64, 64],
+	"models": [
+		{
+			"part": "body",
+			"id": "body",
+			"invertAxis": "xy",
+			"translate": [0, -15.5, 0],
+			"boxes": [
+				{"coordinates": [-8, 0, -8, 16, 31, 16], "textureOffset": [0, 0]}
+			]
+		}
+	]
+}

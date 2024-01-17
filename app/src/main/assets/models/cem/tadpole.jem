@@ -1,0 +1,24 @@
+{
+	"texture": "tadpole.png",
+	"textureSize": [16, 16],
+	"models": [
+		{
+			"part": "body",
+			"id": "body",
+			"invertAxis": "xy",
+			"translate": [0, -23, -1.5],
+			"boxes": [
+				{"coordinates": [-1.5, 0, -1.5, 3, 2, 3], "textureOffset": [0, 0]}
+			]
+		},
+		{
+			"part": "tail",
+			"id": "tail",
+			"invertAxis": "xy",
+			"translate": [0, -1, -1.5],
+			"boxes": [
+				{"coordinates": [0, 0, 1.5, 0, 2, 7], "textureOffset": [0, 0]}
+			]
+		}
+	]
+}

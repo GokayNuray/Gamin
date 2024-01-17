@@ -1,0 +1,22 @@
+{
+	"texture": "bell.png",
+	"textureSize": [32, 32],
+	"models": [
+		{
+			"part": "body",
+			"id": "body",
+			"invertAxis": "xy",
+			"translate": [0, -12, 0],
+			"rotate": [-180, 0, 0],
+			"boxes": [
+				{"coordinates": [-3, 11, -3, 6, 7, 6], "textureOffset": [0, 0]},
+				{"coordinates": [-4, 18, -4, 8, 2, 8], "textureOffset": [0, 13]}
+			],
+			"animations": [
+				{
+					"this.rx": 0
+				}
+			]
+		}
+	]
+}

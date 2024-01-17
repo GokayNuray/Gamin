@@ -1,0 +1,347 @@
+{
+	"texture": "skeleton_horse_12.png",
+	"textureSize": [128, 128],
+	"models": [
+		{
+			"part": "head",
+			"id": "head",
+			"invertAxis": "xy",
+			"translate": [0, -20, 12],
+			"boxes": [
+				{"coordinates": [-2.5, 25, -13.5, 5, 5, 7], "textureOffset": [0, 0]}
+			]
+		},
+		{
+			"part": "upper_mouth",
+			"id": "upper_mouth",
+			"invertAxis": "xy",
+			"translate": [0, -19.98, 12],
+			"boxes": [
+				{"coordinates": [-2, 26.98, -19, 4, 3, 6], "textureOffset": [24, 18]}
+			]
+		},
+		{
+			"part": "lower_mouth",
+			"id": "lower_mouth",
+			"invertAxis": "xy",
+			"translate": [0, -20, 12],
+			"boxes": [
+				{"coordinates": [-2, 25, -18.5, 4, 2, 5], "textureOffset": [24, 27]}
+			]
+		},
+		{
+			"part": "horse_left_ear",
+			"id": "horse_left_ear",
+			"invertAxis": "xy",
+			"translate": [0, -20, 12],
+			"boxes": [
+				{"coordinates": [-2.45, 29, -8, 2, 3, 1], "textureOffset": [0, 0]}
+			]
+		},
+		{
+			"part": "horse_right_ear",
+			"id": "horse_right_ear",
+			"invertAxis": "xy",
+			"translate": [0, -20, 12],
+			"boxes": [
+				{"coordinates": [0.45, 29, -8, 2, 3, 1], "textureOffset": [0, 0]}
+			]
+		},
+		{
+			"part": "mule_left_ear",
+			"id": "mule_left_ear",
+			"invertAxis": "xy",
+			"translate": [2, -20, 12]
+		},
+		{
+			"part": "mule_right_ear",
+			"id": "mule_right_ear",
+			"invertAxis": "xy",
+			"translate": [-2, -20, 12]
+		},
+		{
+			"part": "neck",
+			"id": "neck",
+			"invertAxis": "xy",
+			"translate": [0, -20, 12],
+			"boxes": [
+				{"coordinates": [-1.95, 15.8, -14, 4, 14, 8], "textureOffset": [0, 12]}
+			]
+		},
+		{
+			"part": "mane",
+			"id": "mane",
+			"invertAxis": "xy",
+			"translate": [0, -20, 12],
+			"boxes": [
+				{"coordinates": [-1, 15.5, -7, 2, 16, 4], "textureOffset": [58, 0]}
+			]
+		},
+		{
+			"part": "body",
+			"id": "body",
+			"invertAxis": "xy",
+			"translate": [0, -13, -7],
+			"boxes": [
+				{"coordinates": [-5, 11, -12, 10, 10, 24], "textureOffset": [0, 34]}
+			]
+		},
+		{
+			"part": "tail_base",
+			"id": "tail_base",
+			"invertAxis": "xy",
+			"translate": [0, -21, -12],
+			"boxes": [
+				{"coordinates": [-1, 20, 12, 2, 2, 3], "textureOffset": [44, 0]}
+			]
+		},
+		{
+			"part": "tail_middle",
+			"id": "tail_middle",
+			"invertAxis": "xy",
+			"translate": [0, -21, -12],
+			"boxes": [
+				{"coordinates": [-1.5, 19, 15, 3, 4, 7], "textureOffset": [38, 7]}
+			]
+		},
+		{
+			"part": "tail_tip",
+			"id": "tail_tip",
+			"invertAxis": "xy",
+			"translate": [0, -18.5, -12.85],
+			"boxes": [
+				{"coordinates": [-1.5, 19, 21.85, 3, 4, 7], "textureOffset": [24, 3]}
+			]
+		},
+		{
+			"part": "front_left_leg",
+			"id": "front_left_leg",
+			"invertAxis": "xy",
+			"translate": [4, -15, 10],
+			"boxes": [
+				{"coordinates": [-5.1, 8, -12.1, 3, 8, 4], "textureOffset": [44, 29]}
+			]
+		},
+		{
+			"part": "front_left_shin",
+			"id": "front_left_shin",
+			"invertAxis": "xy",
+			"translate": [4, -8, 10],
+			"boxes": [
+				{"coordinates": [-5.1, 3, -11.6, 3, 5, 3], "textureOffset": [44, 41]}
+			]
+		},
+		{
+			"part": "front_left_hoof",
+			"id": "front_left_hoof",
+			"invertAxis": "xy",
+			"translate": [4, -8, 10],
+			"boxes": [
+				{"coordinates": [-5.6, -0.1, -12.1, 4, 3, 4], "textureOffset": [44, 51]}
+			]
+		},
+		{
+			"part": "front_right_leg",
+			"id": "front_right_leg",
+			"invertAxis": "xy",
+			"translate": [-4, -15, 10],
+			"boxes": [
+				{"coordinates": [2.1, 8, -12.1, 3, 8, 4], "textureOffset": [60, 29]}
+			]
+		},
+		{
+			"part": "front_right_shin",
+			"id": "front_right_shin",
+			"invertAxis": "xy",
+			"translate": [-4, -8, 10],
+			"boxes": [
+				{"coordinates": [2.1, 3, -11.6, 3, 5, 3], "textureOffset": [60, 41]}
+			]
+		},
+		{
+			"part": "front_right_hoof",
+			"id": "front_right_hoof",
+			"invertAxis": "xy",
+			"translate": [-4, -8, 10],
+			"boxes": [
+				{"coordinates": [1.6, -0.1, -12.1, 4, 3, 4], "textureOffset": [60, 51]}
+			]
+		},
+		{
+			"part": "back_left_leg",
+			"id": "back_left_leg",
+			"invertAxis": "xy",
+			"translate": [4, -15, -9],
+			"boxes": [
+				{"coordinates": [-5.5, 8, 6.5, 4, 9, 5], "textureOffset": [78, 29]}
+			]
+		},
+		{
+			"part": "back_left_shin",
+			"id": "back_left_shin",
+			"invertAxis": "xy",
+			"translate": [4, -8, -9],
+			"boxes": [
+				{"coordinates": [-5, 3, 7.5, 3, 5, 3], "textureOffset": [78, 43]}
+			]
+		},
+		{
+			"part": "back_left_hoof",
+			"id": "back_left_hoof",
+			"invertAxis": "xy",
+			"translate": [4, -8, -9],
+			"boxes": [
+				{"coordinates": [-5.5, -0.1, 7, 4, 3, 4], "textureOffset": [78, 51]}
+			]
+		},
+		{
+			"part": "back_right_leg",
+			"id": "back_right_leg",
+			"invertAxis": "xy",
+			"translate": [-4, -15, -9],
+			"boxes": [
+				{"coordinates": [1.5, 8, 6.5, 4, 9, 5], "textureOffset": [96, 29]}
+			]
+		},
+		{
+			"part": "back_right_shin",
+			"id": "back_right_shin",
+			"invertAxis": "xy",
+			"translate": [-4, -8, -9],
+			"boxes": [
+				{"coordinates": [2, 3, 7.5, 3, 5, 3], "textureOffset": [96, 43]}
+			]
+		},
+		{
+			"part": "back_right_hoof",
+			"id": "back_right_hoof",
+			"invertAxis": "xy",
+			"translate": [-4, -8, -9],
+			"boxes": [
+				{"coordinates": [1.5, -0.1, 7, 4, 3, 4], "textureOffset": [96, 51]}
+			]
+		},
+		{
+			"part": "horse_face_ropes",
+			"id": "horse_face_ropes",
+			"invertAxis": "xy",
+			"translate": [0, -20, 12],
+			"boxes": [
+				{"coordinates": [-2.5, 25.1, -19.015, 5, 5, 11], "textureOffset": [81, 13], "sizeAdd": 0.2}
+			]
+		},
+		{
+			"part": "horse_left_face_metal",
+			"id": "horse_left_face_metal",
+			"invertAxis": "xy",
+			"translate": [0, -20, 12.02],
+			"boxes": [
+				{"coordinates": [-2.5, 26, -16.02, 1, 2, 2], "textureOffset": [74, 13]}
+			]
+		},
+		{
+			"part": "horse_right_face_metal",
+			"id": "horse_right_face_metal",
+			"invertAxis": "xy",
+			"translate": [0, -20, 12.02],
+			"boxes": [
+				{"coordinates": [1.5, 26, -16.02, 1, 2, 2], "textureOffset": [74, 13]}
+			]
+		},
+		{
+			"part": "horse_left_rein",
+			"id": "horse_left_rein",
+			"invertAxis": "xy",
+			"translate": [0, -20, 12],
+			"boxes": [
+				{"coordinates": [-2.6, 23, -18, 0, 3, 16], "textureOffset": [44, 10]}
+			]
+		},
+		{
+			"part": "horse_right_rein",
+			"id": "horse_right_rein",
+			"invertAxis": "xy",
+			"translate": [0, -20, 12],
+			"boxes": [
+				{"coordinates": [2.6, 23, -18, 0, 3, 16], "textureOffset": [44, 5]}
+			]
+		},
+		{
+			"part": "horse_saddle_front",
+			"id": "horse_saddle_front",
+			"invertAxis": "xy",
+			"translate": [0, -22, 0],
+			"boxes": [
+				{"coordinates": [-1.5, 22, -3, 3, 1, 2], "textureOffset": [106, 9]}
+			]
+		},
+		{
+			"part": "horse_saddle_bottom",
+			"id": "horse_saddle_bottom",
+			"invertAxis": "xy",
+			"translate": [0, -22, 0],
+			"boxes": [
+				{"coordinates": [-5, 21, -3, 10, 1, 8], "textureOffset": [80, 0]}
+			]
+		},
+		{
+			"part": "horse_saddle_back",
+			"id": "horse_saddle_back",
+			"invertAxis": "xy",
+			"translate": [0, -22, 0],
+			"boxes": [
+				{"coordinates": [-4, 22, 3, 8, 1, 2], "textureOffset": [80, 9]}
+			]
+		},
+		{
+			"part": "horse_left_saddle_rope",
+			"id": "horse_left_saddle_rope",
+			"invertAxis": "xy",
+			"translate": [5, -22, 0],
+			"boxes": [
+				{"coordinates": [-5.5, 16, -0.5, 1, 6, 1], "textureOffset": [70, 0]}
+			]
+		},
+		{
+			"part": "horse_left_saddle_metal",
+			"id": "horse_left_saddle_metal",
+			"invertAxis": "xy",
+			"translate": [5, -22, 0],
+			"boxes": [
+				{"coordinates": [-5.5, 14, -1, 1, 2, 2], "textureOffset": [74, 0]}
+			]
+		},
+		{
+			"part": "horse_right_saddle_rope",
+			"id": "horse_right_saddle_rope",
+			"invertAxis": "xy",
+			"translate": [-5, -22, 0],
+			"boxes": [
+				{"coordinates": [4.5, 16, -0.5, 1, 6, 1], "textureOffset": [80, 0]}
+			]
+		},
+		{
+			"part": "horse_right_saddle_metal",
+			"id": "horse_right_saddle_metal",
+			"invertAxis": "xy",
+			"translate": [-5, -22, 0],
+			"boxes": [
+				{"coordinates": [4.5, 14, -1, 1, 2, 2], "textureOffset": [74, 4]}
+			]
+		},
+		{
+			"part": "mule_left_chest",
+			"id": "mule_left_chest",
+			"invertAxis": "xy",
+			"translate": [7.5, -21, -23],
+			"rotate": [0, -90, 0]
+		},
+		{
+			"part": "mule_right_chest",
+			"id": "mule_right_chest",
+			"invertAxis": "xy",
+			"translate": [-4.5, -21, 1],
+			"rotate": [0, -90, 0]
+		}
+	]
+}

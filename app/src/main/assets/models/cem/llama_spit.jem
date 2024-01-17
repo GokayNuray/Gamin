@@ -1,0 +1,35 @@
+{
+	"texture": "llama_spit.png",
+	"textureSize": [64, 32],
+	"models": [
+		{
+			"part": "body",
+			"id": "body",
+			"invertAxis": "xy",
+			"translate": [0, -6, 0],
+			"submodels": [
+				{
+					"id": "body_rotation",
+					"invertAxis": "xy",
+					"translate": [0, 4, 0],
+					"rotate": [-180, -90, 0],
+					"boxes": [
+						{"coordinates": [2, 0, 0, 2, 2, 2], "textureOffset": [0, 0]},
+						{"coordinates": [-2, 2, 0, 2, 2, 2], "textureOffset": [0, 0]},
+						{"coordinates": [-2, 0, 0, 2, 2, 2], "textureOffset": [0, 0]},
+						{"coordinates": [-2, 0, 2, 2, 2, 2], "textureOffset": [0, 0]},
+						{"coordinates": [-4, 0, 0, 2, 2, 2], "textureOffset": [0, 0]},
+						{"coordinates": [-2, -4, 0, 2, 2, 2], "textureOffset": [0, 0]},
+						{"coordinates": [-2, 0, -4, 2, 2, 2], "textureOffset": [0, 0]}
+					]
+				}
+			],
+			"animations": [
+				{
+					"body_rotation.rx": 0,
+					"body_rotation.ry": 0
+				}
+			]
+		}
+	]
+}

@@ -1,0 +1,37 @@
+{
+	"credit": "By Ewan Howell",
+	"texture": "raft_unedited.png",
+	"textureSize": [128, 64],
+	"models": [
+		{
+			"part": "bottom",
+			"id": "bottom",
+			"invertAxis": "xy",
+			"translate": [1, -8, -4],
+			"boxes": [
+				{"coordinates": [-15, -1, 0, 28, 20, 4], "textureOffset": [0, 0]},
+				{"coordinates": [-15, 1, -4, 28, 16, 4], "textureOffset": [0, 0]}
+			]
+		},
+		{
+			"part": "paddle_left",
+			"id": "paddle_left",
+			"invertAxis": "xy",
+			"translate": [19, -9, 5],
+			"boxes": [
+				{"coordinates": [-20, 7, -10, 2, 2, 18], "textureOffset": [0, 24]},
+				{"coordinates": [-18.999, 6, 3, 1, 6, 7], "textureOffset": [0, 24]}
+			]
+		},
+		{
+			"part": "paddle_right",
+			"id": "paddle_right",
+			"invertAxis": "xy",
+			"translate": [-17, -9, 5],
+			"boxes": [
+				{"coordinates": [16, 7, -10, 2, 2, 18], "textureOffset": [40, 24]},
+				{"coordinates": [15.999, 6, 3, 1, 6, 7], "textureOffset": [40, 24]}
+			]
+		}
+	]
+}

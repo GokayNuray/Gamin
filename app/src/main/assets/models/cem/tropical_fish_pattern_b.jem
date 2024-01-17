@@ -1,0 +1,68 @@
+{
+	"texture": "tropical_fish_pattern_b.png",
+	"textureSize": [32, 32],
+	"models": [
+		{
+			"part": "body",
+			"id": "body",
+			"invertAxis": "xy",
+			"translate": [0, -3, -3],
+			"boxes": [
+				{"coordinates": [-1, 0, 0, 2, 6, 6], "textureOffset": [0, 20]}
+			],
+			"submodels": [
+				{
+					"id": "right_fin",
+					"invertAxis": "xy",
+					"translate": [1, 0, 3],
+					"rotate": [0, -45, 0],
+					"boxes": [
+						{"coordinates": [0, 0, 0, 2, 2, 0], "textureOffset": [2, 16]}
+					]
+				},
+				{
+					"id": "left_fin",
+					"invertAxis": "xy",
+					"translate": [-1, 0, 3],
+					"rotate": [0, 45, 0],
+					"boxes": [
+						{"coordinates": [-2, 0, 0, 2, 2, 0], "textureOffset": [2, 12]}
+					]
+				}
+			]
+		},
+		{
+			"part": "fin_top",
+			"id": "fin_top",
+			"invertAxis": "xy",
+			"translate": [0, -6, 0],
+			"boxes": [
+				{"coordinates": [0, 6, 0, 0, 4, 6], "textureOffset": [20, 11]}
+			]
+		},
+		{
+			"part": "fin_bottom",
+			"id": "fin_bottom",
+			"invertAxis": "xy",
+			"translate": [0, 0, 0],
+			"boxes": [
+				{"coordinates": [0, -4, 0, 0, 4, 6], "textureOffset": [20, 21]}
+			]
+		},
+		{
+			"part": "tail",
+			"id": "tail",
+			"invertAxis": "xy",
+			"translate": [0, -3, -6],
+			"boxes": [
+				{"coordinates": [0, 0, 6, 0, 6, 5], "textureOffset": [21, 16]}
+			]
+		},
+		{
+			"part": "fin_left"
+		},
+		{
+			"part": "fin_right"
+		}
+	]
+}

@@ -1,0 +1,49 @@
+{
+	"credit": "By Ewan Howell",
+	"texture": "head_piglin.png",
+	"textureSize": [64, 64],
+	"models": [
+		{
+			"part": "head",
+			"id": "head",
+			"invertAxis": "xy",
+			"translate": [0, 0, 0],
+			"boxes": [
+				{"coordinates": [-5, 0, -4, 10, 8, 8], "textureOffset": [0, 0]},
+				{"coordinates": [-2, 0, -5, 4, 4, 1], "textureOffset": [31, 1]},
+				{"coordinates": [-3, 0, -5, 1, 2, 1], "textureOffset": [2, 4]},
+				{"coordinates": [2, 0, -5, 1, 2, 1], "textureOffset": [2, 0]}
+			]
+		},
+		{
+			"part": "left_ear",
+			"id": "left_ear",
+			"invertAxis": "xy",
+			"translate": [4.5, -6, 0],
+			"rotate": [0, 0, -35],
+			"boxes": [
+				{"coordinates": [-5.5, 1, -2, 1, 5, 4], "textureOffset": [51, 6]}
+			],
+			"animations": [
+				{
+					"this.rz": 0
+				}
+			]
+		},
+		{
+			"part": "right_ear",
+			"id": "right_ear",
+			"invertAxis": "xy",
+			"translate": [-4.5, -6, 0],
+			"rotate": [0, 0, 35],
+			"boxes": [
+				{"coordinates": [4.5, 1, -2, 1, 5, 4], "textureOffset": [39, 6]}
+			],
+			"animations": [
+				{
+					"this.rz": 0
+				}
+			]
+		}
+	]
+}

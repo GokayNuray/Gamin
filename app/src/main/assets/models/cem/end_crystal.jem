@@ -1,0 +1,39 @@
+{
+	"texture": "end_crystal.png",
+	"textureSize": [64, 32],
+	"models": [
+		{
+			"part": "base",
+			"id": "base",
+			"invertAxis": "xy",
+			"translate": [0, 0, 0],
+			"rotate": [-180, 0, 0],
+			"boxes": [
+				{"coordinates": [-6, -4, -6, 12, 4, 12], "textureOffset": [0, 16]}
+			],
+			"animations": [
+				{
+					"this.rx": 0
+				}
+			]
+		},
+		{
+			"part": "cube",
+			"id": "cube",
+			"invertAxis": "xy",
+			"translate": [0, -10, 0],
+			"boxes": [
+				{"coordinates": [-4, 6, -4, 8, 8, 8], "textureOffset": [32, 0]}
+			]
+		},
+		{
+			"part": "glass",
+			"id": "glass",
+			"invertAxis": "xy",
+			"translate": [0, -10, 0],
+			"boxes": [
+				{"coordinates": [-4, 6, -4, 8, 8, 8], "textureOffset": [0, 0]}
+			]
+		}
+	]
+}

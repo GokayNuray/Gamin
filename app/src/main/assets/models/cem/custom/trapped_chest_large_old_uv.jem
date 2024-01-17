@@ -1,0 +1,63 @@
+{
+	"credit": "By Ewan Howell",
+	"texture": "trapped_chest_large_old_uv.png",
+	"textureSize": [128, 64],
+	"models": [
+		{
+			"part": "base_left",
+			"id": "base_left",
+			"invertAxis": "xy",
+			"translate": [-16, 0, 8],
+			"boxes": [
+				{"coordinates": [-15, 0, -7, 30, 10, 14], "textureOffset": [0, 19]}
+			],
+			"submodels": [
+				{
+					"id": "lid",
+					"invertAxis": "xy",
+					"translate": [0, 9, 7],
+					"boxes": [
+						{"coordinates": [-15, 0, -14, 30, 5, 14], "textureOffset": [0, 0]},
+						{"coordinates": [-1, -2, -15, 2, 4, 1], "textureOffset": [0, 0]}
+					]
+				}
+			],
+			"animations": [
+				{
+					"this.rx": "torad(180)",
+					"lid.rx": "lid_left.rx"
+				}
+			]
+		},
+		{
+			"part": "base_right",
+			"id": "base_right",
+			"invertAxis": "xy",
+			"translate": [0, 0, 0]
+		},
+		{
+			"part": "lid_left",
+			"id": "lid_left",
+			"invertAxis": "xy",
+			"translate": [0, 0, 0]
+		},
+		{
+			"part": "lid_right",
+			"id": "lid_right",
+			"invertAxis": "xy",
+			"translate": [0, 0, 0]
+		},
+		{
+			"part": "knob_left",
+			"id": "knob_left",
+			"invertAxis": "xy",
+			"translate": [0, 0, 0]
+		},
+		{
+			"part": "knob_right",
+			"id": "knob_right",
+			"invertAxis": "xy",
+			"translate": [0, 0, 0]
+		}
+	]
+}

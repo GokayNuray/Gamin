@@ -1,0 +1,16 @@
+{
+	"texture": "bell_unedited.png",
+	"textureSize": [32, 32],
+	"models": [
+		{
+			"part": "body",
+			"id": "body",
+			"invertAxis": "xy",
+			"translate": [0, -4, 0],
+			"boxes": [
+				{"coordinates": [-3, 3, -3, 6, 7, 6], "textureOffset": [0, 0]},
+				{"coordinates": [-4, 10, -4, 8, 2, 8], "textureOffset": [0, 13]}
+			]
+		}
+	]
+}

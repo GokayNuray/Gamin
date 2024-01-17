@@ -7,14 +7,12 @@ public class Square {
     public final float[] squareColors;
     public final float[] textures1;
     public final float[] textures2;
-    public int direction;
     public float[] coords1;
     public float[] coords2;
     float[] squareCoords;
 
-    Square(float[] squareCoords, float[] color, float[] textureCoords, TextureAtlas atlas, int direction) {
+    Square(float[] squareCoords, float[] color, float[] textureCoords, TextureAtlas atlas) {
         this.squareCoords = squareCoords;
-        this.direction = direction;
         this.atlas = atlas;
 
         squareColors = new float[24];
@@ -30,14 +28,13 @@ public class Square {
         System.arraycopy(Arrays.copyOfRange(textureCoords, 0, 2), 0, textures2, 4, 2);
     }
 
-    private Square(float[] coords1, float[] coords2, float[] textures1, float[] textures2, float[] squareColors, TextureAtlas atlas, int direction) {
+    private Square(float[] coords1, float[] coords2, float[] textures1, float[] textures2, float[] squareColors, TextureAtlas atlas) {
         this.coords1 = coords1;
         this.coords2 = coords2;
         this.textures1 = textures1;
         this.textures2 = textures2;
         this.squareColors = squareColors;
         this.atlas = atlas;
-        this.direction = direction;
         this.squareCoords = new float[12];
         System.arraycopy(coords1, 0, squareCoords, 0, 9);
         System.arraycopy(coords2, 3, squareCoords, 9, 3);
@@ -61,6 +58,6 @@ public class Square {
         System.arraycopy(this.textures1, 0, textures1, 0, 6);
         System.arraycopy(this.textures2, 0, textures2, 0, 6);
         System.arraycopy(this.squareColors, 0, squareColors, 0, 24);
-        return new Square(coords1, coords2, textures1, textures2, squareColors, atlas, direction);
+        return new Square(coords1, coords2, textures1, textures2, squareColors, atlas);
     }
 }

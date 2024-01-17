@@ -1,0 +1,90 @@
+{
+	"texture": "strider_unedited.png",
+	"textureSize": [64, 128],
+	"models": [
+		{
+			"part": "body",
+			"id": "body",
+			"invertAxis": "xy",
+			"translate": [0, -23, 0],
+			"boxes": [
+				{"coordinates": [-8, 15, -8, 16, 14, 16], "textureOffset": [0, 0]}
+			]
+		},
+		{
+			"part": "left_leg",
+			"id": "left_leg",
+			"invertAxis": "xy",
+			"translate": [-4, -17, 0],
+			"boxes": [
+				{"coordinates": [2, 0, -2, 4, 17, 4], "textureOffset": [0, 55]}
+			]
+		},
+		{
+			"part": "right_leg",
+			"id": "right_leg",
+			"invertAxis": "xy",
+			"translate": [4, -17, 0],
+			"boxes": [
+				{"coordinates": [-6, 0, -2, 4, 17, 4], "textureOffset": [0, 32]}
+			]
+		},
+		{
+			"part": "hair_left_top",
+			"id": "hair_left_top",
+			"invertAxis": "xy",
+			"translate": [8, -29, 8],
+			"boxes": [
+				{"coordinates": [-20, 29, -8, 12, 0, 16], "textureOffset": [4, 33]}
+			]
+		},
+		{
+			"part": "hair_left_middle",
+			"id": "hair_left_middle",
+			"invertAxis": "xy",
+			"translate": [8, -25, 8],
+			"boxes": [
+				{"coordinates": [-20, 25, -8, 12, 0, 16], "textureOffset": [4, 49]}
+			]
+		},
+		{
+			"part": "hair_left_bottom",
+			"id": "hair_left_bottom",
+			"invertAxis": "xy",
+			"translate": [8, -20, 8],
+			"boxes": [
+				{"coordinates": [-20, 20, -8, 12, 0, 16], "textureOffset": [4, 65]}
+			]
+		},
+		{
+			"part": "hair_right_top",
+			"id": "hair_right_top",
+			"invertAxis": "xy",
+			"translate": [-8, -28, 8],
+			"mirrorTexture": "u",
+			"boxes": [
+				{"coordinates": [8, 28, -8, 12, 0, 16], "textureOffset": [4, 33]}
+			]
+		},
+		{
+			"part": "hair_right_middle",
+			"id": "hair_right_middle",
+			"invertAxis": "xy",
+			"translate": [-8, -24, 8],
+			"mirrorTexture": "u",
+			"boxes": [
+				{"coordinates": [8, 24, -8, 12, 0, 16], "textureOffset": [4, 49]}
+			]
+		},
+		{
+			"part": "hair_right_bottom",
+			"id": "hair_right_bottom",
+			"invertAxis": "xy",
+			"translate": [-8, -19, 8],
+			"mirrorTexture": "u",
+			"boxes": [
+				{"coordinates": [8, 19, -8, 12, 0, 16], "textureOffset": [4, 65]}
+			]
+		}
+	]
+}

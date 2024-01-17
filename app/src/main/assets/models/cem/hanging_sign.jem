@@ -1,0 +1,94 @@
+{
+	"credit": "By Ewan Howell",
+	"texture": "hanging_sign.png",
+	"textureSize": [64, 32],
+	"models": [
+		{
+			"part": "board",
+			"id": "board",
+			"invertAxis": "xy",
+			"translate": [0, -10, 0],
+			"boxes": [
+				{"coordinates": [-7, 0, -1, 14, 10, 2], "textureOffset": [0, 12]}
+			]
+		},
+		{
+			"part": "plank",
+			"id": "plank",
+			"invertAxis": "xy",
+			"translate": [0, -10, 0],
+			"boxes": [
+				{"coordinates": [-8, 16, -2, 16, 2, 4], "textureOffset": [0, 0]}
+			]
+		},
+		{
+			"part": "chain_left1",
+			"id": "chain_left1",
+			"invertAxis": "xy",
+			"translate": [-5, -16, 0],
+			"rotate": [0, 45, 0],
+			"boxes": [
+				{"coordinates": [3.5, 10, 0, 3, 6, 0], "textureOffset": [0, 6]}
+			],
+			"animations": [
+				{
+					"this.ry": 0
+				}
+			]
+		},
+		{
+			"part": "chain_left2",
+			"id": "chain_left2",
+			"invertAxis": "xy",
+			"translate": [-5, -16, 0],
+			"rotate": [0, -45, 0],
+			"boxes": [
+				{"coordinates": [3.5, 10, 0, 3, 6, 0], "textureOffset": [6, 6]}
+			],
+			"animations": [
+				{
+					"this.ry": 0
+				}
+			]
+		},
+		{
+			"part": "chain_right1",
+			"id": "chain_right1",
+			"invertAxis": "xy",
+			"translate": [5, -16, 0],
+			"rotate": [0, 45, 0],
+			"boxes": [
+				{"coordinates": [-6.5, 10, 0, 3, 6, 0], "textureOffset": [0, 6]}
+			],
+			"animations": [
+				{
+					"this.ry": 0
+				}
+			]
+		},
+		{
+			"part": "chain_right2",
+			"id": "chain_right2",
+			"invertAxis": "xy",
+			"translate": [5, -16, 0],
+			"rotate": [0, -45, 0],
+			"boxes": [
+				{"coordinates": [-6.5, 10, 0, 3, 6, 0], "textureOffset": [6, 6]}
+			],
+			"animations": [
+				{
+					"this.ry": 0
+				}
+			]
+		},
+		{
+			"part": "chains_v",
+			"id": "chains_v",
+			"invertAxis": "xy",
+			"translate": [0, -10, 0],
+			"boxes": [
+				{"coordinates": [-6, 10, 0, 12, 6, 0], "textureOffset": [14, 6]}
+			]
+		}
+	]
+}

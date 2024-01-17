@@ -1,0 +1,15 @@
+{
+	"texture": "cape.png",
+	"textureSize": [64, 32],
+	"models": [
+		{
+			"part": "cape",
+			"id": "cape",
+			"invertAxis": "xy",
+			"translate": [0, -16, -0.5],
+			"boxes": [
+				{"coordinates": [-5, 0, -0.5, 10, 16, 1], "textureOffset": [0, 0]}
+			]
+		}
+	]
+}

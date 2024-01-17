@@ -1,0 +1,115 @@
+{
+	"texture": "bat_single_bone.png",
+	"textureSize": [64, 64],
+	"models": [
+		{
+			"part": "head",
+			"id": "head",
+			"invertAxis": "xy",
+			"translate": [0, 0, 0]
+		},
+		{
+			"part": "body",
+			"id": "body",
+			"invertAxis": "xy",
+			"translate": [0, -24, 0],
+			"boxes": [
+				{"coordinates": [-5, -8, 0, 10, 16, 1], "textureOffset": [0, 34]},
+				{"coordinates": [-3, 8, -3, 6, 12, 6], "textureOffset": [0, 16]}
+			],
+			"submodels": [
+				{
+					"id": "head2",
+					"invertAxis": "xy",
+					"translate": [0, 23, 0],
+					"boxes": [
+						{"coordinates": [-3, -3, -3, 6, 6, 6], "textureOffset": [0, 0]},
+						{"coordinates": [1, 2, -2, 3, 4, 1], "textureOffset": [24, 0]}
+					],
+					"submodels": [
+						{
+							"id": "right_ear",
+							"invertAxis": "xy",
+							"translate": [0, -23, 0],
+							"mirrorTexture": "u",
+							"boxes": [
+								{"coordinates": [-4, 25, -2, 3, 4, 1], "textureOffset": [24, 0]}
+							]
+						}
+					]
+				},
+				{
+					"id": "right_wing2",
+					"invertAxis": "xy",
+					"translate": [0, 0, 1.5],
+					"boxes": [
+						{"coordinates": [2, 7, 0, 10, 16, 1], "textureOffset": [42, 0]}
+					],
+					"submodels": [
+						{
+							"id": "outer_right_wing2",
+							"invertAxis": "xy",
+							"translate": [12, 10, 0],
+							"boxes": [
+								{"coordinates": [0, 0, 0, 8, 12, 1], "textureOffset": [24, 16]}
+							]
+						}
+					]
+				},
+				{
+					"id": "left_wing2",
+					"invertAxis": "xy",
+					"translate": [0, 0, 1.5],
+					"mirrorTexture": "u",
+					"boxes": [
+						{"coordinates": [-12, 7, 0, 10, 16, 1], "textureOffset": [42, 0]}
+					],
+					"submodels": [
+						{
+							"id": "outer_left_wing2",
+							"invertAxis": "xy",
+							"translate": [-12, 10, 0],
+							"mirrorTexture": "u",
+							"boxes": [
+								{"coordinates": [-8, 0, 0, 8, 12, 1], "textureOffset": [24, 16]}
+							]
+						}
+					]
+				}
+			],
+			"animations": [
+				{
+					"head2.rx": "torad(-45)+head.rx",
+					"left_wing2.ry": "left_wing.ry",
+					"outer_left_wing2.ry": "outer_left_wing.ry",
+					"right_wing2.ry": "right_wing.ry",
+					"outer_right_wing2.ry": "outer_right_wing.ry"
+				}
+			]
+		},
+		{
+			"part": "right_wing",
+			"id": "right_wing",
+			"invertAxis": "xy",
+			"translate": [0, 0, 0]
+		},
+		{
+			"part": "left_wing",
+			"id": "left_wing",
+			"invertAxis": "xy",
+			"translate": [0, 0, 0]
+		},
+		{
+			"part": "outer_right_wing",
+			"id": "outer_right_wing",
+			"invertAxis": "xy",
+			"translate": [0, 0, 0]
+		},
+		{
+			"part": "outer_left_wing",
+			"id": "outer_left_wing",
+			"invertAxis": "xy",
+			"translate": [0, 0, 0]
+		}
+	]
+}

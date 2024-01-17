@@ -1,0 +1,46 @@
+{
+	"texture": "evoker_fangs.png",
+	"textureSize": [64, 32],
+	"models": [
+		{
+			"part": "base",
+			"id": "base",
+			"invertAxis": "xy",
+			"translate": [-5, -12, 5],
+			"boxes": [
+				{"coordinates": [-5, 0, -5, 10, 12, 10], "textureOffset": [0, 0]}
+			]
+		},
+		{
+			"part": "upper_jaw",
+			"id": "upper_jaw",
+			"invertAxis": "xy",
+			"translate": [-0.5, -12, 4],
+			"rotate": [-180, -180, 0],
+			"boxes": [
+				{"coordinates": [-3.5, -2, -4, 4, 14, 8], "textureOffset": [40, 0]}
+			],
+			"animations": [
+				{
+					"this.rx": 0,
+					"this.ry": 0
+				}
+			]
+		},
+		{
+			"part": "lower_jaw",
+			"id": "lower_jaw",
+			"invertAxis": "xy",
+			"translate": [-1.5, -12, -4],
+			"rotate": [-180, 0, 0],
+			"boxes": [
+				{"coordinates": [-2.5, -2, 4, 4, 14, 8], "textureOffset": [40, 0]}
+			],
+			"animations": [
+				{
+					"this.rx": 0
+				}
+			]
+		}
+	]
+}

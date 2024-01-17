@@ -1,0 +1,45 @@
+{
+	"texture": "ender_chest_single_bone.png",
+	"textureSize": [64, 64],
+	"models": [
+		{
+			"part": "base",
+			"id": "base",
+			"invertAxis": "xy",
+			"translate": [-8, 0, -8],
+			"rotate": [-180, 0, 0],
+			"boxes": [
+				{"coordinates": [-7, -10, 9, 14, 10, 14], "textureOffset": [0, 19]}
+			],
+			"submodels": [
+				{
+					"id": "lid2",
+					"invertAxis": "xy",
+					"translate": [0, -9, 9],
+					"boxes": [
+						{"coordinates": [-7, -5, 0, 14, 5, 14], "textureOffset": [0, 0]},
+						{"coordinates": [-1, -2, 14, 2, 4, 1], "textureOffset": [0, 0]}
+					]
+				}
+			],
+			"animations": [
+				{
+					"this.rx": 0,
+					"lid2.rx": "lid.rx"
+				}
+			]
+		},
+		{
+			"part": "lid",
+			"id": "lid",
+			"invertAxis": "xy",
+			"translate": [-8, -5, 7]
+		},
+		{
+			"part": "knob",
+			"id": "knob",
+			"invertAxis": "xy",
+			"translate": [-8, -6, 8]
+		}
+	]
+}

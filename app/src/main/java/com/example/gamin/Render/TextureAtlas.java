@@ -38,6 +38,8 @@ public class TextureAtlas {
         colorsBuffer = ByteBuffer.allocateDirect(squareCount * 6 * 4 * 4).order(ByteOrder.nativeOrder()).asFloatBuffer();
         texturesBuffer = ByteBuffer.allocateDirect(squareCount * 6 * 2 * 4).order(ByteOrder.nativeOrder()).asFloatBuffer();
 
+        if (squareCount == 0) return;
+
         for (ChunkColumn chunk : chunks) {
             synchronized (chunk) {
                 if (!chunk.isLoaded || chunk.coordsBuffers.get(this) == null) {

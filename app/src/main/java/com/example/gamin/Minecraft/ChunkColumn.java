@@ -6,6 +6,7 @@ import android.util.Log;
 import com.example.gamin.Render.SlotRenderer;
 import com.example.gamin.Render.Square;
 import com.example.gamin.Render.TextureAtlas;
+import com.example.gamin.Render.TileEntity;
 import com.example.gamin.Utils.PacketUtils;
 
 import org.json.JSONException;
@@ -30,6 +31,7 @@ public class ChunkColumn {
     public final Map<TextureAtlas, FloatBuffer> colorsBuffers = new HashMap<>();
     public final Map<TextureAtlas, FloatBuffer> texturesBuffers = new HashMap<>();
     private final Map<Integer, SlotRenderer> renders = new HashMap<>();
+    private final Map<Integer, TileEntity> tileEntities = new HashMap<>();
     private final Set<TextureAtlas> updatedAtlases = new HashSet<>();
     public long pos;
     public short bitmask;
@@ -85,8 +87,17 @@ public class ChunkColumn {
             try {
                 if (getBlockId(block) == 0) {
                     chunkColumn.removeRender((chunkY << 12) | (blockX << 8) | (blockY << 4) | blockZ);
-                } else
-                    chunkColumn.setRender(new SlotRenderer(context, getBlockId(block), getBlockMetaData(block), 1, x, y, z), (short) chunkY, (short) blockX, (short) blockY, (short) blockZ);
+                    chunkColumn.tileEntities.remove((chunkY << 12) | (blockX << 8) | (blockY << 4) | blockZ);
+                } else {
+                    if (TileEntity.tileEntityIds.contains(getBlockId(block) & 0xff)) {
+                        TileEntity tileEntity = new TileEntity(context, getBlockId(block), getBlockMetaData(block), x, y, z);
+                        chunkColumn.tileEntities.put((chunkY << 12) | (blockX << 8) | (blockY << 4) | blockZ, tileEntity);
+                        chunkColumn.setRender(tileEntity.slotRenderer, (short) chunkY, (short) blockX, (short) blockY, (short) blockZ);
+                        return;
+                    }
+                    SlotRenderer render = new SlotRenderer(context, getBlockId(block), getBlockMetaData(block), 1, x, y, z);
+                    chunkColumn.setRender(render, (short) chunkY, (short) blockX, (short) blockY, (short) blockZ);
+                }
             } catch (IOException | JSONException e) {
                 throw new RuntimeException(e);
             }
@@ -174,6 +185,12 @@ public class ChunkColumn {
                             short block = chunk[chunkY][blockX][blockY][blockZ];
                             if (getBlockId(block) == 0) continue;
                             try {
+                                if (TileEntity.tileEntityIds.contains(getBlockId(block) & 0xff)) {
+                                    TileEntity tileEntity = new TileEntity(context, getBlockId(block), getBlockMetaData(block), chunkX * 16 + blockX, chunkY * 16 + blockY, chunkZ * 16 + blockZ);
+                                    tileEntities.put((chunkY << 12) | (blockX << 8) | (blockY << 4) | blockZ, tileEntity);
+                                    setRender(tileEntity.slotRenderer, chunkY, blockX, blockY, blockZ);
+                                    continue;
+                                }
                                 SlotRenderer render = new SlotRenderer(context, getBlockId(block), getBlockMetaData(block), 1, chunkX * 16 + blockX, chunkY * 16 + blockY, chunkZ * 16 + blockZ);
                                 replaceSquares(null, render);
                                 renders.put((chunkY << 12) | (blockX << 8) | (blockY << 4) | blockZ, render);

@@ -39,6 +39,17 @@ public class SlotRenderer {
     private float angle = 0;
     private boolean upsideDown = false;
 
+    public SlotRenderer(List<Square> squares) {
+        this.squares.addAll(squares);
+        context = null;
+        id = 0;
+        metadata = 0;
+        type = 0;
+        x = 0;
+        y = 0;
+        z = 0;
+    }
+
     public SlotRenderer(Context context, short id, byte metadata, int type, int x, int y, int z) throws IOException, JSONException {
         this.context = context;
         this.id = id;
@@ -106,7 +117,6 @@ public class SlotRenderer {
                 throw new IllegalStateException("Unexpected value: " + type);
         }
         if (!models.containsKey(model + id + " " + metadata)) {
-            InputStream is;
             List<Square> modelSquares = new ArrayList<>();
             String newModel = model;
             try {
@@ -140,180 +150,18 @@ public class SlotRenderer {
                     modelXAngle = 270;
                     continue;
                 }
-                is = context.getAssets().open(s);
-                byte[] b = new byte[is.available()];
-                is.read(b);
-                is.close();
-                JSONObject jsonObject = new JSONObject(new String(b));
-
-                do {
-                    JSONObject textures = jsonObject.optJSONObject("textures");
-                    if (jsonObject.has("parent")) {
-                        InputStream is2 = context.getAssets().open("models/" + jsonObject.getString("parent") + ".json");
-                        byte[] b2 = new byte[is2.available()];
-                        is2.read(b2);
-                        is2.close();
-                        jsonObject = new JSONObject(new String(b2));
-                    }
-                    String object = jsonObject.toString();
-                    int i = object.indexOf("#");
-                    while (i != -1) {
-                        int j = object.indexOf("\"", i);
-                        String newString;
-                        if (textures != null) {
-                            if (textures.has(object.substring(i + 1, j))) {
-                                newString = textures.getString(object.substring(i + 1, j));
-                            } else {
-                                newString = jsonObject.getJSONObject("textures").getString(object.substring(i + 1, j));
-                            }
-                        } else {
-                            newString = jsonObject.getJSONObject("textures").getString(object.substring(i + 1, j));
-                        }
-                        String newPart1 = object.substring(0, i);
-                        String newPart2 = object.substring(j);
-                        object = newPart1 + newString + newPart2;
-                        i = object.indexOf("#");
-                    }
-                    jsonObject = new JSONObject(object);
-                } while (jsonObject.has("parent"));
-                JSONArray elements = jsonObject.getJSONArray("elements");
-                for (int i = 0; i < elements.length(); i++) {
-                    float[] from = new float[3];
-                    float[] to = new float[3];
-                    JSONObject element = elements.getJSONObject(i);
-
-                    JSONArray jFrom = element.getJSONArray("from");
-                    for (int j = 0; j < jFrom.length(); j++)
-                        from[j] = (float) (jFrom.getDouble(j) / 16);
-                    JSONArray jTo = element.getJSONArray("to");
-                    for (int j = 0; j < jTo.length(); j++) to[j] = (float) (jTo.getDouble(j) / 16);
-
-                    float[] fOrigin = null;
-                    int rotAngle = 0;
-                    String axis = "";
-                    if (element.has("rotation")) {
-                        JSONObject rotation = element.getJSONObject("rotation");
-                        fOrigin = new float[3];
-                        JSONArray jOrigin = rotation.getJSONArray("origin");
-                        for (int j = 0; j < jOrigin.length(); j++)
-                            fOrigin[j] = (float) (jOrigin.getDouble(j) / 16);
-                        rotAngle = rotation.getInt("angle");
-                        axis = rotation.getString("axis");
-                    }
-                    String[] faces = {"north", "west", "south", "east", "up", "down"};
-                    float[][] squareCoords = {
-                            //north
-                            {to[0], to[1], from[2],
-                                    to[0], from[1], from[2],
-                                    from[0], from[1], from[2],
-                                    from[0], to[1], from[2]},
-                            //west
-                            {from[0], to[1], from[2],
-                                    from[0], from[1], from[2],
-                                    from[0], from[1], to[2],
-                                    from[0], to[1], to[2]},
-                            //south
-                            {from[0], to[1], to[2],
-                                    from[0], from[1], to[2],
-                                    to[0], from[1], to[2],
-                                    to[0], to[1], to[2]},
-                            //east
-                            {to[0], to[1], to[2],
-                                    to[0], from[1], to[2],
-                                    to[0], from[1], from[2],
-                                    to[0], to[1], from[2]},
-                            //up
-                            {to[0], to[1], to[2],
-                                    to[0], to[1], from[2],
-                                    from[0], to[1], from[2],
-                                    from[0], to[1], to[2]},
-                            //down
-                            {to[0], from[1], to[2],
-                                    to[0], from[1], from[2],
-                                    from[0], from[1], from[2],
-                                    from[0], from[1], to[2]}
-                    };
-                    for (int j = 0; j < faces.length; j++) {
-                        if (element.getJSONObject("faces").has(faces[j])) {
-                            float[] squareCoords1 = squareCoords[j];
-                            float[] textureCoords1;
-                            JSONObject face = element.getJSONObject("faces").getJSONObject(faces[j]);
-                            if (face.has("uv")) {
-                                JSONArray uv = face.getJSONArray("uv");
-                                textureCoords1 = new float[]{
-                                        (float) (uv.getDouble(0) / 16), (float) (uv.getDouble(1) / 16),
-                                        (float) (uv.getDouble(0) / 16), (float) (uv.getDouble(3) / 16),
-                                        (float) (uv.getDouble(2) / 16), (float) (uv.getDouble(3) / 16),
-                                        (float) (uv.getDouble(2) / 16), (float) (uv.getDouble(1) / 16)
-                                };
-                            } else {
-                                textureCoords1 = new float[]{
-                                        0.0f, 0.0f,
-                                        0.0f, 1.0f,
-                                        1.0f, 1.0f,
-                                        1.0f, 0.0f
-                                };
-                            }
-                            float[] color2;
-
-
-                            if (face.has("tintindex")) {
-                                color2 = new float[]{0.0f, 1.0f, 0.0f, 1.0f};
-                            } else {
-                                color2 = new float[]{1.0f, 1.0f, 1.0f, 1.0f};
-                            }
-
-                            if (face.has("rotation"))
-                                textureCoords1 = rotateUV(textureCoords1, face.getInt("rotation"));
-
-                            String texture1 = element.getJSONObject("faces").getJSONObject(faces[j]).getString("texture");
-                            String textureType = texture1.split("/")[0];
-                            String textureName = texture1.split("/")[1];
-                            TextureAtlas atlas = TextureAtlas.atlases.get(textureType);
-                            assert atlas != null : "Atlas is null: " + textureType;
-                            assert atlas.offsets.containsKey(textureName + ".png") : "Texture " + textureName + " not found in " + textureType + " atlas";
-                            float offset = atlas.offsets.get(textureName + ".png");
-                            int atlasWidth = atlas.width;
-                            int atlasHeight = atlas.height;
-                            float[] textureCoords2 = new float[textureCoords1.length];
-                            for (int k = 0; k < textureCoords1.length; k++) {
-                                if (k % 2 == 0) {
-                                    textureCoords2[k] = textureCoords1[k] * 16 / atlasWidth + offset;
-                                } else {
-                                    textureCoords2[k] = textureCoords1[k] * 16 / atlasHeight;
-                                }
-                            }
-
-                            Square square1 = new Square(squareCoords1, color2, textureCoords2, atlas, j);
-                            if (element.has("rotation")) {
-                                int rotationAxis = -1;
-                                if (axis.equals("x")) rotationAxis = 0;
-                                if (axis.equals("y")) rotationAxis = 1;
-                                if (axis.equals("z")) rotationAxis = 2;
-                                assert rotationAxis != -1;
-                                rotateSquare(square1, rotAngle, rotationAxis, fOrigin[0], fOrigin[1], fOrigin[2]);
-                                square1.splitCoords();
-                            }
-                            modelSquares.add(square1);
-                        }
-                    }
-                }
+                if (s.endsWith("json")) readJsonModel(context, s, modelSquares);
             }
             if (modelXAngle != 0) {
-                int[] xRotationsTable = {4, 1, 5, 3, 2, 0};
                 for (Square square : modelSquares) {
                     rotateSquare(square, modelXAngle, 0, 0.5f, 0.5f, 0.5f);
                     square.splitCoords();
-                    for (float i = modelXAngle; i > 0; i -= 90)
-                        square.direction = xRotationsTable[square.direction];
                 }
             }
             if (modelAngle != 0)
                 for (Square square : modelSquares) {
                     rotateSquare(square, modelAngle, 1, 0.5f, 0.5f, 0.5f);
                     square.splitCoords();
-                    if (square.direction < 4)
-                        square.direction = (square.direction + ((int) modelAngle) / 90) % 4;
                 }
             models.put(model + id + " " + metadata, modelSquares);
         }
@@ -331,11 +179,172 @@ public class SlotRenderer {
             }
             addCoordinates(square.coords1, x, y, z);
             addCoordinates(square.coords2, x, y, z);
-            if (square.direction < 4)
-                square.direction = (square.direction + ((int) angle) / 90) % 4;
-            if (upsideDown && (square.direction > 3))
-                square.direction = (square.direction + 1) % 2 + 4;
             squares.add(square);
+        }
+    }
+
+    private static void readJsonModel(Context context, String s, List<Square> modelSquares) throws IOException, JSONException {
+        InputStream is = context.getAssets().open(s);
+        byte[] b = new byte[is.available()];
+        is.read(b);
+        is.close();
+        JSONObject jsonObject = new JSONObject(new String(b));
+
+        do {
+            JSONObject textures = jsonObject.optJSONObject("textures");
+            if (jsonObject.has("parent")) {
+                InputStream is2 = context.getAssets().open("models/" + jsonObject.getString("parent") + ".json");
+                byte[] b2 = new byte[is2.available()];
+                is2.read(b2);
+                is2.close();
+                jsonObject = new JSONObject(new String(b2));
+            }
+            String object = jsonObject.toString();
+            int i = object.indexOf("#");
+            while (i != -1) {
+                int j = object.indexOf("\"", i);
+                String newString;
+                if (textures != null) {
+                    if (textures.has(object.substring(i + 1, j))) {
+                        newString = textures.getString(object.substring(i + 1, j));
+                    } else {
+                        newString = jsonObject.getJSONObject("textures").getString(object.substring(i + 1, j));
+                    }
+                } else {
+                    newString = jsonObject.getJSONObject("textures").getString(object.substring(i + 1, j));
+                }
+                String newPart1 = object.substring(0, i);
+                String newPart2 = object.substring(j);
+                object = newPart1 + newString + newPart2;
+                i = object.indexOf("#");
+            }
+            jsonObject = new JSONObject(object);
+        } while (jsonObject.has("parent"));
+        readJsonObject(jsonObject, modelSquares);
+    }
+
+    static void readJsonObject(JSONObject jsonObject, List<Square> modelSquares) throws JSONException {
+        JSONArray elements = jsonObject.getJSONArray("elements");
+        for (int i = 0; i < elements.length(); i++) {
+            float[] from = new float[3];
+            float[] to = new float[3];
+            JSONObject element = elements.getJSONObject(i);
+
+            JSONArray jFrom = element.getJSONArray("from");
+            for (int j = 0; j < jFrom.length(); j++)
+                from[j] = (float) (jFrom.getDouble(j) / 16);
+            JSONArray jTo = element.getJSONArray("to");
+            for (int j = 0; j < jTo.length(); j++) to[j] = (float) (jTo.getDouble(j) / 16);
+
+            float[] fOrigin = null;
+            int rotAngle = 0;
+            String axis = "";
+            if (element.has("rotation")) {
+                JSONObject rotation = element.getJSONObject("rotation");
+                fOrigin = new float[3];
+                JSONArray jOrigin = rotation.getJSONArray("origin");
+                for (int j = 0; j < jOrigin.length(); j++)
+                    fOrigin[j] = (float) (jOrigin.getDouble(j) / 16);
+                rotAngle = rotation.getInt("angle");
+                axis = rotation.getString("axis");
+            }
+            String[] faces = {"north", "west", "south", "east", "up", "down"};
+            float[][] squareCoords = {
+                    //north
+                    {to[0], to[1], from[2],
+                            to[0], from[1], from[2],
+                            from[0], from[1], from[2],
+                            from[0], to[1], from[2]},
+                    //west
+                    {from[0], to[1], from[2],
+                            from[0], from[1], from[2],
+                            from[0], from[1], to[2],
+                            from[0], to[1], to[2]},
+                    //south
+                    {from[0], to[1], to[2],
+                            from[0], from[1], to[2],
+                            to[0], from[1], to[2],
+                            to[0], to[1], to[2]},
+                    //east
+                    {to[0], to[1], to[2],
+                            to[0], from[1], to[2],
+                            to[0], from[1], from[2],
+                            to[0], to[1], from[2]},
+                    //up
+                    {to[0], to[1], to[2],
+                            to[0], to[1], from[2],
+                            from[0], to[1], from[2],
+                            from[0], to[1], to[2]},
+                    //down
+                    {to[0], from[1], to[2],
+                            from[0], from[1], to[2],
+                            from[0], from[1], from[2],
+                            to[0], from[1], from[2]}
+            };
+            for (int j = 0; j < faces.length; j++) {
+                if (element.getJSONObject("faces").has(faces[j])) {
+                    float[] squareCoords1 = squareCoords[j];
+                    float[] textureCoords1;
+                    JSONObject face = element.getJSONObject("faces").getJSONObject(faces[j]);
+                    if (face.has("uv")) {
+                        JSONArray uv = face.getJSONArray("uv");
+                        textureCoords1 = new float[]{
+                                (float) (uv.getDouble(0) / 16), (float) (uv.getDouble(1) / 16),
+                                (float) (uv.getDouble(0) / 16), (float) (uv.getDouble(3) / 16),
+                                (float) (uv.getDouble(2) / 16), (float) (uv.getDouble(3) / 16),
+                                (float) (uv.getDouble(2) / 16), (float) (uv.getDouble(1) / 16)
+                        };
+                    } else {
+                        textureCoords1 = new float[]{
+                                0.0f, 0.0f,
+                                0.0f, 1.0f,
+                                1.0f, 1.0f,
+                                1.0f, 0.0f
+                        };
+                    }
+                    float[] color2;
+
+
+                    if (face.has("tintindex")) {
+                        color2 = new float[]{0.0f, 1.0f, 0.0f, 1.0f};
+                    } else {
+                        color2 = new float[]{1.0f, 1.0f, 1.0f, 1.0f};
+                    }
+
+                    if (face.has("rotation"))
+                        textureCoords1 = rotateUV(textureCoords1, face.getInt("rotation"));
+
+                    String texture1 = element.getJSONObject("faces").getJSONObject(faces[j]).getString("texture");
+                    String textureType = texture1.split("/")[0];
+                    String textureName = texture1.substring(texture1.indexOf("/") + 1);
+                    TextureAtlas atlas = TextureAtlas.atlases.get(textureType);
+                    assert atlas != null : "Atlas is null: " + textureType;
+                    assert atlas.offsets.containsKey(textureName + ".png") : "Texture " + textureName + " not found in " + textureType + " atlas";
+                    float offset = atlas.offsets.get(textureName + ".png");
+                    int atlasWidth = atlas.width;
+                    int atlasHeight = atlas.height;
+                    float[] textureCoords2 = new float[textureCoords1.length];
+                    for (int k = 0; k < textureCoords1.length; k++) {
+                        if (k % 2 == 0) {
+                            textureCoords2[k] = textureCoords1[k] * 16 / atlasWidth + offset;
+                        } else {
+                            textureCoords2[k] = textureCoords1[k] * 16 / atlasHeight;
+                        }
+                    }
+
+                    Square square1 = new Square(squareCoords1, color2, textureCoords2, atlas);
+                    if (element.has("rotation")) {
+                        int rotationAxis = -1;
+                        if (axis.equals("x")) rotationAxis = 0;
+                        if (axis.equals("y")) rotationAxis = 1;
+                        if (axis.equals("z")) rotationAxis = 2;
+                        assert rotationAxis != -1;
+                        rotateSquare(square1, rotAngle, rotationAxis, fOrigin[0], fOrigin[1], fOrigin[2]);
+                        square1.splitCoords();
+                    }
+                    modelSquares.add(square1);
+                }
+            }
         }
     }
 
@@ -349,7 +358,7 @@ public class SlotRenderer {
         }
     }
 
-    private static void rotateSquare(Square square, float angle, int rotationAxis, float originX, float originY, float originZ) {
+    static void rotateSquare(Square square, float angle, int rotationAxis, float originX, float originY, float originZ) {
         float x = 0;
         float y = 0;
         float z = 0;
@@ -429,7 +438,7 @@ public class SlotRenderer {
         return result;
     }
 
-    private static void addCoordinates(float[] in, float x, float y, float z) {
+    static void addCoordinates(float[] in, float x, float y, float z) {
         for (int i = 0; i < in.length; i++) {
             int a = i % 3;
             switch (a) {

@@ -1,0 +1,33 @@
+{
+	"texture": "chest_large_14.png",
+	"textureSize": [128, 64],
+	"models": [
+		{
+			"part": "base",
+			"id": "base",
+			"invertAxis": "xy",
+			"translate": [-15, -10, 7],
+			"boxes": [
+				{"coordinates": [-15, 0, -7, 30, 10, 14], "textureOffset": [0, 19]}
+			]
+		},
+		{
+			"part": "lid",
+			"id": "lid",
+			"invertAxis": "xy",
+			"translate": [-15, -9, -7],
+			"boxes": [
+				{"coordinates": [-15, 9, -7, 30, 5, 14], "textureOffset": [0, 0]}
+			]
+		},
+		{
+			"part": "knob",
+			"id": "knob",
+			"invertAxis": "xy",
+			"translate": [0, -9, -7],
+			"boxes": [
+				{"coordinates": [-1, 7, -8, 2, 4, 1], "textureOffset": [0, 0]}
+			]
+		}
+	]
+}

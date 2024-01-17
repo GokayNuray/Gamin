@@ -1,0 +1,80 @@
+{
+	"texture": "boat_unedited.png",
+	"textureSize": [128, 64],
+	"models": [
+		{
+			"part": "front",
+			"id": "front",
+			"invertAxis": "xy",
+			"translate": [0, -2, 15],
+			"boxes": [
+				{"coordinates": [-8, 3, -16, 16, 6, 2], "textureOffset": [0, 27]}
+			]
+		},
+		{
+			"part": "back",
+			"id": "back",
+			"invertAxis": "xy",
+			"translate": [4, -2, -15],
+			"boxes": [
+				{"coordinates": [-9, 3, 14, 18, 6, 2], "textureOffset": [0, 19]}
+			]
+		},
+		{
+			"part": "left",
+			"id": "left",
+			"invertAxis": "xy",
+			"translate": [0, -2, 10],
+			"boxes": [
+				{"coordinates": [-14, 3, -11, 28, 6, 2], "textureOffset": [0, 43]}
+			]
+		},
+		{
+			"part": "right",
+			"id": "right",
+			"invertAxis": "xy",
+			"translate": [0, -2, 5],
+			"boxes": [
+				{"coordinates": [-14, 3, -6, 28, 6, 2], "textureOffset": [0, 35]}
+			]
+		},
+		{
+			"part": "bottom",
+			"id": "bottom",
+			"invertAxis": "xy",
+			"translate": [0, -5, -2],
+			"boxes": [
+				{"coordinates": [-14, -2, -1, 28, 16, 3], "textureOffset": [0, 0]}
+			]
+		},
+		{
+			"part": "bottom_no_water",
+			"id": "bottom_no_water",
+			"invertAxis": "xy",
+			"translate": [0, -5, -11],
+			"boxes": [
+				{"coordinates": [-14, -2, 5, 28, 16, 6], "textureOffset": [60, 42]}
+			]
+		},
+		{
+			"part": "paddle_left",
+			"id": "paddle_left",
+			"invertAxis": "xy",
+			"translate": [17.991, -6, 5],
+			"boxes": [
+				{"coordinates": [-19, 4, -10, 2, 2, 18], "textureOffset": [62, 0]},
+				{"coordinates": [-17.99, 3, 3, 1, 6, 7], "textureOffset": [62, 0]}
+			]
+		},
+		{
+			"part": "paddle_right",
+			"id": "paddle_right",
+			"invertAxis": "xy",
+			"translate": [-17.991, -6, 5],
+			"boxes": [
+				{"coordinates": [17, 4, -10, 2, 2, 18], "textureOffset": [62, 20]},
+				{"coordinates": [16.99, 3, 3, 1, 6, 7], "textureOffset": [62, 20]}
+			]
+		}
+	]
+}

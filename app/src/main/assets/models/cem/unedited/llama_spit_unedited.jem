@@ -1,0 +1,21 @@
+{
+	"texture": "llama_spit_unedited.png",
+	"textureSize": [64, 32],
+	"models": [
+		{
+			"part": "body",
+			"id": "body",
+			"invertAxis": "xy",
+			"translate": [0, -6, 0],
+			"boxes": [
+				{"coordinates": [-2, 4, -4, 2, 2, 2], "textureOffset": [0, 0]},
+				{"coordinates": [2, 4, 0, 2, 2, 2], "textureOffset": [0, 0]},
+				{"coordinates": [-2, 6, 0, 2, 2, 2], "textureOffset": [0, 0]},
+				{"coordinates": [-2, 4, 0, 2, 2, 2], "textureOffset": [0, 0]},
+				{"coordinates": [-2, 4, 2, 2, 2, 2], "textureOffset": [0, 0]},
+				{"coordinates": [-4, 4, 0, 2, 2, 2], "textureOffset": [0, 0]},
+				{"coordinates": [-2, 0, 0, 2, 2, 2], "textureOffset": [0, 0]}
+			]
+		}
+	]
+}

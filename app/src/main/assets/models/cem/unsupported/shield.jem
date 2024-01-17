@@ -1,0 +1,16 @@
+{
+	"texture": "shield.png",
+	"textureSize": [64, 64],
+	"models": [
+		{
+			"part": "shield",
+			"id": "shield",
+			"invertAxis": "xy",
+			"translate": [0, -11, -1],
+			"boxes": [
+				{"coordinates": [-1, 8, -2, 2, 6, 6], "textureOffset": [26, 0]},
+				{"coordinates": [-6, 0, -3, 12, 22, 1], "textureOffset": [0, 0]}
+			]
+		}
+	]
+}

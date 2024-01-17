@@ -80,8 +80,12 @@ public class YourRenderer implements GLSurfaceView.Renderer {
                 offset += bitmap.getWidth();
                 height = Math.max(height, bitmap.getHeight());
             } else {
-                for (String s : assetManager.list(path + "/" + texture + "/")) {
-                    Bitmap bitmap = BitmapFactory.decodeStream(assetManager.open(path + "/" + texture + "/" + s));
+                for (String s : assetManager.list(path + texture + "/")) {
+                    if (!s.endsWith(".png")) {
+                        Log.w("TextureLoading", "invalid file: " + path + texture + "/" + s);
+                        continue;
+                    }
+                    Bitmap bitmap = BitmapFactory.decodeStream(assetManager.open(path + texture + "/" + s));
                     textures.add(bitmap);
                     textureOffsets.put(texture + "/" + s, offset);
                     offset += bitmap.getWidth();
@@ -246,12 +250,17 @@ public class YourRenderer implements GLSurfaceView.Renderer {
         ChunkColumn[] chunks = PacketUtils.chunkColumnMap.values().toArray(new ChunkColumn[0]);
         TextureAtlas blocks = TextureAtlas.atlases.get("blocks");
         TextureAtlas items = TextureAtlas.atlases.get("items");
+        TextureAtlas entity = TextureAtlas.atlases.get("entity");
         assert blocks != null;
         assert items != null;
+        assert entity != null;
         blocks.setBuffers(chunks);
         items.setBuffers(chunks);
+        entity.setBuffers(chunks);
         rendsera(blocks);
         rendsera(items);
+        rendsera(entity);
+
 
         GLES20.glUniformMatrix4fv(vPMatrixHandle, 1, false, scratch2, 0);
         //System.out.println("ratio: " + ratio);//0.625
@@ -326,6 +335,36 @@ public class YourRenderer implements GLSurfaceView.Renderer {
     private void rendsera(TextureAtlas atlas) {
         GLES20.glBindTexture(GLES20.GL_TEXTURE_2D, atlas.textureHandle);
 
+        /* TODO idk if my VBO implementation is wrong but it slightly reduces fps(actually i kinda know what to do but too lazy to do it rn)
+        final int[] buffers = new int[3];
+        GLES20.glGenBuffers(3, buffers, 0);
+
+        GLES20.glBindBuffer(GLES20.GL_ARRAY_BUFFER, buffers[0]);
+        GLES20.glBufferData(GLES20.GL_ARRAY_BUFFER, atlas.coordsBuffer.capacity() * 4, atlas.coordsBuffer, GLES20.GL_STATIC_DRAW);
+
+        GLES20.glBindBuffer(GLES20.GL_ARRAY_BUFFER, buffers[1]);
+        GLES20.glBufferData(GLES20.GL_ARRAY_BUFFER, atlas.colorsBuffer.capacity() * 4, atlas.colorsBuffer, GLES20.GL_STATIC_DRAW);
+
+        GLES20.glBindBuffer(GLES20.GL_ARRAY_BUFFER, buffers[2]);
+        GLES20.glBufferData(GLES20.GL_ARRAY_BUFFER, atlas.texturesBuffer.capacity() * 4, atlas.texturesBuffer, GLES20.GL_STATIC_DRAW);
+
+        GLES20.glBindBuffer(GLES20.GL_ARRAY_BUFFER, 0);
+
+        GLES20.glBindBuffer(GLES20.GL_ARRAY_BUFFER, buffers[0]);
+        GLES20.glEnableVertexAttribArray(YourRenderer.positionHandle);
+        GLES20.glVertexAttribPointer(YourRenderer.positionHandle, 3, GLES20.GL_FLOAT, false, 0, 0);
+
+        GLES20.glBindBuffer(GLES20.GL_ARRAY_BUFFER, buffers[1]);
+        GLES20.glEnableVertexAttribArray(YourRenderer.colorHandle);
+        GLES20.glVertexAttribPointer(YourRenderer.colorHandle, 4, GLES20.GL_FLOAT, false, 0, 0);
+
+        GLES20.glBindBuffer(GLES20.GL_ARRAY_BUFFER, buffers[2]);
+        GLES20.glEnableVertexAttribArray(YourRenderer.mTextureCoordinateHandle);
+        GLES20.glVertexAttribPointer(YourRenderer.mTextureCoordinateHandle, 2, GLES20.GL_FLOAT, false, 0, 0);
+
+        GLES20.glBindBuffer(GLES20.GL_ARRAY_BUFFER, 0);
+        */
+
         GLES20.glEnableVertexAttribArray(YourRenderer.colorHandle);
         GLES20.glVertexAttribPointer(YourRenderer.colorHandle, 4, GLES20.GL_FLOAT, false, 0, atlas.colorsBuffer);
 
@@ -336,6 +375,8 @@ public class YourRenderer implements GLSurfaceView.Renderer {
         GLES20.glVertexAttribPointer(YourRenderer.mTextureCoordinateHandle, 2, GLES20.GL_FLOAT, false, 0, atlas.texturesBuffer);
 
         GLES20.glDrawArrays(GLES20.GL_TRIANGLES, 0, atlas.coordsBuffer.capacity() / 3);
+
+        //GLES20.glDeleteBuffers(3, buffers, 0);
 
         atlas.coordsBuffer.position(0);
         atlas.colorsBuffer.position(0);

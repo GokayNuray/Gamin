@@ -1,0 +1,107 @@
+{
+	"texture": "chest_boat_unedited.png",
+	"textureSize": [128, 128],
+	"models": [
+		{
+			"part": "front",
+			"id": "front",
+			"invertAxis": "xy",
+			"translate": [0, -2, 22],
+			"boxes": [
+				{"coordinates": [-8, 3, -23, 16, 6, 2], "textureOffset": [0, 27]}
+			]
+		},
+		{
+			"part": "back",
+			"id": "back",
+			"invertAxis": "xy",
+			"translate": [4, -2, -23],
+			"boxes": [
+				{"coordinates": [-9, 3, 22, 18, 6, 2], "textureOffset": [0, 19]}
+			]
+		},
+		{
+			"part": "left",
+			"id": "left",
+			"invertAxis": "xy",
+			"translate": [0, -2, 17],
+			"boxes": [
+				{"coordinates": [-14, 3, -18, 28, 6, 2], "textureOffset": [0, 43]}
+			]
+		},
+		{
+			"part": "right",
+			"id": "right",
+			"invertAxis": "xy",
+			"translate": [0, -2, 12],
+			"boxes": [
+				{"coordinates": [-14, 3, -13, 28, 6, 2], "textureOffset": [0, 35]}
+			]
+		},
+		{
+			"part": "bottom",
+			"id": "bottom",
+			"invertAxis": "xy",
+			"translate": [0, -5, 5],
+			"boxes": [
+				{"coordinates": [-14, -2, -8, 28, 16, 3], "textureOffset": [0, 0]}
+			]
+		},
+		{
+			"part": "bottom_no_water",
+			"id": "bottom_no_water",
+			"invertAxis": "xy",
+			"translate": [0, -5, -4],
+			"boxes": [
+				{"coordinates": [-14, -2, -2, 28, 16, 6], "textureOffset": [60, 42]}
+			]
+		},
+		{
+			"part": "paddle_left",
+			"id": "paddle_left",
+			"invertAxis": "xy",
+			"translate": [17.991, -6, 5],
+			"boxes": [
+				{"coordinates": [-19, 4, -10, 2, 2, 18], "textureOffset": [62, 0]},
+				{"coordinates": [-17.99, 3, 3, 1, 6, 7], "textureOffset": [62, 0]}
+			]
+		},
+		{
+			"part": "paddle_right",
+			"id": "paddle_right",
+			"invertAxis": "xy",
+			"translate": [-17.991, -6, 5],
+			"boxes": [
+				{"coordinates": [17, 4, -10, 2, 2, 18], "textureOffset": [62, 20]},
+				{"coordinates": [16.99, 3, 3, 1, 6, 7], "textureOffset": [62, 20]}
+			]
+		},
+		{
+			"part": "chest_base",
+			"id": "chest_base",
+			"invertAxis": "xy",
+			"translate": [-6, -11, -7],
+			"boxes": [
+				{"coordinates": [-6, 3, 7, 12, 8, 12], "textureOffset": [0, 76]}
+			]
+		},
+		{
+			"part": "chest_lid",
+			"id": "chest_lid",
+			"invertAxis": "xy",
+			"translate": [-6, -15, -7],
+			"boxes": [
+				{"coordinates": [-6, 10, 7, 12, 5, 12], "textureOffset": [0, 59]}
+			]
+		},
+		{
+			"part": "chest_knob",
+			"id": "chest_knob",
+			"invertAxis": "xy",
+			"translate": [-1, -12, -6],
+			"boxes": [
+				{"coordinates": [-1, 8, 6, 2, 4, 1], "textureOffset": [0, 59]}
+			]
+		}
+	]
+}

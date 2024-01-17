@@ -1,0 +1,74 @@
+{
+	"texture": "conduit.png",
+	"textureSize": [64, 32],
+	"models": [
+		{
+			"part": "eye",
+			"id": "eye",
+			"invertAxis": "xy",
+			"translate": [0, -8, 0],
+			"boxes": [
+				{
+					"coordinates": [-4, 4, 0, 8, 8, 0],
+					"uvNorth": [0, 0, 32, 16],
+					"uvEast": [0, 0, 0, 8],
+					"uvSouth": [0, 0, 32, 16],
+					"uvWest": [8, 0, 8, 8],
+					"uvUp": [8, 0, 0, 0],
+					"uvDown": [16, 0, 8, 0]
+				}
+			]
+		},
+		{
+			"part": "cage",
+			"id": "cage",
+			"invertAxis": "xy",
+			"translate": [0, -8, 0],
+			"boxes": [
+				{
+					"coordinates": [-4, 4, -4, 8, 8, 8],
+					"uvNorth": [32, 32, 16, 16],
+					"uvEast": [16, 32, 0, 16],
+					"uvSouth": [64, 32, 48, 16],
+					"uvWest": [48, 32, 32, 16],
+					"uvUp": [32, 16, 16, 0],
+					"uvDown": [48, 16, 32, 0]
+				}
+			]
+		},
+		{
+			"part": "base",
+			"id": "base",
+			"invertAxis": "xy",
+			"translate": [0, -8, 0],
+			"boxes": [
+				{
+					"coordinates": [-3, 5, -3, 6, 6, 6],
+					"uvNorth": [24, 24, 12, 12],
+					"uvEast": [12, 24, 0, 12],
+					"uvSouth": [48, 24, 36, 12],
+					"uvWest": [36, 24, 24, 12],
+					"uvUp": [24, 12, 12, 0],
+					"uvDown": [36, 12, 24, 0]
+				}
+			]
+		},
+		{
+			"part": "wind",
+			"id": "wind",
+			"invertAxis": "xy",
+			"translate": [0, -8, 0],
+			"boxes": [
+				{
+					"coordinates": [-8, 0, -8, 16, 16, 16],
+					"uvNorth": [16, 16, 32, 32],
+					"uvEast": [0, 16, 16, 32],
+					"uvSouth": [48, 16, 64, 32],
+					"uvWest": [32, 16, 48, 32],
+					"uvUp": [32, 16, 16, 0],
+					"uvDown": [48, 0, 32, 16]
+				}
+			]
+		}
+	]
+}

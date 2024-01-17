@@ -1,0 +1,90 @@
+{
+	"texture": "bed_single_bone.png",
+	"textureSize": [64, 64],
+	"models": [
+		{
+			"part": "head",
+			"id": "head",
+			"invertAxis": "xy",
+			"translate": [-8, -9, -16],
+			"rotate": [90, 0, 0],
+			"boxes": [
+				{"coordinates": [-8, -7, 16, 16, 16, 6], "textureOffset": [0, 0]},
+				{"coordinates": [-8, -23, 16, 16, 16, 6], "textureOffset": [0, 22]}
+			],
+			"submodels": [
+				{
+					"id": "head_left_leg",
+					"invertAxis": "xy",
+					"translate": [0, -23, 16],
+					"rotate": [-90, 0, -180],
+					"boxes": [
+						{"coordinates": [5, -9, -32, 3, 3, 3], "textureOffset": [50, 18]}
+					]
+				},
+				{
+					"id": "head_right_leg",
+					"invertAxis": "xy",
+					"translate": [0, -23, 16],
+					"rotate": [-90, 0, 90],
+					"boxes": [
+						{"coordinates": [29, -9, -8, 3, 3, 3], "textureOffset": [50, 6]}
+					]
+				},
+				{
+					"id": "foot_left_leg",
+					"invertAxis": "xy",
+					"translate": [0, -23, 16],
+					"rotate": [-90, 0, -90],
+					"boxes": [
+						{"coordinates": [-3, -9, -8, 3, 3, 3], "textureOffset": [50, 12]}
+					]
+				},
+				{
+					"id": "foot_right_leg",
+					"invertAxis": "xy",
+					"translate": [0, -23, 16],
+					"rotate": [-90, 0, 0],
+					"boxes": [
+						{"coordinates": [5, -9, 0, 3, 3, 3], "textureOffset": [50, 0]}
+					]
+				}
+			],
+			"animations": [
+				{
+					"this.rx": 0
+				}
+			]
+		},
+		{
+			"part": "foot",
+			"id": "foot",
+			"invertAxis": "xy",
+			"translate": [-8, -9, 0]
+		},
+		{
+			"part": "leg1",
+			"id": "leg1",
+			"invertAxis": "xy",
+			"translate": [0, 0, 0]
+		},
+		{
+			"part": "leg2",
+			"id": "leg2",
+			"invertAxis": "xy",
+			"translate": [0, 0, 0]
+		},
+		{
+			"part": "leg3",
+			"id": "leg3",
+			"invertAxis": "xy",
+			"translate": [0, 0, 0]
+		},
+		{
+			"part": "leg4",
+			"id": "leg4",
+			"invertAxis": "xy",
+			"translate": [0, 0, 0]
+		}
+	]
+}
