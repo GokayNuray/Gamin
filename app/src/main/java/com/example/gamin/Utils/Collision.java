@@ -2,7 +2,7 @@ package com.example.gamin.Utils;
 
 import android.content.Context;
 
-import com.example.gamin.Minecraft.ChunkColumn;
+import com.example.gamin.Minecraft.Chunk;
 import com.example.gamin.Minecraft.Slot;
 
 import org.json.JSONArray;
@@ -55,8 +55,7 @@ public final class Collision {
                             return new double[]{x, yy.doubleValue(), z, 1.0};
                         }
                     }
-                }
-                else {
+                } else {
                     for (BigDecimal yy = bigY.subtract(bigY.remainder(oneEightieth)); yy.compareTo(bigY.add(bigAmount)) != -1; yy = yy.subtract(oneEightieth)) {
                         if (isCubeFull(x - 0.3, yy.doubleValue(), z - 0.3, x + 0.3, yy.doubleValue(), z + 0.3, direction)) {
                             return new double[]{x, yy.doubleValue(), z, 1.0};
@@ -92,8 +91,8 @@ public final class Collision {
         for (int ix = -1; ix < (int) (Math.floor(x2) - Math.floor(x1) + 1); ix++) {
             for (int iy = -1; iy < (int) (Math.floor(y2) - Math.floor(y1) + 1); iy++) {
                 for (int iz = -1; iz < (int) (Math.floor(z2) - Math.floor(z1) + 1); iz++) {
-                    short block = ChunkColumn.getBlock((int) Math.floor(x1) + ix, (int) Math.floor(y1) + iy, (int) Math.floor(z1) + iz);
-                    JSONArray collisionData = getCollisionData(ChunkColumn.getBlockId(block), ChunkColumn.getBlockMetaData(block));
+                    short block = Chunk.getBlock((int) Math.floor(x1) + ix, (int) Math.floor(y1) + iy, (int) Math.floor(z1) + iz);
+                    JSONArray collisionData = getCollisionData(Chunk.getBlockId(block), Chunk.getBlockMetaData(block));
                     for (int i = 0; i < collisionData.length(); i++) {
                         double bx1 = collisionData.getJSONArray(i).getDouble(0) + (int) Math.floor(x1) + ix;
                         double by1 = collisionData.getJSONArray(i).getDouble(1) + (int) Math.floor(y1) + iy;

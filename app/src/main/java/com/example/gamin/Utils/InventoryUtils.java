@@ -15,7 +15,7 @@ public final class InventoryUtils {
 
     public static void drawButton(GLSurfaceView glSurfaceView, YourRenderer renderer, String name, ImageButton button) {
 
-        renderer.newSlot = name + ".json";
+        //renderer.newSlot = name + ".json";
         glSurfaceView.requestRender();
 
 

@@ -3,12 +3,13 @@ package com.example.gamin.Utils;
 
 import android.graphics.Color;
 import android.opengl.GLSurfaceView;
+import android.util.Log;
 import android.widget.ImageButton;
 import android.widget.TextView;
 
 import androidx.appcompat.app.AppCompatActivity;
 
-import com.example.gamin.Minecraft.ChunkColumn;
+import com.example.gamin.Minecraft.Chunk;
 import com.example.gamin.Minecraft.Inventory;
 import com.example.gamin.Minecraft.Slot;
 import com.example.gamin.R;
@@ -24,13 +25,10 @@ import java.io.IOException;
 import java.io.OutputStream;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 @SuppressWarnings({"ResultOfMethodCallIgnored"})
 public final class PacketUtils extends AppCompatActivity {
-    public static final Map<Long, ChunkColumn> chunkColumnMap = new HashMap<>();
     public static OutputStream os;
     public static OutputStream ecos;
     public static boolean isPremium;
@@ -292,16 +290,13 @@ public final class PacketUtils extends AppCompatActivity {
                 DataInputStream dataStream20 = new DataInputStream(datastream20);
 
                 int entityId = VarInt.readVarInt(dataStream20);
-                System.out.println(entityId);
                 int propertyCount = dataStream20.readInt();
                 for (int i = 0; i < propertyCount; i++) {
                     int stringLen = VarInt.readVarInt(dataStream20);
                     byte[] buffer = new byte[stringLen];
                     dataStream20.read(buffer);
                     String key = new String(buffer);
-                    System.out.println(key);
                     double value = dataStream20.readDouble();
-                    System.out.println(value);
                     if (entityId == playerId && key.equals("generic.movementSpeed"))
                         generic_movementSpeed = value;
                 }
@@ -311,26 +306,24 @@ public final class PacketUtils extends AppCompatActivity {
             {
                 ByteArrayInputStream datastream21 = new ByteArrayInputStream(data);
                 DataInputStream dataStream21 = new DataInputStream(datastream21);
-                ChunkColumn chunkColumn21 = new ChunkColumn();
+                Chunk[] chunkColumn21 = new Chunk[16];
                 int chunkX21 = dataStream21.readInt();
                 int chunkZ21 = dataStream21.readInt();
-                chunkColumn21.pos = ((long) chunkX21 << 32) | (chunkZ21 & 0xffffffffL);
+                long pos = ((long) chunkX21 << 32) | (chunkZ21 & 0xffffffffL);
                 dataStream21.readBoolean();
-                chunkColumn21.bitmask = dataStream21.readShort();
+                short bitmask = dataStream21.readShort();
                 VarInt.readVarInt(dataStream21);
                 for (byte chunkY = 0; chunkY < 16; chunkY++) {
-                    if ((chunkColumn21.bitmask & (1 << chunkY)) != 0) {
-                        short[][][] chunk21 = new ChunkColumn().chunk[chunkY];
+                    if ((bitmask & (1 << chunkY)) != 0) {
+                        short[] blocks = new short[16 * 16 * 16];
                         for (int j = 0; j < 4096; j++) {
-                            short block = dataStream21.readShort();
-                            chunk21[j % 16][j / 256][((j % 256) / 16)] = block;
+                            blocks[j] = dataStream21.readShort();
                         }
-                        chunkColumn21.chunk[chunkY] = chunk21;
+                        chunkColumn21[chunkY] = new Chunk(blocks, chunkX21, chunkY, chunkZ21);
                     }
                 }
-                chunkColumnMap.put(chunkColumn21.pos, chunkColumn21);
-                chunkColumn21.setRenders(glSurfaceView.getContext(), chunkX21, chunkZ21);
-                ChunkColumn.setUpdatedBuffers();
+                Chunk.chunkColumnMap.put(pos, chunkColumn21);
+                //chunkColumn21.setRenders(glSurfaceView.getContext(), chunkX21, chunkZ21);
             }
 
             break;
@@ -348,9 +341,8 @@ public final class PacketUtils extends AppCompatActivity {
                     int relativeZ = (horizPos & 0x0F);
                     short blockraw = (short) VarInt.readVarInt(dataStream22);
                     short block = (short) ((blockraw & 255) << 8 | (blockraw >> 8));
-                    ChunkColumn.setBlock(glSurfaceView.getContext(), chunkX22 * 16 + relativeX, vertPos, chunkZ22 * 16 + relativeZ, block);
+                    Chunk.setBlock(glSurfaceView.getContext(), chunkX22 * 16 + relativeX, vertPos, chunkZ22 * 16 + relativeZ, block);
                 }
-                ChunkColumn.setUpdatedBuffers();
             }
             break;
             case 0x23://block change
@@ -363,8 +355,7 @@ public final class PacketUtils extends AppCompatActivity {
                 long BlockZ = (blockPos << 38) >> 38;
                 short blockraw = (short) VarInt.readVarInt(dataStream23);
                 short block = (short) ((blockraw & 255) << 8 | (blockraw >> 8));
-                ChunkColumn.setBlock(glSurfaceView.getContext(), (int) BlockX, (int) BlockY, (int) BlockZ, block);
-                ChunkColumn.setUpdatedBuffers();
+                Chunk.setBlock(glSurfaceView.getContext(), (int) BlockX, (int) BlockY, (int) BlockZ, block);
             }
             break;
             case 0x26://multiple chunks
@@ -374,37 +365,48 @@ public final class PacketUtils extends AppCompatActivity {
                 boolean skylight = dataStream26.readBoolean();
 
                 int len26 = VarInt.readVarInt(dataStream26);
-                ChunkColumn[] chunkColumns = new ChunkColumn[len26];
+                Chunk[][] chunkColumns = new Chunk[len26][16];
+                long[] chunkPositions = new long[len26];
+                short[] chunkBitmasks = new short[len26];
+                int[] chunkXs = new int[len26];
+                int[] chunkZs = new int[len26];
                 for (int i = 0; i < len26; i++) {
-                    ChunkColumn chunkColumn = new ChunkColumn();
+                    Chunk[] chunkColumn = chunkColumns[i];
                     int chunkX = dataStream26.readInt();
                     int chunkZ = dataStream26.readInt();
-                    chunkColumn.pos = ((long) chunkX << 32) | (chunkZ & 0xffffffffL);
-                    chunkColumn.bitmask = dataStream26.readShort();
+                    chunkPositions[i] = ((long) chunkX << 32) | (chunkZ & 0xffffffffL);
+                    chunkBitmasks[i] = dataStream26.readShort();
                     chunkColumns[i] = chunkColumn;
+                    chunkXs[i] = chunkX;
+                    chunkZs[i] = chunkZ;
                 }
+                Log.v("ChunkColumn", "got" + len26 + "chunks");
                 for (int i = 0; i < len26; i++) {
                     byte chunkCount = 0;
+                    Chunk[] chunkColumn = chunkColumns[i];
+                    long pos = chunkPositions[i];
+                    short bitmask = chunkBitmasks[i];
                     for (byte chunkY = 0; chunkY < 16; chunkY++) {
-                        if ((chunkColumns[i].bitmask & (1 << chunkY)) != 0) {
+                        if ((bitmask & (1 << chunkY)) != 0) {
                             chunkCount += 1;
-                            short[][][] chunk = new ChunkColumn().chunk[chunkY];
+                            short[] blocks = new short[16 * 16 * 16];
                             for (int j = 0; j < 4096; j++) {
                                 short block = dataStream26.readShort();
-                                chunk[j % 16][j / 256][((j % 256) / 16)] = block;
+                                blocks[j] = block;
                             }
-                            chunkColumns[i].chunk[chunkY] = chunk;
+                            chunkColumn[chunkY] = new Chunk(blocks, chunkXs[i], chunkY, chunkZs[i]);
                         }
                     }
-                    chunkColumnMap.put(chunkColumns[i].pos, chunkColumns[i]);
-                    chunkColumns[i].setRenders(glSurfaceView.getContext(), (int) (chunkColumns[i].pos >> 32), (int) (chunkColumns[i].pos & 0xffffffffL));
+                    Chunk.chunkColumnMap.put(pos, chunkColumns[i]);
+                    //chunkColumns[i].setRenders(glSurfaceView.getContext(), (int) (chunkColumns[i].pos >> 32), (int) (chunkColumns[i].pos & 0xffffffffL));
                     if (skylight) {
                         dataStream26.skipBytes(chunkCount * 2048);
                     }
                     dataStream26.skipBytes(chunkCount * 2048);
                     dataStream26.skipBytes(256);
+                    //Log.v("ChunkColumn", "created chunk" + (i + 1) + "of" + len26 + " total chunks:" + chunkColumnMap.size());
                 }
-                ChunkColumn.setUpdatedBuffers();
+                //ChunkColumn.setUpdatedBuffers();
             }
             break;
             case 0x2D://open Window

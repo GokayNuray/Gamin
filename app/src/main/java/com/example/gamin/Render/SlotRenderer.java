@@ -3,7 +3,7 @@ package com.example.gamin.Render;
 import android.content.Context;
 import android.opengl.Matrix;
 
-import com.example.gamin.Minecraft.ChunkColumn;
+import com.example.gamin.Minecraft.Chunk;
 import com.example.gamin.Minecraft.Slot;
 
 import org.json.JSONArray;
@@ -25,39 +25,57 @@ import java.util.Set;
  * @noinspection ResultOfMethodCallIgnored
  */
 public class SlotRenderer {
+    private static final Set<Integer> stairs = new HashSet<>(Arrays.asList(53, 67, 108, 109, 114, -128, -122, -121, -120, -10, -93, -92, -76));
     private static final Set<Integer> specialBlocks = new HashSet<>(Arrays.asList(2, 53, 64, 71, 193, 194, 195, 196, 197, 67, 104, 105, 106, 108, 109, 114, 128, 131, 132, 134, 135, 136, 139, 156, 163, 180, 85, 113, 188, 189, 190, 191, 192));
-    private static final Set<Integer> multiStateBlocks = new HashSet<>(Arrays.asList(17, 23, 158, 26, 27, 28, 66, 157, 29, 33, 34, 59, 60, 61, 62, 65, 69, 70, 72, 77, 86, 91, 93, 94, 96, 99, 100, 107, 115, 117, 120, 145, 183, 184, 185, 186, 187, 167, 143, 147, 148, 149, 150, 162, 43, 125, 141, 142, 154, 175, 181));
+    private static final Set<Integer> multiStateBlocks = new HashSet<>(Arrays.asList(50, 75, 76, 17, 23, 158, 26, 27, 28, 66, 157, 29, 33, 34, 59, 60, 61, 62, 65, 69, 70, 72, 77, 86, 91, 93, 94, 96, 99, 100, 107, 115, 117, 120, 145, 183, 184, 185, 186, 187, 167, 143, 147, 148, 149, 150, 162, 43, 125, 141, 142, 154, 175, 181));
     private static final Map<String, List<Square>> models = new HashMap<>();
+    private static final Map<Byte, List<Face>> shapes = new HashMap<>();
+    private static final Map<List<Face>, Byte> shapesInverted = new HashMap<>();
+    private static final Map<Byte, Map<Byte, List<Byte>[]>> facesBlocked = new HashMap<>();
+    private static final Map<Short, SlotRenderer> slotRenderers = new HashMap<>();
+    private static final Map<Integer, SlotRenderer> specialSlotRenderers = new HashMap<>();
     public final List<Square> squares = new ArrayList<>();
-    private final Context context;
-    private final short id;
-    private final byte metadata;
-    private final int type;
-    private final int x;
-    private final int y;
-    private final int z;
-    private float angle = 0;
-    private boolean upsideDown = false;
+    private final Map<List<Byte>, SlotRenderer> variants = new HashMap<>();
+    public float[] coords;
+    public float[] textureCoords;
+    public float[] colors;
 
-    public SlotRenderer(List<Square> squares) {
-        this.squares.addAll(squares);
-        context = null;
-        id = 0;
-        metadata = 0;
-        type = 0;
-        x = 0;
-        y = 0;
-        z = 0;
+    public byte shape = -1;
+    public TextureAtlas atlas;
+
+    private SlotRenderer(Context context, String model, int angle, boolean upsideDown) throws JSONException, IOException {
+        List<Square> modelSquares = new ArrayList<>();
+        atlas = readJsonModel(context, model, modelSquares);
+        List<Face> faces = new ArrayList<>();
+        for (Square square : modelSquares) {
+            if (angle != 0) {
+                rotateSquare(square, angle, 1, 0.5f, 0.5f, 0.5f);
+                square.splitCoords();
+            }
+            if (upsideDown) {
+                flipSquare(square);
+                square.splitCoords();
+            }
+            if (square.isFace) faces.add(new Face(square.squareCoords, (byte) 0));
+            squares.add(square);
+        }
+        if (shapesInverted.containsKey(faces)) {
+            this.shape = shapesInverted.get(faces);
+        } else {
+            this.shape = (byte) shapes.size();
+            shapes.put(this.shape, faces);
+            shapesInverted.put(faces, this.shape);
+            assert shapes.size() < 250 : "Too many shapes";
+        }
+        setBuffers();
     }
 
-    public SlotRenderer(Context context, short id, byte metadata, int type, int x, int y, int z) throws IOException, JSONException {
-        this.context = context;
-        this.id = id;
-        this.metadata = metadata;
-        this.type = type;
-        this.x = x;
-        this.y = y;
-        this.z = z;
+    SlotRenderer(List<Square> squares) {
+        this.squares.addAll(squares);
+        setBuffers();
+    }
+
+    private SlotRenderer(Context context, short id, byte metadata, int type) throws IOException, JSONException {
         String model;
         float modelAngle = 0;
         float modelXAngle = 0;
@@ -88,10 +106,6 @@ public class SlotRenderer {
                 id = id < 0 ? (short) (id + 256) : id;
                 short slabId = id;
                 if (id == 43 | id == 125 || id == 181) slabId++;
-                if (specialBlocks.contains((int) id)) {
-                    model = getSpecialBlockModel(id, metadata, x, y, z);
-                    break;
-                }
                 JSONObject block = Slot.blocksMap.get((int) slabId);
                 assert block != null : "Block is null" + id;
                 if (block.has("variations")) {
@@ -150,7 +164,7 @@ public class SlotRenderer {
                     modelXAngle = 270;
                     continue;
                 }
-                if (s.endsWith("json")) readJsonModel(context, s, modelSquares);
+                if (s.endsWith("json")) atlas = readJsonModel(context, s, modelSquares);
             }
             if (modelXAngle != 0) {
                 for (Square square : modelSquares) {
@@ -166,24 +180,50 @@ public class SlotRenderer {
             models.put(model + id + " " + metadata, modelSquares);
         }
 
-        for (Square modelSquare : Objects.requireNonNull(models.get(model + id + " " + metadata))
-        ) {
+        List<Face> faces = new ArrayList<>();
+        List<Square> modelSquares = models.get(model + id + " " + metadata);
+        assert modelSquares != null : "Model is null: " + model + id + " " + metadata;
+        for (byte i = 0; i < modelSquares.size(); i++) {
+            Square modelSquare = modelSquares.get(i);
             Square square = modelSquare.copy();
-            if (angle != 0) {
-                rotateSquare(square, angle, 1, 0.5f, 0.5f, 0.5f);
-                square.splitCoords();
-            }
-            if (upsideDown) {
-                flipSquare(square);
-                square.splitCoords();
-            }
-            addCoordinates(square.coords1, x, y, z);
-            addCoordinates(square.coords2, x, y, z);
+            if (square.isFace) faces.add(new Face(square.squareCoords, i));
             squares.add(square);
         }
+        if (shapesInverted.containsKey(faces)) {
+            this.shape = shapesInverted.get(faces);
+        } else {
+            this.shape = (byte) shapes.size();
+            shapes.put(this.shape, faces);
+            shapesInverted.put(faces, this.shape);
+            assert shapes.size() < 250 : "Too many shapes";
+        }
+        setBuffers();
     }
 
-    private static void readJsonModel(Context context, String s, List<Square> modelSquares) throws IOException, JSONException {
+    public static SlotRenderer getSlotRenderer(Context context, short block, int x, int y, int z) {
+        if (slotRenderers.containsKey(block)) return slotRenderers.get(block);
+        short id = Chunk.getBlockId(block);
+        byte metadata = Chunk.getBlockMetaData(block);
+        if (!specialBlocks.contains((int) id)) {
+            try {
+                SlotRenderer slotRenderer = new SlotRenderer(context, id, metadata, 1);
+                slotRenderers.put(block, slotRenderer);
+                return slotRenderer;
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        } else {
+            try {
+                return getSpecialSlotRenderer(context, id, metadata, x, y, z);
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        }
+
+        return null;
+    }
+
+    private static TextureAtlas readJsonModel(Context context, String s, List<Square> modelSquares) throws IOException, JSONException {
         InputStream is = context.getAssets().open(s);
         byte[] b = new byte[is.available()];
         is.read(b);
@@ -220,10 +260,11 @@ public class SlotRenderer {
             }
             jsonObject = new JSONObject(object);
         } while (jsonObject.has("parent"));
-        readJsonObject(jsonObject, modelSquares);
+        return readJsonObject(jsonObject, modelSquares);
     }
 
-    static void readJsonObject(JSONObject jsonObject, List<Square> modelSquares) throws JSONException {
+    static TextureAtlas readJsonObject(JSONObject jsonObject, List<Square> modelSquares) throws JSONException {
+        TextureAtlas atlas = null;
         JSONArray elements = jsonObject.getJSONArray("elements");
         for (int i = 0; i < elements.length(); i++) {
             float[] from = new float[3];
@@ -317,7 +358,7 @@ public class SlotRenderer {
                     String texture1 = element.getJSONObject("faces").getJSONObject(faces[j]).getString("texture");
                     String textureType = texture1.split("/")[0];
                     String textureName = texture1.substring(texture1.indexOf("/") + 1);
-                    TextureAtlas atlas = TextureAtlas.atlases.get(textureType);
+                    if (atlas == null) atlas = TextureAtlas.atlases.get(textureType);
                     assert atlas != null : "Atlas is null: " + textureType;
                     assert atlas.offsets.containsKey(textureName + ".png") : "Texture " + textureName + " not found in " + textureType + " atlas";
                     float offset = atlas.offsets.get(textureName + ".png");
@@ -332,7 +373,7 @@ public class SlotRenderer {
                         }
                     }
 
-                    Square square1 = new Square(squareCoords1, color2, textureCoords2, atlas);
+                    Square square1 = new Square(squareCoords1, color2, textureCoords2);
                     if (element.has("rotation")) {
                         int rotationAxis = -1;
                         if (axis.equals("x")) rotationAxis = 0;
@@ -342,10 +383,13 @@ public class SlotRenderer {
                         rotateSquare(square1, rotAngle, rotationAxis, fOrigin[0], fOrigin[1], fOrigin[2]);
                         square1.splitCoords();
                     }
+
+                    if (face.has("cullface")) square1.isFace = true;
                     modelSquares.add(square1);
                 }
             }
         }
+        return atlas;
     }
 
     //flip the square upside down
@@ -597,6 +641,27 @@ public class SlotRenderer {
                 if ((metadata & 0x08) == 0x08) {
                     assert model.contains("half") : "Model doesn't contain half: " + model;
                     model = model.replaceFirst("half", "upper");
+                }
+                break;
+
+            //torches
+            case 50:
+            case 75:
+            case 76:
+                model = "models/block/normal_torch.json";
+                if (id == 75) model = "models/block/unlit_redstone_torch.json";
+                else if (id == 76) model = "models/block/lit_redstone_torch.json";
+                if ((metadata & 0x07) == 0x01) {
+                    model = model.replaceFirst(".json", "_wall.json");
+                } else if ((metadata & 0x07) == 0x02) {
+                    model = model.replaceFirst(".json", "_wall.json");
+                    model = model + "amongus" + "angle180";
+                } else if ((metadata & 0x07) == 0x03) {
+                    model = model.replaceFirst(".json", "_wall.json");
+                    model = model + "amongus" + "angle270";
+                } else if ((metadata & 0x07) == 0x04) {
+                    model = model.replaceFirst(".json", "_wall.json");
+                    model = model + "amongus" + "angle90";
                 }
                 break;
 
@@ -928,23 +993,212 @@ public class SlotRenderer {
         return model;
     }
 
-    public SlotRenderer update() {
+    private static SlotRenderer getSpecialSlotRenderer(Context context, int id, int metadata, int x, int y, int z) {
+        int specialNumber = getSpecialNumber(id, metadata, x, y, z);
+        int specialId = (id << 16) | (metadata << 8) | specialNumber;
+        if (specialSlotRenderers.containsKey(specialId)) {
+            return specialSlotRenderers.get(specialId);
+        }
+        try {
+            SlotRenderer specialSlotRenderer = getSpecialBlockModel(context, id, metadata, specialNumber);
+            specialSlotRenderers.put(specialId, specialSlotRenderer);
+            return specialSlotRenderer;
+        } catch (IOException | JSONException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    /*public SlotRenderer update() {
         if (!specialBlocks.contains((int) id)) return null;
         try {
             return new SlotRenderer(context, id, metadata, type, x, y, z);
         } catch (IOException | JSONException e) {
             throw new RuntimeException(e);
         }
+    }*/
+
+    private static int getSpecialNumber(int id, int metadata, int x, int y, int z) {
+        byte specialNumber = 0;
+        switch (id) {
+            case 2://0x01 means grass with snow
+                if (Chunk.getBlockId(x, y + 1, z) == 78 || Chunk.getBlockId(x, y + 1, z) == 80) {
+                    specialNumber = 1;
+                }
+                break;
+
+            //stairs
+            case 53:
+            case 67:
+            case 108:
+            case 109:
+            case 114:
+            case 128:
+            case 134:
+            case 135:
+            case 136:
+            case 156:
+            case 163:
+            case 164:
+            case 180://0x01 means neighbor1 is a stair 0x02 and 0x04 is neighbo1's metadata 0x08 means neighbor2 is a stair 0x10 and 0x20 is neighbo2's metadata
+
+                //if facing north or south
+                if ((metadata & 2) == 2) {
+                    //block in north
+                    short neighbor1 = Chunk.getBlock(x, y, z - 1);
+                    int neighbor1Id = Chunk.getBlockId(neighbor1);
+                    int neighbor1Meta = Chunk.getBlockMetaData(neighbor1);
+                    //block in south
+                    short neighbor2 = Chunk.getBlock(x, y, z + 1);
+                    int neighbor2Id = Chunk.getBlockId(neighbor2);
+                    int neighbor2Meta = Chunk.getBlockMetaData(neighbor2);
+
+                    if (stairs.contains(neighbor1Id)) {
+                        specialNumber |= 0x01;
+                        specialNumber |= neighbor1Meta << 1;
+                    }
+                    if (stairs.contains(neighbor2Id)) {
+                        specialNumber |= 0x08;
+                        specialNumber |= neighbor2Meta << 4;
+                    }
+                }
+
+                //if facing east or west
+                else {
+                    //block in west
+                    short neighbor1 = Chunk.getBlock(x - 1, y, z);
+                    int neighbor1Id = Chunk.getBlockId(neighbor1);
+                    int neighbor1Meta = Chunk.getBlockMetaData(neighbor1);
+                    //block in east
+                    short neighbor2 = Chunk.getBlock(x + 1, y, z);
+                    int neighbor2Id = Chunk.getBlockId(neighbor2);
+                    int neighbor2Meta = Chunk.getBlockMetaData(neighbor2);
+                    if (stairs.contains(neighbor1Id)) {
+                        specialNumber |= 0x01;
+                        specialNumber |= neighbor1Meta << 1;
+                    }
+                    if (stairs.contains(neighbor2Id)) {
+                        specialNumber |= 0x08;
+                        specialNumber |= neighbor2Meta << 4;
+                    }
+                }
+                break;
+
+            //fences
+            case 85:
+            case 113:
+            case 188:
+            case 189:
+            case 190:
+            case 191:
+            case 192://0x01 means there is a block in north 0x02 means there is a block in west 0x04 means there is a block in south 0x08 means there is a block in east
+
+                //block in north
+                short neighbor1 = Chunk.getBlock(x, y, z - 1);
+                int neighbor1Id = Chunk.getBlockId(neighbor1);
+                //block in west
+                short neighbor2 = Chunk.getBlock(x - 1, y, z);
+                int neighbor2Id = Chunk.getBlockId(neighbor2);
+                //block in south
+                short neighbor3 = Chunk.getBlock(x, y, z + 1);
+                int neighbor3Id = Chunk.getBlockId(neighbor3);
+                //block in east
+                short neighbor4 = Chunk.getBlock(x + 1, y, z);
+                int neighbor4Id = Chunk.getBlockId(neighbor4);
+
+                if (neighbor1Id != 0) specialNumber |= 0x01;
+                if (neighbor2Id != 0) specialNumber |= 0x02;
+                if (neighbor3Id != 0) specialNumber |= 0x04;
+                if (neighbor4Id != 0) specialNumber |= 0x08;
+                break;
+
+            //doors
+            case 64:
+            case 71:
+            case 193:
+            case 194:
+            case 195:
+            case 196:
+            case 197://3 least significant bits specify the other part of the door
+
+                if ((metadata & 8) == 8) {
+                    specialNumber |= Chunk.getBlockMetaData(Chunk.getBlock(x, y - 1, z)) & 0x07;
+                } else {
+                    specialNumber |= Chunk.getBlockMetaData(Chunk.getBlock(x, y + 1, z)) & 0x07;
+                }
+                break;
+
+            //stems
+            case 104://-1 if there is no adjacent pumpkin and 0 1 2 3 specify the angle
+
+                int isPumpkinFruit = -1;
+                if (Chunk.getBlockId(x + 1, y, z) == 86) isPumpkinFruit = 2;
+                if (Chunk.getBlockId(x - 1, y, z) == 86) isPumpkinFruit = 0;
+                if (Chunk.getBlockId(x, y, z + 1) == 86) isPumpkinFruit = 1;
+                if (Chunk.getBlockId(x, y, z - 1) == 86) isPumpkinFruit = 3;
+                specialNumber = (byte) isPumpkinFruit;
+                break;
+
+            case 105://-1 if there is no adjacent melon and 0 1 2 3 specify the angle
+
+                int isMelonFruit = -1;
+                if (Chunk.getBlockId(x + 1, y, z) == 103) isMelonFruit = 2;
+                if (Chunk.getBlockId(x - 1, y, z) == 103) isMelonFruit = 0;
+                if (Chunk.getBlockId(x, y, z + 1) == 103) isMelonFruit = 1;
+                if (Chunk.getBlockId(x, y, z - 1) == 103) isMelonFruit = 3;
+                specialNumber = (byte) isMelonFruit;
+                break;
+
+            //vines
+            case 106://0x01 means there is a block above
+
+                if (Chunk.getBlockId(x, y + 1, z) != 0) specialNumber = 1;
+                break;
+
+            //tripwire hook
+            case 131://0x01 means there is no block below
+
+                if (Chunk.getBlockId(x, y - 1, z) == 0) specialNumber = 1;
+                break;
+
+            //tripwire
+            case 132://0x01 means there is no block below, 0x02 means there is tripwire in north, 0x04 means there is tripwire in west, 0x08 means there is tripwire in south, 0x10 means there is tripwire in east
+
+                //block below
+                if (Chunk.getBlockId(x, y - 1, z) == 0) specialNumber |= 0x01;
+                if (Chunk.getBlockId(x, y, z - 1) == -124) specialNumber |= 0x02;
+                if (Chunk.getBlockId(x - 1, y, z) == -124) specialNumber |= 0x04;
+                if (Chunk.getBlockId(x, y, z + 1) == -124) specialNumber |= 0x08;
+                if (Chunk.getBlockId(x + 1, y, z) == -124) specialNumber |= 0x10;
+                break;
+
+            //walls
+            case 139://0x01 means there is a block in north, 0x02 means there is a block in west, 0x04 means there is a block in south, 0x08 means there is a block in east and 0x10 means there is a block above
+
+                if (Chunk.getBlockId(x, y, z - 1) != 0) specialNumber |= 0x01;
+                if (Chunk.getBlockId(x - 1, y, z) != 0) specialNumber |= 0x02;
+                if (Chunk.getBlockId(x, y, z + 1) != 0) specialNumber |= 0x04;
+                if (Chunk.getBlockId(x + 1, y, z) != 0) specialNumber |= 0x08;
+                if (Chunk.getBlockId(x, y + 1, z) != 0) specialNumber |= 0x10;
+                break;
+
+        }
+        return specialNumber;
     }
 
-    private String getSpecialBlockModel(int id, int metadata, int x, int y, int z) {
+    private static SlotRenderer getSpecialBlockModel(Context context, int id, int metadata, int specialNumber) throws JSONException, IOException {
         String type = null;
+        int angle = 0;
+        boolean upsideDown = false;
+        String model = "";
+        a:
         switch (id) {
             case 2:
-                if (ChunkColumn.getBlockId(x, y + 1, z) == 78 || ChunkColumn.getBlockId(x, y + 1, z) == 80) {
-                    return "models/block/grass_snowed.json";
+                if (specialNumber == 1) {
+                    model = "models/block/grass_snowed.json";
+                    break;
                 } else {
-                    return "models/block/grass_normal.json";
+                    model = "models/block/grass_normal.json";
+                    break;
                 }
 
                 //stairs
@@ -961,7 +1215,6 @@ public class SlotRenderer {
             case 163:
             case 164:
             case 180:
-                Set<Integer> stairs = new HashSet<>(Arrays.asList(53, 67, 108, 109, 114, -128, -122, -121, -120, -10, -93, -92, -76));
                 try {
                     JSONObject block = Objects.requireNonNull(Slot.blocksMap.get(id));
                     if (block.has("itemModel")) {
@@ -983,62 +1236,71 @@ public class SlotRenderer {
                 //if facing north or south
                 if ((metadata & 2) == 2) {
                     //block in north
-                    short neighbor1 = ChunkColumn.getBlock(x, y, z - 1);
-                    int neighbor1Id = ChunkColumn.getBlockId(neighbor1);
-                    int neighbor1Meta = ChunkColumn.getBlockMetaData(neighbor1);
+                    //short neighbor1 = Chunk.getBlock(x, y, z - 1);
+                    //int neighbor1Id = Chunk.getBlockId(neighbor1);
+                    int neighbor1Meta = specialNumber >> 1;
                     //block in south
-                    short neighbor2 = ChunkColumn.getBlock(x, y, z + 1);
-                    int neighbor2Id = ChunkColumn.getBlockId(neighbor2);
-                    int neighbor2Meta = ChunkColumn.getBlockMetaData(neighbor2);
-                    if (stairs.contains(neighbor1Id) && (neighbor1Meta & 0x02) == 0) {
+                    //short neighbor2 = Chunk.getBlock(x, y, z + 1);
+                    //int neighbor2Id = Chunk.getBlockId(neighbor2);
+                    int neighbor2Meta = specialNumber >> 4;
+                    if (((specialNumber & 0x01) == 0x01) && (neighbor1Meta & 0x02) == 0) {
                         if ((metadata & 1) == 1) {
                             if ((neighbor1Meta & 1) == 1) angle += 90;
-                            return "models/block/" + type + "_outer_stairs.json";
+                            model = "models/block/" + type + "_outer_stairs.json";
+                            break;
                         } else {
                             if ((neighbor1Meta & 1) == 0) angle += 90;
-                            return "models/block/" + type + "_inner_stairs.json";
+                            model = "models/block/" + type + "_inner_stairs.json";
+                            break;
                         }
                     }
-                    if (stairs.contains(neighbor2Id) && (neighbor2Meta & 0x02) == 0) {
+                    if (((specialNumber & 0x08) == 0x08) && (neighbor2Meta & 0x02) == 0) {
                         if ((metadata & 1) == 1) {
                             if ((neighbor2Meta & 1) == 1) angle += 90;
-                            return "models/block/" + type + "_inner_stairs.json";
+                            model = "models/block/" + type + "_inner_stairs.json";
+                            break;
                         } else {
                             if ((neighbor2Meta & 1) == 0) angle += 90;
-                            return "models/block/" + type + "_outer_stairs.json";
+                            model = "models/block/" + type + "_outer_stairs.json";
+                            break;
                         }
                     }
                 }
                 //if facing east or west
                 else {
                     //block in west
-                    short neighbor1 = ChunkColumn.getBlock(x - 1, y, z);
-                    int neighbor1Id = ChunkColumn.getBlockId(neighbor1);
-                    int neighbor1Meta = ChunkColumn.getBlockMetaData(neighbor1);
+                    //short neighbor1 = Chunk.getBlock(x - 1, y, z);
+                    //int neighbor1Id = Chunk.getBlockId(neighbor1);
+                    int neighbor1Meta = specialNumber >> 1;
                     //block in east
-                    short neighbor2 = ChunkColumn.getBlock(x + 1, y, z);
-                    int neighbor2Id = ChunkColumn.getBlockId(neighbor2);
-                    int neighbor2Meta = ChunkColumn.getBlockMetaData(neighbor2);
-                    if (stairs.contains(neighbor1Id) && (neighbor1Meta & 2) == 2) {
+                    //short neighbor2 = Chunk.getBlock(x + 1, y, z);
+                    //int neighbor2Id = Chunk.getBlockId(neighbor2);
+                    int neighbor2Meta = specialNumber >> 4;
+                    if (((specialNumber & 0x01) == 0x01) && (neighbor1Meta & 2) == 2) {
                         if ((metadata & 1) == 1) {
                             if ((neighbor1Meta & 1) == 0) angle += 90;
-                            return "models/block/" + type + "_outer_stairs.json";
+                            model = "models/block/" + type + "_outer_stairs.json";
+                            break;
                         } else {
                             if ((neighbor1Meta & 1) == 1) angle += 90;
-                            return "models/block/" + type + "_inner_stairs.json";
+                            model = "models/block/" + type + "_inner_stairs.json";
+                            break;
                         }
                     }
-                    if (stairs.contains(neighbor2Id) && (neighbor2Meta & 0x02) == 2) {
+                    if (((specialNumber & 0x08) == 0x08) && (neighbor2Meta & 0x02) == 2) {
                         if ((metadata & 1) == 1) {
                             if ((neighbor2Meta & 1) == 0) angle += 90;
-                            return "models/block/" + type + "_inner_stairs.json";
+                            model = "models/block/" + type + "_inner_stairs.json";
+                            break;
                         } else {
                             if ((neighbor2Meta & 1) == 1) angle += 90;
-                            return "models/block/" + type + "_outer_stairs.json";
+                            model = "models/block/" + type + "_outer_stairs.json";
+                            break;
                         }
                     }
                 }
-                return "models/block/" + type + "_stairs.json";
+                model = "models/block/" + type + "_stairs.json";
+                break;
 
             //fences
             case 85:
@@ -1055,10 +1317,10 @@ public class SlotRenderer {
                 else if (id == 190) type = "jungle";
                 else if (id == 191) type = "dark_oak";
                 else type = "acacia";
-                boolean north = ChunkColumn.getBlockId(x, y, z - 1) != 0;
-                boolean west = ChunkColumn.getBlockId(x - 1, y, z) != 0;
-                boolean south = ChunkColumn.getBlockId(x, y, z + 1) != 0;
-                boolean east = ChunkColumn.getBlockId(x + 1, y, z) != 0;
+                boolean north = (specialNumber & 0x01) == 0x01;
+                boolean west = (specialNumber & 0x02) == 0x02;
+                boolean south = (specialNumber & 0x04) == 0x04;
+                boolean east = (specialNumber & 0x08) == 0x08;
                 int[] sides = new int[4];
                 if (north) sides[0] = 1;
                 if (west) sides[1] = 1;
@@ -1066,21 +1328,25 @@ public class SlotRenderer {
                 if (east) sides[3] = 1;
                 int sum = sides[0] + sides[1] + sides[2] + sides[3];
                 if (sum == 0) {
-                    return "models/block/" + type + "_fence_post.json";
+                    model = "models/block/" + type + "_fence_post.json";
+                    break;
                 } else if (sum == 1) {
                     for (int i = 0; i < 4; i++) {
                         if (sides[i] == 1) {
-                            return "models/block/" + type + "_fence_n.json";
+                            model = "models/block/" + type + "_fence_n.json";
+                            break a;
                         }
                         angle += 90;
                     }
                 } else if (sum == 2) {
                     for (int i = 0; i < 4; i++) {
                         if (sides[i] == 1 && sides[(i + 3) % 4] == 1) {
-                            return "models/block/" + type + "_fence_ne.json";
+                            model = "models/block/" + type + "_fence_ne.json";
+                            break a;
                         }
                         if (sides[i] == 1 && sides[(i + 2) % 4] == 1) {
-                            return "models/block/" + type + "_fence_ns.json";
+                            model = "models/block/" + type + "_fence_ns.json";
+                            break a;
                         }
                         angle += 90;
                     }
@@ -1088,44 +1354,38 @@ public class SlotRenderer {
                     angle = 270;
                     for (int i = 0; i < 4; i++) {
                         if (sides[i] == 0) {
-                            return "models/block/" + type + "_fence_nse.json";
+                            model = "models/block/" + type + "_fence_nse.json";
+                            break a;
                         }
                         angle += 90;
                     }
                 } else if (sum == 4) {
-                    return "models/block/" + type + "_fence_nsew.json";
+                    model = "models/block/" + type + "_fence_nsew.json";
+                    break;
                 }
 
                 //stems //TODO add coloring
             case 104:
                 //checking 4 sides for pumpkin
-                int isPumpkinFruit = -1;
-                if (ChunkColumn.getBlockId(x + 1, y, z) == 86) isPumpkinFruit = 2;
-                if (ChunkColumn.getBlockId(x - 1, y, z) == 86) isPumpkinFruit = 0;
-                if (ChunkColumn.getBlockId(x, y, z + 1) == 86) isPumpkinFruit = 1;
-                if (ChunkColumn.getBlockId(x, y, z - 1) == 86) isPumpkinFruit = 3;
-                if (isPumpkinFruit != -1) {
-                    angle = isPumpkinFruit * 90;
-                    return "models/block/pumpkin_stem_fruit" + ".json";
+                if (specialNumber != -1) {
+                    angle = specialNumber * 90;
+                    model = "models/block/pumpkin_stem_fruit" + ".json";
                 } else {
-                    return "models/block/pumpkin_stem_growth" + metadata + ".json";
+                    model = "models/block/pumpkin_stem_growth" + metadata + ".json";
                 }
+                break;
             case 105:
                 //checking 4 sides for melon
-                int isMelonFruit = -1;
-                if (ChunkColumn.getBlockId(x + 1, y, z) == 103) isMelonFruit = 3;
-                if (ChunkColumn.getBlockId(x - 1, y, z) == 103) isMelonFruit = 1;
-                if (ChunkColumn.getBlockId(x, y, z + 1) == 103) isMelonFruit = 2;
-                if (ChunkColumn.getBlockId(x, y, z - 1) == 103) isMelonFruit = 0;
-                if (isMelonFruit != -1) {
-                    return "models/block/melon_stem_fruit" + ".json";
+                if (specialNumber != -1) {
+                    model = "models/block/melon_stem_fruit" + ".json";
                 } else {
-                    return "models/block/melon_stem_growth" + metadata + ".json";
+                    model = "models/block/melon_stem_growth" + metadata + ".json";
                 }
+                break;
 
-                //vines
+            //vines
             case 106:
-                boolean up = ChunkColumn.getBlockId(x, y + 1, z) != 0;
+                boolean up = (specialNumber & 0x01) == 0x01;
                 String u = up ? "u" : "";
                 north = (metadata & 4) == 4;
                 west = (metadata & 2) == 2;
@@ -1137,24 +1397,28 @@ public class SlotRenderer {
                 if (south) sides[2] = 1;
                 if (east) sides[3] = 1;
                 sum = sides[0] + sides[1] + sides[2] + sides[3];
-                if (sum == 0)
-                    return "models/block/vine_u.json";
-                else if (sum == 1) {
+                if (sum == 0) {
+                    model = "models/block/vine_u.json";
+                    break;
+                } else if (sum == 1) {
                     angle = 180;
                     for (int i = 0; i < 4; i++) {
                         if (sides[i] == 1) {
-                            return "models/block/vine_1" + u + ".json";
+                            model = "models/block/vine_1" + u + ".json";
+                            break a;
                         }
                         angle += 90;
                     }
                 } else if (sum == 2) {
                     for (int i = 0; i < 4; i++) {
                         if (sides[i] == 1 && sides[(i + 3) % 4] == 1) {
-                            return "models/block/vine_2" + u + ".json";
+                            model = "models/block/vine_2" + u + ".json";
+                            break a;
                         }
                         if (sides[i] == 1 && sides[(i + 2) % 4] == 1) {
                             angle += 90;
-                            return "models/block/vine_2" + u + "_opposite.json";
+                            model = "models/block/vine_2" + u + "_opposite.json";
+                            break a;
                         }
                         angle += 90;
                     }
@@ -1162,12 +1426,14 @@ public class SlotRenderer {
                     angle = 270;
                     for (int i = 0; i < 4; i++) {
                         if (sides[i] == 0) {
-                            return "models/block/vine_3" + u + ".json";
+                            model = "models/block/vine_3" + u + ".json";
+                            break a;
                         }
                         angle += 90;
                     }
                 } else if (sum == 4) {
-                    return "models/block/vine_4" + u + ".json";
+                    model = "models/block/vine_4" + u + ".json";
+                    break;
                 }
                 //doors FIXME hitboxes are broken
             case 64:
@@ -1190,14 +1456,14 @@ public class SlotRenderer {
                 boolean open;
                 if ((metadata & 0x08) == 0x08) {
                     part = "top";
-                    short bottom = ChunkColumn.getBlock(x, y - 1, z);
+                    int bottom = specialNumber & 0x07;
                     hinge = metadata & 1;
-                    facing = ChunkColumn.getBlockMetaData(bottom) & 3;
-                    open = (ChunkColumn.getBlockMetaData(bottom) & 4) == 4;
+                    facing = bottom & 3;
+                    open = (bottom & 4) == 4;
                 } else {
                     part = "bottom";
-                    short top = ChunkColumn.getBlock(x, y + 1, z);
-                    hinge = ChunkColumn.getBlockMetaData(top) & 1;
+                    int top = specialNumber & 0x07;
+                    hinge = top & 1;
                     facing = metadata & 3;
                     open = (metadata & 4) == 4;
                 }
@@ -1211,9 +1477,11 @@ public class SlotRenderer {
                     hinge = (hinge + 1) % 2;
                 }
                 if (hinge == 1) {
-                    return "models/block/" + type + "_door_" + part + "_rh.json";
+                    model = "models/block/" + type + "_door_" + part + "_rh.json";
+                    break;
                 } else {
-                    return "models/block/" + type + "_door_" + part + ".json";
+                    model = "models/block/" + type + "_door_" + part + ".json";
+                    break;
                 }
 
                 //tripwire hook
@@ -1221,7 +1489,7 @@ public class SlotRenderer {
                 type = "tripwire_hook";
                 if ((metadata & 0x04) == 0x04) {
                     type = type + "_attached";
-                    if (ChunkColumn.getBlockId(x, y - 1, z) == 0) type = type + "_suspended";
+                    if ((specialNumber & 0x01) == 0x01) type = type + "_suspended";
                 }
                 if ((metadata & 0x08) == 0x08) type = type + "_powered";
                 if ((metadata & 0x03) == 0x01) {
@@ -1231,17 +1499,17 @@ public class SlotRenderer {
                 } else if ((metadata & 0x03) == 0x03) {
                     angle = 270;
                 }
-                return "models/block/" + type + ".json";
+                model = "models/block/" + type + ".json";
 
-            //tripwire FIXME fix this sometime because i dont caare enough to fix it rn
+                //tripwire FIXME fix this sometime because i dont caare enough to fix it rn
             case 132:
                 type = "tripwire";
                 if ((metadata & 0x04) == 0x04) type = type + "_attached";
-                if (ChunkColumn.getBlockId(x, y - 1, z) == 0) type = type + "_suspended";
-                north = ChunkColumn.getBlockId(x, y, z - 1) == -124;
-                west = ChunkColumn.getBlockId(x - 1, y, z) == -124;
-                south = ChunkColumn.getBlockId(x, y, z + 1) == -124;
-                east = ChunkColumn.getBlockId(x + 1, y, z) == -124;
+                if ((specialNumber & 0x01) == 0x01) type = type + "_suspended";
+                north = (specialNumber & 0x02) == 0x02;
+                west = (specialNumber & 0x04) == 0x04;
+                south = (specialNumber & 0x08) == 0x08;
+                east = (specialNumber & 0x10) == 0x10;
                 sides = new int[4];
                 if (north) sides[0] = 1;
                 if (west) sides[1] = 1;
@@ -1249,22 +1517,22 @@ public class SlotRenderer {
                 if (east) sides[3] = 1;
                 sum = sides[0] + sides[1] + sides[2] + sides[3];
                 if (sum == 0) {
-                    return "models/block/" + type + "_ns.json";
+                    model = "models/block/" + type + "_ns.json";
                 } else if (sum == 1) {
                     for (int i = 0; i < 4; i++) {
                         if (sides[i] == 1) {
-                            return "models/block/" + type + "_n.json";
+                            model = "models/block/" + type + "_n.json";
                         }
                         angle += 90;
                     }
                 } else if (sum == 2) {
                     for (int i = 0; i < 4; i++) {
                         if (sides[i] == 1 && sides[(i + 3) % 4] == 1) {
-                            return "models/block/" + type + "_ne.json";
+                            model = "models/block/" + type + "_ne.json";
                         }
                         if (sides[i] == 1 && sides[(i + 2) % 4] == 1) {
                             angle += 90;
-                            return "models/block/" + type + "_ns.json";
+                            model = "models/block/" + type + "_ns.json";
                         }
                         angle += 90;
                     }
@@ -1272,12 +1540,12 @@ public class SlotRenderer {
                     angle = 270;
                     for (int i = 0; i < 4; i++) {
                         if (sides[i] == 0) {
-                            return "models/block/" + type + "_nse.json";
+                            model = "models/block/" + type + "_nse.json";
                         }
                         angle += 90;
                     }
                 } else if (sum == 4) {
-                    return "models/block/" + type + "_nsew.json";
+                    model = "models/block/" + type + "_nsew.json";
                 }
 
                 //walls
@@ -1285,10 +1553,10 @@ public class SlotRenderer {
                 type = "cobblestone";
                 if (metadata == 1) type = "mossy_cobblestone";
                 //similar to fences
-                north = ChunkColumn.getBlockId(x, y, z - 1) != 0;
-                west = ChunkColumn.getBlockId(x - 1, y, z) != 0;
-                south = ChunkColumn.getBlockId(x, y, z + 1) != 0;
-                east = ChunkColumn.getBlockId(x + 1, y, z) != 0;
+                north = (specialNumber & 0x01) == 0x01;
+                west = (specialNumber & 0x02) == 0x02;
+                south = (specialNumber & 0x04) == 0x04;
+                east = (specialNumber & 0x08) == 0x08;
                 sides = new int[4];
                 if (north) sides[0] = 1;
                 if (west) sides[1] = 1;
@@ -1296,23 +1564,25 @@ public class SlotRenderer {
                 if (east) sides[3] = 1;
                 sum = sides[0] + sides[1] + sides[2] + sides[3];
                 if (sum == 0) {
-                    return "models/block/" + type + "_wall_post.json";
+                    model = "models/block/" + type + "_wall_post.json";
                 } else if (sum == 1) {
                     for (int i = 0; i < 4; i++) {
                         if (sides[i] == 1) {
-                            return "models/block/" + type + "_wall_n.json";
+                            model = "models/block/" + type + "_wall_n.json";
                         }
                         angle += 90;
                     }
                 } else if (sum == 2) {
                     for (int i = 0; i < 4; i++) {
                         if (sides[i] == 1 && sides[(i + 3) % 4] == 1) {
-                            return "models/block/" + type + "_wall_ne.json";
+                            model = "models/block/" + type + "_wall_ne.json";
                         }
                         if (sides[i] == 1 && sides[(i + 2) % 4] == 1) {
-                            if (ChunkColumn.getBlockId(x, y + 1, z) != 0)
-                                return "models/block/" + type + "_wall_ns_above.json";
-                            return "models/block/" + type + "_wall_ns.json";
+                            if ((specialNumber & 0x10) != 0) {
+                                model = "models/block/" + type + "_wall_ns_above.json";
+                                break;
+                            }
+                            model = "models/block/" + type + "_wall_ns.json";
                         }
                         angle += 90;
                     }
@@ -1320,18 +1590,156 @@ public class SlotRenderer {
                     angle = 270;
                     for (int i = 0; i < 4; i++) {
                         if (sides[i] == 0) {
-                            return "models/block/" + type + "_wall_nse.json";
+                            model = "models/block/" + type + "_wall_nse.json";
+                            break;
                         }
                         angle += 90;
                     }
                 } else if (sum == 4) {
-                    return "models/block/" + type + "_wall_nsew.json";
+                    model = "models/block/" + type + "_wall_nsew.json";
+                    break;
                 }
-
+                break;
 
             default:
                 throw new IllegalStateException("Unexpected value: " + id);
         }
+        return new SlotRenderer(context, model, angle, upsideDown);
     }
 
+    private void setBuffers() {
+        coords = new float[squares.size() * 6 * 3];
+        textureCoords = new float[squares.size() * 6 * 2];
+        colors = new float[squares.size() * 6 * 4];
+        for (int i = 0; i < squares.size(); i++) {
+            Square square = squares.get(i);
+            System.arraycopy(square.coords1, 0, coords, i * 6 * 3, 3 * 3);
+            System.arraycopy(square.coords2, 0, coords, i * 6 * 3 + 3 * 3, 3 * 3);
+            System.arraycopy(square.textures1, 0, textureCoords, i * 6 * 2, 2 * 3);
+            System.arraycopy(square.textures2, 0, textureCoords, i * 6 * 2 + 2 * 3, 2 * 3);
+            System.arraycopy(square.squareColors, 0, colors, i * 6 * 4, 4 * 6);
+        }
+    }
+
+    public SlotRenderer removeBlockedFaces(byte[] otherShapes) {
+        if (shape == -1) return this;
+        List<Byte> removedFaces = new ArrayList<>();
+        List<Face> shapeOfThis = shapes.get(shape);
+        assert shapeOfThis != null : "shapeOfThis is null";
+
+        byte[] directions = new byte[]{(byte) -1, (byte) 1, (byte) -2, (byte) 2, (byte) -3, (byte) 3};
+
+        for (int i = 0; i < 6; i++) {
+            if (otherShapes[i] == -1) continue;
+            if (!facesBlocked.containsKey(shape)) facesBlocked.put(shape, new HashMap<>(6));
+            Map<Byte, List<Byte>[]> shapeMap = facesBlocked.get(shape);
+            if (!shapeMap.containsKey(otherShapes[i])) {
+                shapeMap.put(otherShapes[i], new List[6]);
+            }
+            if (shapeMap.get(otherShapes[i])[i] == null) {
+                shapeMap.get(otherShapes[i])[i] = findBlockedFaces(shapeOfThis, otherShapes[i], directions[i]);
+            }
+            removedFaces.addAll(shapeMap.get(otherShapes[i])[i]);
+        }
+
+        //sort removedFaces in descending order
+        removedFaces.sort((o1, o2) -> o2 - o1);
+
+        if (variants.containsKey(removedFaces)) return variants.get(removedFaces);
+
+        SlotRenderer newSlotRenderer = createNewSlotRenderer(removedFaces);
+        variants.put(removedFaces, newSlotRenderer);
+        return newSlotRenderer;
+    }
+
+    private SlotRenderer createNewSlotRenderer(List<Byte> removedFaces) {
+        List<Square> newSquares = new ArrayList<>(squares.size());
+        for (int i = 0; i < squares.size(); i++) {
+            if (removedFaces.contains((byte) i)) continue;
+            newSquares.add(squares.get(i).copy());
+        }
+        if (!removedFaces.isEmpty()) assert newSquares.size() != squares.size();
+        SlotRenderer newSlotRenderer = new SlotRenderer(newSquares);
+        newSlotRenderer.shape = shape;
+        newSlotRenderer.atlas = atlas;
+        newSlotRenderer.setBuffers();
+        return newSlotRenderer;
+    }
+
+    private List<Byte> findBlockedFaces(List<Face> shapeOfThis, byte idOfOtherShape, byte direction) {
+        //-3 is -z, -2 is -y, -1 is -x, 1 is x, 2 is y, 3 is z
+        List<Byte> blockedFaces = new ArrayList<>(6);
+        List<Face> shapeOfOther = shapes.get(idOfOtherShape);
+        byte sign = direction > 0 ? (byte) 1 : (byte) -1;
+        direction = (byte) (Math.abs(direction) - 1);
+
+        faces:
+        for (Face faceOfThis : shapeOfThis) {
+            for (Face faceOfOther : shapeOfOther) {
+                float[] coords = new float[6];
+                for (int i = 0; i < 3; i++) {
+                    coords[i] = faceOfOther.coords[i];
+                    coords[i + 3] = faceOfOther.coords[i + 3];
+                    if (i == direction) {
+                        coords[i] = faceOfOther.coords[i] + sign;
+                        coords[i + 3] = faceOfOther.coords[i + 3] + sign;
+                    }
+                }
+                if (faceOfThis.isInside(coords)) {
+                    blockedFaces.add(faceOfThis.index);
+                    continue faces;
+                }
+            }
+        }
+        return blockedFaces;
+    }
+}
+
+class Face {
+    float[] coords = new float[6];//smallest x, smallest y, smallest z, biggest x, biggest y, biggest z
+    byte index;
+
+    Face(float[] squareCoords, byte index) {
+        this.index = index;
+
+        //I wanted this to be long for no reason don't ask me why :p
+        float minX = squareCoords[0], minY = squareCoords[1], minZ = squareCoords[2];
+        float maxX = minX, maxY = minY, maxZ = minZ;
+
+        for (int i = 3; i < 12; i += 3) {
+            float x = squareCoords[i], y = squareCoords[i + 1], z = squareCoords[i + 2];
+            if (x < minX) minX = x;
+            if (y < minY) minY = y;
+            if (z < minZ) minZ = z;
+            if (x > maxX) maxX = x;
+            if (y > maxY) maxY = y;
+            if (z > maxZ) maxZ = z;
+        }
+
+        coords[0] = minX;
+        coords[1] = minY;
+        coords[2] = minZ;
+        coords[3] = maxX;
+        coords[4] = maxY;
+        coords[5] = maxZ;
+    }
+
+    boolean isInside(float[] other) {
+        return coords[0] >= other[0] && coords[1] >= other[1] && coords[2] >= other[2] && coords[3] <= other[3] && coords[4] <= other[4] && coords[5] <= other[5];
+    }
+
+    @Override
+    public int hashCode() {
+        int result = Objects.hash(index);
+        result = 31 * result + Arrays.hashCode(coords);
+        return result;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        Face face = (Face) o;
+        return index == face.index && Arrays.equals(coords, face.coords);
+    }
 }

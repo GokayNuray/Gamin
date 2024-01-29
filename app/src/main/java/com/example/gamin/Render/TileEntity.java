@@ -25,10 +25,10 @@ public class TileEntity {
     public SlotRenderer slotRenderer;
 
     public TileEntity(Context context, int id, int metadata, int x, int y, int z) {
-        Log.v("TileEntity", metadata + "");
+        if (id < 0) id += 256;
         if (!models.containsKey(id + " " + metadata)) {
-            String model = "";
-            String texture = "";
+            String model = "bat.jem";
+            String texture = "entity/bat";
             int angle = 0;
             switch (id) {
                 case 176:
@@ -39,7 +39,7 @@ public class TileEntity {
                     break;
                 case 54:
                     //chest
-                    model = "legacy/chest_14";
+                    model = "legacy/chest_14.jem";
                     texture = "entity/chest/normal";
                     if (metadata == 3) {
                         angle = 180;
@@ -63,10 +63,21 @@ public class TileEntity {
                     break;
                 case 144:
                     //skull
+                    model = "head_skeleton.jem";
+                    texture = "entity/skeleton/skeleton";
+                    if (metadata == 1) {
+                        texture = "entity/skeleton/wither_skeleton";
+                    } else if (metadata == 2) {
+                        texture = "entity/zombie/zombie";
+                    } else if (metadata == 3) {
+                        texture = "entity/steve";
+                    } else if (metadata == 4) {
+                        texture = "entity/creeper/creeper";
+                    }
                     break;
             }
             try {
-                InputStream is = context.getAssets().open("models/cem/" + model + ".jem");
+                InputStream is = context.getAssets().open("models/cem/" + model);
                 byte[] b = new byte[is.available()];
                 is.read(b);
                 is.close();
