@@ -284,6 +284,7 @@ public class MainActivity extends AppCompatActivity {
                     PacketUtils.jump = false;
                     PacketUtils.isSneaking = false;
                 }
+                PacketUtils.getTargetedObject();
 
                 return true;
             });

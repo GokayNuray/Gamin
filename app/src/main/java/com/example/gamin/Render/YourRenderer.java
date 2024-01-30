@@ -280,6 +280,48 @@ public class YourRenderer implements GLSurfaceView.Renderer {
         rendsera(items);
         rendsera(entity);
 
+        if (PacketUtils.targetCoords != null) {
+            //render targeted object
+            float[] targetCoords = PacketUtils.targetCoords;
+            float[] colors = new float[]{
+                    0, 1, 0, 0.5f,
+                    0, 1, 0, 0.5f,
+                    0, 1, 0, 0.5f,
+                    0, 1, 0, 0.5f,
+                    0, 1, 0, 0.5f,
+                    0, 1, 0, 0.5f
+            };
+            float[] textureCoords = new float[]{
+                    0, 0,
+                    0, 1,
+                    1, 1,
+                    0, 0,
+                    1, 1,
+                    1, 0
+            };
+
+            FloatBuffer targetCoordsBuffer = ByteBuffer.allocateDirect(targetCoords.length * 4).order(ByteOrder.nativeOrder()).asFloatBuffer();
+            targetCoordsBuffer.put(targetCoords).position(0);
+
+            FloatBuffer colorsBuffer = ByteBuffer.allocateDirect(colors.length * 4).order(ByteOrder.nativeOrder()).asFloatBuffer();
+            colorsBuffer.put(colors).position(0);
+
+            FloatBuffer textureCoordsBuffer = ByteBuffer.allocateDirect(textureCoords.length * 4).order(ByteOrder.nativeOrder()).asFloatBuffer();
+            textureCoordsBuffer.put(textureCoords).position(0);
+
+            GLES20.glEnableVertexAttribArray(YourRenderer.colorHandle);
+            GLES20.glVertexAttribPointer(YourRenderer.colorHandle, 4, GLES20.GL_FLOAT, false, 0, colorsBuffer);
+            GLES20.glEnableVertexAttribArray(YourRenderer.positionHandle);
+            GLES20.glVertexAttribPointer(YourRenderer.positionHandle, 3, GLES20.GL_FLOAT, false, 0, targetCoordsBuffer);
+
+            GLES20.glBindTexture(GLES20.GL_TEXTURE_2D, loadTexture(context, R.drawable.white_square));
+
+            GLES20.glEnableVertexAttribArray(YourRenderer.mTextureCoordinateHandle);
+            GLES20.glVertexAttribPointer(YourRenderer.mTextureCoordinateHandle, 2, GLES20.GL_FLOAT, false, 0, textureCoordsBuffer);
+
+            GLES20.glDrawArrays(GLES20.GL_TRIANGLES, 0, 6);
+        }
+
 
         GLES20.glUniformMatrix4fv(vPMatrixHandle, 1, false, scratch2, 0);
         //System.out.println("ratio: " + ratio);//0.625

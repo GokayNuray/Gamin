@@ -44,10 +44,11 @@ public final class PacketUtils extends AppCompatActivity {
     public static double motionZ = 0;
     public static boolean jump;
     public static boolean isSneaking;
-    public static boolean didHorizontalCollide = false;
     public static boolean isSprinting = true;
     public static float x_rot = 0.0F;
     public static float y_rot = 0.0F;
+    public static float[] targetCoords;
+    static boolean didHorizontalCollide = false;
     private static int playerId;
     private static double generic_movementSpeed;
     private static boolean isOnGround = false;
@@ -492,4 +493,176 @@ public final class PacketUtils extends AppCompatActivity {
 
     }
 
+    public static void getTargetedObject() {
+        double yaw = Math.toRadians(x_rot);
+        double pitch = Math.toRadians(y_rot);
+        float[] pos = {(float) x, (float) y + 1.62f, (float) z};
+
+        float maxDistance = 5.0f;
+        int result = -1; //0 +x, 1 +y, 2 +z, 3 -x, 4 -y, 5 -z
+
+        float[] targetCoords = null;
+        float[] targetHitbox = null;
+
+        float[] d = new float[3];
+        d[0] = (float) ((-Math.sin(yaw)) * Math.cos(pitch));
+        d[1] = (float) (-Math.sin(pitch));
+        d[2] = (float) (Math.cos(yaw) * Math.cos(pitch));
+
+        float[] tMax = new float[3];
+        for (int i = 0; i < 3; i++) {
+            tMax[i] = (d[i] >= 0 ? (float) Math.floor(pos[i]) + 1 - pos[i] : pos[i] - (float) Math.ceil(pos[i])) / d[i];
+        }
+
+        float[] steps = new float[3];
+        for (int i = 0; i < 3; i++) {
+            steps[i] = d[i] >= 0 ? 1 : -1;
+        }
+
+        float[] tDelta = new float[3];
+        for (int i = 0; i < 3; i++) {
+            tDelta[i] = Math.abs(1 / d[i]);
+        }
+
+        int x = (int) Math.floor(pos[0]);
+        int y = (int) Math.floor(pos[1]);
+        int z = (int) Math.floor(pos[2]);
+        for (float t = 0; t < maxDistance; ) {
+            short block = Chunk.getBlock(x, y, z);
+            if (block != 0) {
+                for (float[] hitbox : Collision.getHitbox(block)) {
+                    float[] hitboxCoords = new float[6];
+                    for (int i = 0; i < 6; i++) {
+                        hitboxCoords[i] = hitbox[i] + new float[]{x, y, z}[i % 3];
+                    }
+                    result = (int) checkIfLookingAt(hitboxCoords, pos, d, maxDistance)[0];
+                    if (result != -1) {
+                        maxDistance = checkIfLookingAt(hitboxCoords, pos, d, maxDistance)[1];
+                        targetCoords = new float[]{x, y, z};
+                        //create an array based on the face that was hit
+                        //it should be an array of 18 floats, 6 vertices for two triangles that make up a square
+                        switch (result) {
+                            case 0:
+                                targetHitbox = new float[]{
+                                        x + 1.01f, y + 1, z + 1,
+                                        x + 1.01f, y, z + 1,
+                                        x + 1.01f, y, z,
+                                        x + 1.01f, y + 1, z + 1,
+                                        x + 1.01f, y, z,
+                                        x + 1.01f, y + 1, z
+                                };
+                                break;
+                            case 1:
+                                targetHitbox = new float[]{
+                                        x + 1, y + 1.01f, z + 1,
+                                        x + 1, y + 1.01f, z,
+                                        x, y + 1.01f, z,
+                                        x + 1, y + 1.01f, z + 1,
+                                        x, y + 1.01f, z,
+                                        x, y + 1.01f, z + 1
+                                };
+                                break;
+                            case 2:
+                                targetHitbox = new float[]{
+                                        x + 1, y + 1, z + 1.01f,
+                                        x, y + 1, z + 1.01f,
+                                        x, y, z + 1.01f,
+                                        x + 1, y + 1, z + 1.01f,
+                                        x, y, z + 1.01f,
+                                        x + 1, y, z + 1.01f
+                                };
+                                break;
+                            case 3:
+                                targetHitbox = new float[]{
+                                        x - 0.1f, y + 1, z + 1,
+                                        x - 0.1f, y, z + 1,
+                                        x - 0.1f, y, z,
+                                        x - 0.1f, y + 1, z + 1,
+                                        x - 0.1f, y, z,
+                                        x - 0.1f, y + 1, z
+                                };
+                                break;
+                            case 4:
+                                targetHitbox = new float[]{
+                                        x + 1, y - 0.1f, z + 1,
+                                        x + 1, y - 0.1f, z,
+                                        x, y - 0.1f, z,
+                                        x + 1, y - 0.1f, z + 1,
+                                        x, y - 0.1f, z,
+                                        x, y - 0.1f, z + 1
+                                };
+                                break;
+                            case 5:
+                                targetHitbox = new float[]{
+                                        x + 1, y + 1, z - 0.1f,
+                                        x + 1, y, z - 0.1f,
+                                        x, y, z - 0.1f,
+                                        x + 1, y + 1, z - 0.1f,
+                                        x, y, z - 0.1f,
+                                        x, y + 1, z - 0.1f
+                                };
+                                break;
+                        }
+                    }
+                }
+            }
+            if (tMax[0] < tMax[1]) {
+                if (tMax[0] < tMax[2]) {
+                    x += (int) steps[0];
+                    t = tMax[0];
+                    tMax[0] += tDelta[0];
+                } else {
+                    z += (int) steps[2];
+                    t = tMax[2];
+                    tMax[2] += tDelta[2];
+                }
+            } else {
+                if (tMax[1] < tMax[2]) {
+                    y += (int) steps[1];
+                    t = tMax[1];
+                    tMax[1] += tDelta[1];
+                } else {
+                    z += (int) steps[2];
+                    t = tMax[2];
+                    tMax[2] += tDelta[2];
+                }
+            }
+        }
+        //add target coords to the targetHitbox array
+        PacketUtils.targetCoords = targetHitbox;
+    }
+
+    private static float[] checkIfLookingAt(float[] target, float[] pos, float[] d, float maxDistance) {
+        int result = -1; //0 +x, 1 +y, 2 +z, 3 -x, 4 -y, 5 -z
+
+        float[] distances = new float[3];
+        for (int i = 0; i < 3; i++) {
+            if (d[i] >= 0) {
+                distances[i] = (target[i] - pos[i]) / d[i];
+            } else {
+                distances[i] = (target[i + 3] - pos[i]) / d[i];
+            }
+            distances[i] = Math.abs(distances[i]);
+        }
+
+        float minDistance = Float.POSITIVE_INFINITY;
+        for (int i = 0; i < 3; i++) {
+            float distance = distances[i];
+            boolean isInside = true;
+            for (int j = 0; j < 3; j++) {
+                if (i == j) continue;
+                float coord = pos[j] + d[j] * distance;
+                if (coord < target[j] || coord > target[j + 3]) {
+                    isInside = false;
+                    break;
+                }
+            }
+            if (isInside && distance < minDistance && distance < maxDistance) {
+                minDistance = distance;
+                result = i;
+                if (d[i] > 0) result += 3;
+            }
+        }
+        return new float[]{result, minDistance};
+    }
 }

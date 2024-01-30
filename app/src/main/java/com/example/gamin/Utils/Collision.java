@@ -166,4 +166,189 @@ public final class Collision {
         blockCollisionShapesJSON = new JSONObject(new String(b));
         is.close();
     }
+
+    public static float[][] getHitbox(short block) {
+        byte id = Chunk.getBlockId(block);
+        byte metadata = Chunk.getBlockMetaData(block);
+        float[][] hitboxes = new float[1][6];
+        float[] hitbox = hitboxes[0];
+
+        switch (id) {//blocks that have different hitbox than collision box
+            //sapling and grass
+            case 6:
+            case 31:
+                hitbox[0] = 0.1f;
+                hitbox[1] = 0.0f;
+                hitbox[2] = 0.1f;
+                hitbox[3] = 0.9f;
+                hitbox[4] = 0.8f;
+                hitbox[5] = 0.9f;
+                return hitboxes;
+
+            //torch and redstone torch
+            case 50:
+            case 76:
+                if (metadata == 5) {//face up
+                    hitbox[0] = 0.4f;
+                    hitbox[1] = 0.0f;
+                    hitbox[2] = 0.4f;
+                    hitbox[3] = 0.6f;
+                    hitbox[4] = 0.8f;
+                    hitbox[5] = 0.6f;
+                } else if (metadata == 1) {//facing east
+                    hitbox[0] = 0.0f;
+                    hitbox[1] = 0.2f;
+                    hitbox[2] = 0.35f;
+                    hitbox[3] = 0.3f;
+                    hitbox[4] = 0.8f;
+                    hitbox[5] = 0.65f;
+                } else if (metadata == 2) {//facing west
+                    hitbox[0] = 0.7f;
+                    hitbox[1] = 0.2f;
+                    hitbox[2] = 0.35f;
+                    hitbox[3] = 1.0f;
+                    hitbox[4] = 0.8f;
+                    hitbox[5] = 0.65f;
+                } else if (metadata == 3) {//facing south
+                    hitbox[0] = 0.35f;
+                    hitbox[1] = 0.2f;
+                    hitbox[2] = 0.0f;
+                    hitbox[3] = 0.65f;
+                    hitbox[4] = 0.8f;
+                    hitbox[5] = 0.3f;
+                } else if (metadata == 4) {//facing north
+                    hitbox[0] = 0.35f;
+                    hitbox[1] = 0.2f;
+                    hitbox[2] = 0.7f;
+                    hitbox[3] = 0.65f;
+                    hitbox[4] = 0.8f;
+                    hitbox[5] = 1.0f;
+                }
+                return hitboxes;
+
+            //flowers
+            case 37:
+            case 38:
+                hitbox[0] = 0.3f;
+                hitbox[1] = 0.0f;
+                hitbox[2] = 0.3f;
+                hitbox[3] = 0.7f;
+                hitbox[4] = 0.6f;
+                hitbox[5] = 0.7f;
+                return hitboxes;
+
+            //lever
+            case 69:
+                if (metadata == 0) {//facing down
+                    hitbox[0] = 0.25f;
+                    hitbox[1] = 0.4f;
+                    hitbox[2] = 0.25f;
+                    hitbox[3] = 0.75f;
+                    hitbox[4] = 1.0f;
+                    hitbox[5] = 0.75f;
+                } else if (metadata == 1) {//facing east
+                    hitbox[0] = 0.0f;
+                    hitbox[1] = 0.2f;
+                    hitbox[2] = 0.31f;
+                    hitbox[3] = 0.25f;
+                    hitbox[4] = 0.8f;
+                    hitbox[5] = 0.69f;
+                } else if (metadata == 2) {//facing west
+                    hitbox[0] = 0.75f;
+                    hitbox[1] = 0.2f;
+                    hitbox[2] = 0.31f;
+                    hitbox[3] = 1.0f;
+                    hitbox[4] = 0.8f;
+                    hitbox[5] = 0.69f;
+                } else if (metadata == 3) {//facing south
+                    hitbox[0] = 0.31f;
+                    hitbox[1] = 0.2f;
+                    hitbox[2] = 0.0f;
+                    hitbox[3] = 0.69f;
+                    hitbox[4] = 0.8f;
+                    hitbox[5] = 0.25f;
+                } else if (metadata == 4) {//facing north
+                    hitbox[0] = 0.31f;
+                    hitbox[1] = 0.2f;
+                    hitbox[2] = 0.75f;
+                    hitbox[3] = 0.69f;
+                    hitbox[4] = 0.8f;
+                    hitbox[5] = 1.0f;
+                }
+                return hitboxes;
+
+            //button
+            case 77:
+            case -123:
+                if (metadata == 0) {//facing down
+                    hitbox[0] = 0.375f;
+                    hitbox[1] = 0.875f;
+                    hitbox[2] = 0.325f;
+                    hitbox[3] = 0.625f;
+                    hitbox[4] = 1.0f;
+                    hitbox[5] = 0.675f;
+                } else if (metadata == 1) {//facing east
+                    hitbox[0] = 0.0f;
+                    hitbox[1] = 0.375f;
+                    hitbox[2] = 0.325f;
+                    hitbox[3] = 0.25f;
+                    hitbox[4] = 0.625f;
+                    hitbox[5] = 0.675f;
+                } else if (metadata == 2) {//facing west
+                    hitbox[0] = 0.625f;
+                    hitbox[1] = 0.375f;
+                    hitbox[2] = 0.325f;
+                    hitbox[3] = 1.0f;
+                    hitbox[4] = 0.625f;
+                    hitbox[5] = 0.675f;
+                } else if (metadata == 3) {//facing south
+                    hitbox[0] = 0.325f;
+                    hitbox[1] = 0.375f;
+                    hitbox[2] = 0.0f;
+                    hitbox[3] = 0.675f;
+                    hitbox[4] = 0.625f;
+                    hitbox[5] = 0.25f;
+                } else if (metadata == 4) {//facing north
+                    hitbox[0] = 0.325f;
+                    hitbox[1] = 0.375f;
+                    hitbox[2] = 0.625f;
+                    hitbox[3] = 0.675f;
+                    hitbox[4] = 0.625f;
+                    hitbox[5] = 1.0f;
+                }
+                return hitboxes;
+
+            //crops(potatoes, carrots, wheat)
+            case 59:
+            case -125:
+            case -124:
+                hitbox[0] = 0.0f;
+                hitbox[1] = 0.0f;
+                hitbox[2] = 0.0f;
+                hitbox[3] = 1.0f;
+                hitbox[4] = 0.25f;
+                hitbox[5] = 1.0f;
+                return hitboxes;
+        }
+
+        //blocks that have same hitbox as collision box
+        try {
+            JSONArray collisionData = getCollisionData(id, metadata);
+            hitboxes = new float[collisionData.length()][6];
+
+            for (int i = 0; i < collisionData.length(); i++) {
+                hitbox = hitboxes[i];
+                hitbox[0] = (float) collisionData.getJSONArray(i).getDouble(0);
+                hitbox[1] = (float) collisionData.getJSONArray(i).getDouble(1);
+                hitbox[2] = (float) collisionData.getJSONArray(i).getDouble(2);
+                hitbox[3] = (float) collisionData.getJSONArray(i).getDouble(3);
+                hitbox[4] = (float) collisionData.getJSONArray(i).getDouble(4);
+                hitbox[5] = (float) collisionData.getJSONArray(i).getDouble(5);
+            }
+        } catch (JSONException e) {
+            e.printStackTrace();
+        }
+        return hitboxes;
+
+    }
 }
