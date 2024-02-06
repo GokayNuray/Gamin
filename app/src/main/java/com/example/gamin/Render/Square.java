@@ -38,6 +38,20 @@ public class Square {
         System.arraycopy(coords2, 3, squareCoords, 9, 3);
     }
 
+    public static float[] fourCoordsToSix(float[] coords) {
+        float[] result = new float[coords.length * 3 / 2];
+        for (int i = 0; i < coords.length; i += 12) {
+            float[] coords1 = Arrays.copyOfRange(coords, i, i + 9);
+            float[] coords2 = new float[9];
+            System.arraycopy(Arrays.copyOfRange(coords, i + 6, i + 12), 0, coords2, 0, 6);
+            System.arraycopy(Arrays.copyOfRange(coords, i, i + 3), 0, coords2, 6, 3);
+
+            System.arraycopy(coords1, 0, result, i * 3 / 2, 9);
+            System.arraycopy(coords2, 0, result, i * 3 / 2 + 9, 9);
+        }
+        return result;
+    }
+
     void splitCoords() {
         coords1 = Arrays.copyOfRange(squareCoords, 0, 9);
         coords2 = new float[9];

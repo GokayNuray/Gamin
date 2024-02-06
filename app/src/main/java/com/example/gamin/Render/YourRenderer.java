@@ -188,7 +188,7 @@ public class YourRenderer implements GLSurfaceView.Renderer {
                 "varying vec2 v_TexCoordinate;" +
                 "void main() {" +
                 "vec4 val = v_Color * texture2D(u_Texture, v_TexCoordinate);" +
-                "if(val.a < 0.5){ discard; }" +
+                "if(val.a < 0.25){ discard; }" +
                 "gl_FragColor = val;" +
                 "}";
         int fragShader = YourRenderer.loadShader(GLES20.GL_FRAGMENT_SHADER, fragmentShaderCode);
@@ -275,10 +275,12 @@ public class YourRenderer implements GLSurfaceView.Renderer {
         blocks.setBuffers(chunks);
         items.setBuffers(chunks);
         entity.setBuffers(chunks);
+        //entity.setEntityBuffers(false);
         chunks.forEach(chunk -> chunk.isChanged = false);
-        rendsera(blocks);
-        rendsera(items);
-        rendsera(entity);
+        renderAtlas(blocks);
+        renderAtlas(items);
+        renderAtlas(entity);
+        //rendsera(entity.entityBuffers, entity.entityBufferCapacity);
 
         if (PacketUtils.targetCoords != null) {
             //render targeted object
@@ -300,28 +302,41 @@ public class YourRenderer implements GLSurfaceView.Renderer {
                     1, 0
             };
 
-            FloatBuffer targetCoordsBuffer = ByteBuffer.allocateDirect(targetCoords.length * 4).order(ByteOrder.nativeOrder()).asFloatBuffer();
-            targetCoordsBuffer.put(targetCoords).position(0);
-
-            FloatBuffer colorsBuffer = ByteBuffer.allocateDirect(colors.length * 4).order(ByteOrder.nativeOrder()).asFloatBuffer();
-            colorsBuffer.put(colors).position(0);
-
-            FloatBuffer textureCoordsBuffer = ByteBuffer.allocateDirect(textureCoords.length * 4).order(ByteOrder.nativeOrder()).asFloatBuffer();
-            textureCoordsBuffer.put(textureCoords).position(0);
-
-            GLES20.glEnableVertexAttribArray(YourRenderer.colorHandle);
-            GLES20.glVertexAttribPointer(YourRenderer.colorHandle, 4, GLES20.GL_FLOAT, false, 0, colorsBuffer);
-            GLES20.glEnableVertexAttribArray(YourRenderer.positionHandle);
-            GLES20.glVertexAttribPointer(YourRenderer.positionHandle, 3, GLES20.GL_FLOAT, false, 0, targetCoordsBuffer);
-
-            GLES20.glBindTexture(GLES20.GL_TEXTURE_2D, loadTexture(context, R.drawable.white_square));
-
-            GLES20.glEnableVertexAttribArray(YourRenderer.mTextureCoordinateHandle);
-            GLES20.glVertexAttribPointer(YourRenderer.mTextureCoordinateHandle, 2, GLES20.GL_FLOAT, false, 0, textureCoordsBuffer);
-
-            GLES20.glDrawArrays(GLES20.GL_TRIANGLES, 0, 6);
+            GLES20.glClear(GLES20.GL_DEPTH_BUFFER_BIT);
+            renderTriangles(targetCoords, colors, textureCoords, R.drawable.white_square);
         }
 
+        /*
+        //render entity hitboxes
+        synchronized ("entity") {
+            Entity.entities.values().forEach(v -> {
+
+                float x = v.x;
+                float y = v.y;
+                float z = v.z;
+                float[] hitbox = v.hitbox;
+                if (hitbox == null) {
+                    Log.w("Hitbox", "hitbox is null");
+                    return;
+                }
+                float[][] rectangularPrism = SlotRenderer.getRectangularPrism(new float[]{x + hitbox[0], y + hitbox[1], z + hitbox[2]},
+                        new float[]{x + hitbox[3], y + hitbox[4], z + hitbox[5]});
+                float[] coords = new float[6 * 6 * 3 * 3];
+                for (int i = 0; i < rectangularPrism.length; i++) {
+                    float[] rect = Square.fourCoordsToSix(rectangularPrism[i]);
+                    System.arraycopy(rect, 0, coords, i * 18, 18);
+                }
+                float[] colors = new float[6 * 6 * 3 * 4];
+                for (int i = 0; i < 6 * 6 * 3 * 4; i += 4) {
+                    colors[i] = 0.5f;
+                    colors[i + 1] = 0.5f;
+                    colors[i + 2] = 1;
+                    colors[i + 3] = 0.5f;
+                }
+                float[] textureCoords = new float[6 * 6 * 3 * 2];
+                renderTriangles(coords, colors, textureCoords, R.drawable.white_square);
+            });
+        }*/
 
         GLES20.glUniformMatrix4fv(vPMatrixHandle, 1, false, scratch2, 0);
         //System.out.println("ratio: " + ratio);//0.625
@@ -330,8 +345,8 @@ public class YourRenderer implements GLSurfaceView.Renderer {
         //complete the tringul to make a square
         float[] tringul = new float[]{
                 -0.8f, 0.4f - ratio, -1,
-                -0.6f, 0.4f - ratio, -1,
                 -0.6f, 0.2f - ratio, -1,
+                -0.6f, 0.4f - ratio, -1,
         };
         float[] tringul2 = new float[]{
                 1.0f, 1.0f, 1.0f, 0.50f,
@@ -357,31 +372,41 @@ public class YourRenderer implements GLSurfaceView.Renderer {
                 0.7f, 0.2f - ratio, -1,
         }; //coords of 3 vertices of a triangle in 3d space
 
+        float[] crosshairCoords = new float[]{
+                -0.1f, 0.1f, -1,
+                -0.1f, -0.1f, -1,
+                0.1f, -0.1f, -1,
+                -0.1f, 0.1f, -1,
+                0.1f, -0.1f, -1,
+                0.1f, 0.1f, -1
+        };
+
+        float[] crosshairColors = new float[]{
+                1, 1, 1, 0.5f,
+                1, 1, 1, 0.5f,
+                1, 1, 1, 0.5f,
+                1, 1, 1, 0.5f,
+                1, 1, 1, 0.5f,
+                1, 1, 1, 0.5f
+        };
+
+        float[] crosshairTextureCoords = new float[]{
+                0, 0,
+                0, 1,
+                1, 1,
+                0, 0,
+                1, 1,
+                1, 0
+        };
+
         //WHY?? code crashes when there are no blocks in screen without this code(texture coords)
         //but works fine otherwise
         // I guess it used texture coords of the previous triangle and crashed when there is none
-        FloatBuffer tringulBuffer = ByteBuffer.allocateDirect(36 * 3).order(ByteOrder.nativeOrder()).asFloatBuffer();
-        tringulBuffer.put(tringul).put(tringul4).put(tringul5).position(0);
 
-        FloatBuffer tringulBuffer2 = ByteBuffer.allocateDirect(48 * 3).order(ByteOrder.nativeOrder()).asFloatBuffer();
-        tringulBuffer2.put(tringul2).put(tringul2).put(tringul2).position(0);
-
-        //WHY??
-        FloatBuffer tringulTextureBuffer = ByteBuffer.allocateDirect(24 * 3).order(ByteOrder.nativeOrder()).asFloatBuffer();
-        tringulTextureBuffer.put(tringul3).put(tringul3).put(tringul3).position(0);
-
-        GLES20.glEnableVertexAttribArray(YourRenderer.colorHandle);
-        GLES20.glVertexAttribPointer(YourRenderer.colorHandle, 4, GLES20.GL_FLOAT, false, 0, tringulBuffer2);
-        GLES20.glEnableVertexAttribArray(YourRenderer.positionHandle);
-        GLES20.glVertexAttribPointer(YourRenderer.positionHandle, 3, GLES20.GL_FLOAT, false, 0, tringulBuffer);
-
-        GLES20.glBindTexture(GLES20.GL_TEXTURE_2D, loadTexture(context, R.drawable.white_square));
-
-        //WHY??
-        GLES20.glEnableVertexAttribArray(YourRenderer.mTextureCoordinateHandle);
-        GLES20.glVertexAttribPointer(YourRenderer.mTextureCoordinateHandle, 2, GLES20.GL_FLOAT, false, 0, tringulTextureBuffer);
-
-        GLES20.glDrawArrays(GLES20.GL_TRIANGLES, 0, 3 * 3);
+        renderTriangles(tringul4, tringul2, tringul3, R.drawable.white_square);
+        renderTriangles(tringul, tringul2, tringul3, R.drawable.white_square);
+        renderTriangles(tringul5, tringul2, tringul3, R.drawable.white_square);
+        renderTriangles(crosshairCoords, crosshairColors, crosshairTextureCoords, R.drawable.icons);
 
         if (System.nanoTime() - startTime > 1000000000) {
             Log.d("FPS", "fps: " + frames);
@@ -393,24 +418,52 @@ public class YourRenderer implements GLSurfaceView.Renderer {
         }
     }
 
-    private void rendsera(TextureAtlas atlas) {
+    private void renderTriangles(float[] targetCoords, float[] colors, float[] textureCoords, int resId) {
+        FloatBuffer targetCoordsBuffer = ByteBuffer.allocateDirect(targetCoords.length * 4).order(ByteOrder.nativeOrder()).asFloatBuffer();
+        targetCoordsBuffer.put(targetCoords).position(0);
+
+        FloatBuffer colorsBuffer = ByteBuffer.allocateDirect(colors.length * 4).order(ByteOrder.nativeOrder()).asFloatBuffer();
+        colorsBuffer.put(colors).position(0);
+
+        FloatBuffer textureCoordsBuffer = ByteBuffer.allocateDirect(textureCoords.length * 4).order(ByteOrder.nativeOrder()).asFloatBuffer();
+        textureCoordsBuffer.put(textureCoords).position(0);
+
+        GLES20.glEnableVertexAttribArray(YourRenderer.colorHandle);
+        GLES20.glVertexAttribPointer(YourRenderer.colorHandle, 4, GLES20.GL_FLOAT, false, 0, colorsBuffer);
+        GLES20.glEnableVertexAttribArray(YourRenderer.positionHandle);
+        GLES20.glVertexAttribPointer(YourRenderer.positionHandle, 3, GLES20.GL_FLOAT, false, 0, targetCoordsBuffer);
+
+        GLES20.glBindTexture(GLES20.GL_TEXTURE_2D, loadTexture(context, resId));
+
+        GLES20.glEnableVertexAttribArray(YourRenderer.mTextureCoordinateHandle);
+        GLES20.glVertexAttribPointer(YourRenderer.mTextureCoordinateHandle, 2, GLES20.GL_FLOAT, false, 0, textureCoordsBuffer);
+
+        GLES20.glDrawArrays(GLES20.GL_TRIANGLES, 0, targetCoords.length / 3);
+    }
+
+    private void renderAtlas(TextureAtlas atlas) {
         GLES20.glBindTexture(GLES20.GL_TEXTURE_2D, atlas.textureHandle);
 
-        GLES20.glBindBuffer(GLES20.GL_ARRAY_BUFFER, atlas.buffers[0]);
+        rendsera(atlas.buffers, atlas.squareCount);
+    }
+
+    private void rendsera(int[] buffers, int squareCount) {
+
+        GLES20.glBindBuffer(GLES20.GL_ARRAY_BUFFER, buffers[0]);
         GLES20.glEnableVertexAttribArray(YourRenderer.positionHandle);
         GLES20.glVertexAttribPointer(YourRenderer.positionHandle, 3, GLES20.GL_FLOAT, false, 0, 0);
 
-        GLES20.glBindBuffer(GLES20.GL_ARRAY_BUFFER, atlas.buffers[1]);
+        GLES20.glBindBuffer(GLES20.GL_ARRAY_BUFFER, buffers[1]);
         GLES20.glEnableVertexAttribArray(YourRenderer.colorHandle);
         GLES20.glVertexAttribPointer(YourRenderer.colorHandle, 4, GLES20.GL_FLOAT, false, 0, 0);
 
-        GLES20.glBindBuffer(GLES20.GL_ARRAY_BUFFER, atlas.buffers[2]);
+        GLES20.glBindBuffer(GLES20.GL_ARRAY_BUFFER, buffers[2]);
         GLES20.glEnableVertexAttribArray(YourRenderer.mTextureCoordinateHandle);
         GLES20.glVertexAttribPointer(YourRenderer.mTextureCoordinateHandle, 2, GLES20.GL_FLOAT, false, 0, 0);
 
         GLES20.glBindBuffer(GLES20.GL_ARRAY_BUFFER, 0);
 
-        GLES20.glDrawArrays(GLES20.GL_TRIANGLES, 0, atlas.squareCount * 6);
+        GLES20.glDrawArrays(GLES20.GL_TRIANGLES, 0, squareCount * 6);
 
     }
 

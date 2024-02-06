@@ -20,9 +20,13 @@ public class TextureAtlas {
     final Map<String, Float> offsets = new HashMap<>();
     private final Map<Chunk, Integer> chunkOffsets = new HashMap<>();
     private final Map<Chunk, Integer> chunkCapacities = new HashMap<>();
+    private final Map<Entity, Integer> entityOffsets = new HashMap<>();
+    int entityBufferCapacity = 0;
     int squareCount = 0;
     int[] buffers = null;
+    int[] entityBuffers = null;
     int textureHandle;
+    private int entitySquareCount = 0;
 
     TextureAtlas(Bitmap bitmap, Map<String, Integer> offsets) {
         this.bitmap = bitmap;
@@ -92,6 +96,72 @@ public class TextureAtlas {
                 chunkCoordsBuffer.position(0);
                 chunkColorsBuffer.position(0);
                 chunkTexturesBuffer.position(0);
+            }
+        }
+    }
+
+    void setEntityBuffers(boolean needMoreCapacity) {
+        synchronized ("entity") {
+            if (entityBuffers == null || needMoreCapacity) {
+                if (entityBuffers != null) GLES20.glDeleteBuffers(3, entityBuffers, 0);
+                entitySquareCount = 0;
+
+                for (Entity entity : Entity.entities.values()) {
+                    int capacity = entity.squares.size();
+                    entityOffsets.put(entity, entitySquareCount);
+                    entitySquareCount += capacity;
+                }
+                entityBufferCapacity = entitySquareCount * 2;
+
+                entityBuffers = new int[3];
+                GLES20.glGenBuffers(3, entityBuffers, 0);
+
+                FloatBuffer coordsBuffer = ByteBuffer.allocateDirect(entitySquareCount * 2 * 6 * 3 * 4).order(ByteOrder.nativeOrder()).asFloatBuffer();
+                FloatBuffer colorsBuffer = ByteBuffer.allocateDirect(entitySquareCount * 2 * 6 * 4 * 4).order(ByteOrder.nativeOrder()).asFloatBuffer();
+                FloatBuffer texturesBuffer = ByteBuffer.allocateDirect(entitySquareCount * 2 * 6 * 2 * 4).order(ByteOrder.nativeOrder()).asFloatBuffer();
+
+                GLES20.glBindBuffer(GLES20.GL_ARRAY_BUFFER, entityBuffers[0]);
+                GLES20.glBufferData(GLES20.GL_ARRAY_BUFFER, coordsBuffer.capacity() * 4, coordsBuffer, GLES20.GL_DYNAMIC_DRAW);
+
+                GLES20.glBindBuffer(GLES20.GL_ARRAY_BUFFER, entityBuffers[1]);
+                GLES20.glBufferData(GLES20.GL_ARRAY_BUFFER, colorsBuffer.capacity() * 4, colorsBuffer, GLES20.GL_DYNAMIC_DRAW);
+
+                GLES20.glBindBuffer(GLES20.GL_ARRAY_BUFFER, entityBuffers[2]);
+                GLES20.glBufferData(GLES20.GL_ARRAY_BUFFER, texturesBuffer.capacity() * 4, texturesBuffer, GLES20.GL_DYNAMIC_DRAW);
+
+                GLES20.glBindBuffer(GLES20.GL_ARRAY_BUFFER, 0);
+            }
+
+            for (Entity entity : Entity.entities.values()) {
+                if (!entityOffsets.containsKey(entity)) {
+                    if (entitySquareCount + entity.squares.size() > entityBufferCapacity) {
+                        setEntityBuffers(true);
+                        return;
+                    }
+                    int capacity = entity.squares.size();
+                    entityOffsets.put(entity, entitySquareCount);
+                    entitySquareCount += capacity;
+                }
+
+                entity.setBuffers();
+                FloatBuffer entityCoordsBuffer = entity.coordsBuffer;
+                FloatBuffer entityColorsBuffer = entity.colorsBuffer;
+                FloatBuffer entityTexturesBuffer = entity.texturesBuffer;
+
+                GLES20.glBindBuffer(GLES20.GL_ARRAY_BUFFER, entityBuffers[0]);
+                GLES20.glBufferSubData(GLES20.GL_ARRAY_BUFFER, entityOffsets.get(entity) * 6 * 3 * 4, entityCoordsBuffer.capacity() * 4, entityCoordsBuffer);
+
+                GLES20.glBindBuffer(GLES20.GL_ARRAY_BUFFER, entityBuffers[1]);
+                GLES20.glBufferSubData(GLES20.GL_ARRAY_BUFFER, entityOffsets.get(entity) * 6 * 4 * 4, entityColorsBuffer.capacity() * 4, entityColorsBuffer);
+
+                GLES20.glBindBuffer(GLES20.GL_ARRAY_BUFFER, entityBuffers[2]);
+                GLES20.glBufferSubData(GLES20.GL_ARRAY_BUFFER, entityOffsets.get(entity) * 6 * 2 * 4, entityTexturesBuffer.capacity() * 4, entityTexturesBuffer);
+
+                GLES20.glBindBuffer(GLES20.GL_ARRAY_BUFFER, 0);
+
+                entityCoordsBuffer.position(0);
+                entityColorsBuffer.position(0);
+                entityTexturesBuffer.position(0);
             }
         }
     }

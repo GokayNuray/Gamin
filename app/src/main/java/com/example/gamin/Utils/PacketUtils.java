@@ -13,6 +13,7 @@ import com.example.gamin.Minecraft.Chunk;
 import com.example.gamin.Minecraft.Inventory;
 import com.example.gamin.Minecraft.Slot;
 import com.example.gamin.R;
+import com.example.gamin.Render.Entity;
 import com.example.gamin.Render.YourRenderer;
 
 import org.json.JSONException;
@@ -61,7 +62,7 @@ public final class PacketUtils extends AppCompatActivity {
                 strafe = (float) (strafe * 0.3D);
                 forward = (float) (forward * 0.3D);
             }
-            motionY = 0.0D;
+            if (motionY < 0) motionY = 0.0D;
         }
         boolean canSprint = isSprinting && forward > 0.8F && !didHorizontalCollide;//TODO add hunger and potion effects and using items
         float sprintingMult = canSprint ? 1.3F : 1.0F;
@@ -286,6 +287,155 @@ public final class PacketUtils extends AppCompatActivity {
             case 0x09://holditem change
 
                 break;
+
+            case 0x0C://spawn player
+                ByteArrayInputStream datastream0C = new ByteArrayInputStream(data);
+                DataInputStream dataStream0C = new DataInputStream(datastream0C);
+
+                int entityId0C = VarInt.readVarInt(dataStream0C);
+                StringBuilder uuid = new StringBuilder();
+                for (int i = 0; i < 16; i++) {
+                    uuid.append(String.format("%02x", dataStream0C.readByte()));
+                    if (i == 3 || i == 5 || i == 7 || i == 9) {
+                        uuid.append("-");
+                    }
+                }
+                int x0C = dataStream0C.readInt();
+                int y0C = dataStream0C.readInt();
+                int z0C = dataStream0C.readInt();
+                byte yaw0C = dataStream0C.readByte();
+                byte pitch0C = dataStream0C.readByte();
+                int currentItem0C = dataStream0C.readShort();
+                byte[] metadata = new byte[dataStream0C.available()];
+                dataStream0C.read(metadata);
+                Entity entity = new Entity(glSurfaceView.getContext(), 0, x0C, y0C, z0C, metadata);
+                Entity.createEntity(entity, entityId0C);
+
+                break;
+
+            case 0x0E://spawn object
+                ByteArrayInputStream datastream0E = new ByteArrayInputStream(data);
+                DataInputStream dataStream0E = new DataInputStream(datastream0E);
+                int entityId0E = VarInt.readVarInt(dataStream0E);
+                int type0E = dataStream0E.readByte();
+                int x0E = dataStream0E.readInt();
+                int y0E = dataStream0E.readInt();
+                int z0E = dataStream0E.readInt();
+                byte pitch0E = dataStream0E.readByte();
+                byte yaw0E = dataStream0E.readByte();
+                int data0E = dataStream0E.readInt();
+                Entity entity0E = new Entity(glSurfaceView.getContext(), type0E, x0E, y0E, z0E, new byte[0]);
+                if (data0E != 0) {
+                    entity0E.motionX = dataStream0E.readShort() / 8000f;
+                    entity0E.motionY = dataStream0E.readShort() / 8000f;
+                    entity0E.motionZ = dataStream0E.readShort() / 8000f;
+                }
+                Entity.createEntity(entity0E, entityId0E);
+                break;
+
+            case 0x0F://spawn mob
+                ByteArrayInputStream datastream0F = new ByteArrayInputStream(data);
+                DataInputStream dataStream0F = new DataInputStream(datastream0F);
+                int entityId0F = VarInt.readVarInt(dataStream0F);
+                int type0F = dataStream0F.readByte();
+                int x0F = dataStream0F.readInt();
+                int y0F = dataStream0F.readInt();
+                int z0F = dataStream0F.readInt();
+                byte yaw0F = dataStream0F.readByte();
+                byte pitch0F = dataStream0F.readByte();
+                byte headPitch0F = dataStream0F.readByte();
+                short velocityX0F = dataStream0F.readShort();
+                short velocityY0F = dataStream0F.readShort();
+                short velocityZ0F = dataStream0F.readShort();
+                byte[] metadata0F = new byte[dataStream0F.available()];
+                dataStream0F.read(metadata0F);
+                Entity entity0F = new Entity(glSurfaceView.getContext(), type0F, x0F, y0F, z0F, metadata0F);
+                entity0F.motionX = velocityX0F / 8000f;
+                entity0F.motionY = velocityY0F / 8000f;
+                entity0F.motionZ = velocityZ0F / 8000f;
+                Entity.createEntity(entity0F, entityId0F);
+                break;
+
+            case 0x12://entity velocity
+                ByteArrayInputStream datastream12 = new ByteArrayInputStream(data);
+                DataInputStream dataStream12 = new DataInputStream(datastream12);
+                int entityId12 = VarInt.readVarInt(dataStream12);
+                float velocityX = dataStream12.readShort() / 8000f;
+                float velocityY = dataStream12.readShort() / 8000f;
+                float velocityZ = dataStream12.readShort() / 8000f;
+                if (entityId12 == playerId) {
+                    motionX = velocityX;
+                    motionY = velocityY;
+                    motionZ = velocityZ;
+                    calculateMovements();
+                } else {
+                    Entity entity12 = Entity.entities.get(entityId12);
+                    if (entity12 != null) {
+                        entity12.motionX = velocityX;
+                        entity12.motionY = velocityY;
+                        entity12.motionZ = velocityZ;
+                    }
+                }
+                break;
+
+            case 0x15://entity relative move
+                ByteArrayInputStream datastream15 = new ByteArrayInputStream(data);
+                DataInputStream dataStream15 = new DataInputStream(datastream15);
+                int entityId15 = VarInt.readVarInt(dataStream15);
+                byte dx15 = dataStream15.readByte();
+                byte dy15 = dataStream15.readByte();
+                byte dz15 = dataStream15.readByte();
+
+                Entity entity15 = Entity.entities.get(entityId15);
+                if (entity15 != null) {
+                    entity15.x += dx15 / 32f;
+                    entity15.y += dy15 / 32f;
+                    entity15.z += dz15 / 32f;
+                    entity15.hasChanged = true;
+                }
+
+                break;
+
+            case 0x17://entity look and relative move
+                ByteArrayInputStream datastream17 = new ByteArrayInputStream(data);
+                DataInputStream dataStream17 = new DataInputStream(datastream17);
+                int entityId17 = VarInt.readVarInt(dataStream17);
+                byte dx17 = dataStream17.readByte();
+                byte dy17 = dataStream17.readByte();
+                byte dz17 = dataStream17.readByte();
+                byte yaw17 = dataStream17.readByte();
+                byte pitch17 = dataStream17.readByte();
+
+                Entity entity17 = Entity.entities.get(entityId17);
+                if (entity17 != null) {
+                    entity17.x += dx17 / 32f;
+                    entity17.y += dy17 / 32f;
+                    entity17.z += dz17 / 32f;
+                    entity17.hasChanged = true;
+                }
+
+                break;
+
+            case 0x18://entity teleport
+                ByteArrayInputStream datastream18 = new ByteArrayInputStream(data);
+                DataInputStream dataStream18 = new DataInputStream(datastream18);
+                int entityId18 = VarInt.readVarInt(dataStream18);
+                int x18 = dataStream18.readInt();
+                int y18 = dataStream18.readInt();
+                int z18 = dataStream18.readInt();
+                byte yaw18 = dataStream18.readByte();
+                byte pitch18 = dataStream18.readByte();
+
+                Entity entity18 = Entity.entities.get(entityId18);
+                if (entity18 != null) {
+                    entity18.x = x18 / 32f;
+                    entity18.y = y18 / 32f;
+                    entity18.z = z18 / 32f;
+                    entity18.hasChanged = true;
+                }
+
+                break;
+
             case 0x20://entity properties
                 ByteArrayInputStream datastream20 = new ByteArrayInputStream(data);
                 DataInputStream dataStream20 = new DataInputStream(datastream20);
@@ -541,7 +691,7 @@ public final class PacketUtils extends AppCompatActivity {
                         targetCoords = new float[]{x, y, z};
                         //create an array based on the face that was hit
                         //it should be an array of 18 floats, 6 vertices for two triangles that make up a square
-                        switch (result) {
+                        switch (result) {//0 +x, 1 +y, 2 +z, 3 -x, 4 -y, 5 -z
                             case 0:
                                 targetHitbox = new float[]{
                                         x + 1.01f, y + 1, z + 1,
@@ -574,12 +724,12 @@ public final class PacketUtils extends AppCompatActivity {
                                 break;
                             case 3:
                                 targetHitbox = new float[]{
-                                        x - 0.1f, y + 1, z + 1,
+                                        x - 0.1f, y + 1, z,
+                                        x - 0.1f, y, z,
                                         x - 0.1f, y, z + 1,
-                                        x - 0.1f, y, z,
-                                        x - 0.1f, y + 1, z + 1,
-                                        x - 0.1f, y, z,
-                                        x - 0.1f, y + 1, z
+                                        x - 0.1f, y + 1, z,
+                                        x - 0.1f, y, z + 1,
+                                        x - 0.1f, y + 1, z + 1
                                 };
                                 break;
                             case 4:

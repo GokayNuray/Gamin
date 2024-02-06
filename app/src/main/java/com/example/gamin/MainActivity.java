@@ -19,6 +19,7 @@ import androidx.appcompat.app.AppCompatActivity;
 
 import com.example.gamin.Minecraft.Inventory;
 import com.example.gamin.Minecraft.Slot;
+import com.example.gamin.Render.Entity;
 import com.example.gamin.Render.YourRenderer;
 import com.example.gamin.Utils.BrokenHash;
 import com.example.gamin.Utils.Collision;
@@ -107,16 +108,16 @@ public class MainActivity extends AppCompatActivity {
     @SuppressLint({"SetTextI18n", "DiscouragedApi", "ClickableViewAccessibility"})
     @Override
     protected void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
         StrictMode.setVmPolicy(new StrictMode.VmPolicy.Builder().detectLeakedClosableObjects().penaltyLog().build());
         try {
             YourRenderer.loadTextures(getApplicationContext());
             Slot.loadAssetData(getApplicationContext());
             Collision.loadCollisionData(getApplicationContext());
+            Entity.loadEntities(getApplicationContext());
         } catch (IOException | JSONException e) {
             throw new RuntimeException(e);
         }
-
-        super.onCreate(savedInstanceState);
 
         setContentView(R.layout.activity_main);
 
@@ -527,11 +528,11 @@ public class MainActivity extends AppCompatActivity {
 
                         try {
                             Thread.sleep(50);
-
                         } catch (InterruptedException e) {
                             e.printStackTrace();
                         }
                         try {
+                            //Entity.moveEntities();
                             onGround = Collision.calculateMovement(PacketUtils.x, PacketUtils.y, PacketUtils.z, 1, 0)[3] == 1;
                         } catch (JSONException e) {
                             throw new RuntimeException(e);

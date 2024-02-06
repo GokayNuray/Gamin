@@ -3,6 +3,7 @@ package com.example.gamin.Minecraft;
 import android.content.Context;
 import android.util.Log;
 
+import com.example.gamin.Render.Entity;
 import com.example.gamin.Render.SlotRenderer;
 import com.example.gamin.Render.TextureAtlas;
 import com.example.gamin.Render.TileEntity;
@@ -22,6 +23,7 @@ public class Chunk {
     public final Map<TextureAtlas, FloatBuffer> coordsBuffers = new HashMap<>();
     public final Map<TextureAtlas, FloatBuffer> colorsBuffers = new HashMap<>();
     public final Map<TextureAtlas, FloatBuffer> texturesBuffers = new HashMap<>();
+    public final Map<Integer, Entity> entities = new HashMap<>();
     private final SlotRenderer[] renders = new SlotRenderer[16 * 16 * 16];
     private final Map<Integer, TileEntity> tileEntities = new HashMap<>();
     private final Set<TextureAtlas> updatedAtlases = new HashSet<>();
@@ -80,6 +82,10 @@ public class Chunk {
             int blockY = Math.floorMod(y, 16);
             int blockZ = Math.floorMod(z, 16);
             int pos = blockY * 256 + blockZ * 16 + blockX;
+            if (chunk == null) {
+                chunk = new Chunk(new short[16 * 16 * 16], x / 16, (byte) (y / 16), z / 16);
+                chunkColumn[y / 16] = chunk;
+            }
             chunk.blocks[pos] = block;
             if (getBlockId(block) == 0) {
                 chunk.removeRender(pos);
@@ -94,6 +100,8 @@ public class Chunk {
                 SlotRenderer render = SlotRenderer.getSlotRenderer(context, block, x, y, z);
                 chunk.setRender(render, pos);
             }
+        } else {
+            Log.w("Chunk", "ChunkColumn is null");
         }
     }
 
@@ -223,7 +231,7 @@ public class Chunk {
                 e.printStackTrace();
             }
         }
-        Log.v("Chunk", "setting renders took " + (System.currentTimeMillis() - time) + "ms");
+        //Log.v("Chunk", "setting renders took " + (System.currentTimeMillis() - time) + "ms");
         /*
         for (short chunkY = 0; chunkY < 16; chunkY++) {
             if ((bitmask & (1 << chunkY)) != 0) {
@@ -400,7 +408,7 @@ public class Chunk {
                 setRender(render.removeBlockedFaces(adjacentBlockShapes), i);
             }
         }
-        Log.v("Chunk", "removing blocked faces took " + (System.currentTimeMillis() - time2) + "ms");
+        //Log.v("Chunk", "removing blocked faces took " + (System.currentTimeMillis() - time2) + "ms");
 
         isLoaded = true;
     }

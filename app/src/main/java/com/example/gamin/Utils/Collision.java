@@ -167,7 +167,7 @@ public final class Collision {
         is.close();
     }
 
-    public static float[][] getHitbox(short block) {
+    static float[][] getHitbox(short block) {
         byte id = Chunk.getBlockId(block);
         byte metadata = Chunk.getBlockMetaData(block);
         float[][] hitboxes = new float[1][6];
@@ -327,6 +327,16 @@ public final class Collision {
                 hitbox[2] = 0.0f;
                 hitbox[3] = 1.0f;
                 hitbox[4] = 0.25f;
+                hitbox[5] = 1.0f;
+                return hitboxes;
+
+            //large flowers
+            case -81:
+                hitbox[0] = 0.0f;
+                hitbox[1] = 0.0f;
+                hitbox[2] = 0.0f;
+                hitbox[3] = 1.0f;
+                hitbox[4] = 1.0f;
                 hitbox[5] = 1.0f;
                 return hitboxes;
         }

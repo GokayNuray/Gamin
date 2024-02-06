@@ -3,6 +3,8 @@ package com.example.gamin.Render;
 import android.content.Context;
 import android.opengl.Matrix;
 
+import androidx.annotation.NonNull;
+
 import com.example.gamin.Minecraft.Chunk;
 import com.example.gamin.Minecraft.Slot;
 
@@ -290,38 +292,7 @@ public class SlotRenderer {
                 axis = rotation.getString("axis");
             }
             String[] faces = {"north", "west", "south", "east", "up", "down"};
-            float[][] squareCoords = {
-                    //north
-                    {to[0], to[1], from[2],
-                            to[0], from[1], from[2],
-                            from[0], from[1], from[2],
-                            from[0], to[1], from[2]},
-                    //west
-                    {from[0], to[1], from[2],
-                            from[0], from[1], from[2],
-                            from[0], from[1], to[2],
-                            from[0], to[1], to[2]},
-                    //south
-                    {from[0], to[1], to[2],
-                            from[0], from[1], to[2],
-                            to[0], from[1], to[2],
-                            to[0], to[1], to[2]},
-                    //east
-                    {to[0], to[1], to[2],
-                            to[0], from[1], to[2],
-                            to[0], from[1], from[2],
-                            to[0], to[1], from[2]},
-                    //up
-                    {to[0], to[1], to[2],
-                            to[0], to[1], from[2],
-                            from[0], to[1], from[2],
-                            from[0], to[1], to[2]},
-                    //down
-                    {to[0], from[1], to[2],
-                            from[0], from[1], to[2],
-                            from[0], from[1], from[2],
-                            to[0], from[1], from[2]}
-            };
+            float[][] squareCoords = getRectangularPrism(to, from);
             for (int j = 0; j < faces.length; j++) {
                 if (element.getJSONObject("faces").has(faces[j])) {
                     float[] squareCoords1 = squareCoords[j];
@@ -390,6 +361,42 @@ public class SlotRenderer {
             }
         }
         return atlas;
+    }
+
+    @NonNull
+    public static float[][] getRectangularPrism(float[] to, float[] from) {
+        return new float[][]{
+                //north
+                {to[0], to[1], from[2],
+                        to[0], from[1], from[2],
+                        from[0], from[1], from[2],
+                        from[0], to[1], from[2]},
+                //west
+                {from[0], to[1], from[2],
+                        from[0], from[1], from[2],
+                        from[0], from[1], to[2],
+                        from[0], to[1], to[2]},
+                //south
+                {from[0], to[1], to[2],
+                        from[0], from[1], to[2],
+                        to[0], from[1], to[2],
+                        to[0], to[1], to[2]},
+                //east
+                {to[0], to[1], to[2],
+                        to[0], from[1], to[2],
+                        to[0], from[1], from[2],
+                        to[0], to[1], from[2]},
+                //up
+                {to[0], to[1], to[2],
+                        to[0], to[1], from[2],
+                        from[0], to[1], from[2],
+                        from[0], to[1], to[2]},
+                //down
+                {to[0], from[1], to[2],
+                        from[0], from[1], to[2],
+                        from[0], from[1], from[2],
+                        to[0], from[1], from[2]}
+        };
     }
 
     //flip the square upside down
