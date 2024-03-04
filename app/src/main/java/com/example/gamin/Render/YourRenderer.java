@@ -15,12 +15,15 @@ import com.example.gamin.Minecraft.Chunk;
 import com.example.gamin.R;
 import com.example.gamin.Utils.PacketUtils;
 
+import org.intellij.lang.annotations.Language;
+
 import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 import java.nio.FloatBuffer;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 import javax.microedition.khronos.egl.EGLConfig;
@@ -169,6 +172,7 @@ public class YourRenderer implements GLSurfaceView.Renderer {
         GLES20.glCullFace(GLES20.GL_BACK);
         //specify the front face
         GLES20.glFrontFace(GLES20.GL_CCW);
+        @Language("GLSL")
         String vertexShaderCode = "uniform mat4 u_MVPMatrix;" +
                 "attribute vec4 a_Position;" +
                 "attribute vec4 a_Color;" +
@@ -182,6 +186,7 @@ public class YourRenderer implements GLSurfaceView.Renderer {
                 "gl_Position = u_MVPMatrix * a_Position;" +
                 "}";
         int vertexShader = YourRenderer.loadShader(GLES20.GL_VERTEX_SHADER, vertexShaderCode);
+        @Language("GLSL")
         String fragmentShaderCode = "precision mediump float;" +
                 "uniform sampler2D u_Texture;" +
                 "varying vec4 v_Color;" +
@@ -250,8 +255,8 @@ public class YourRenderer implements GLSurfaceView.Renderer {
         //get 9 chunks near player
         ArrayList<Chunk> chunks = new ArrayList<>();
         long time = System.nanoTime();
-        for (int x = -3; x <= 3; x++) {
-            for (int z = -3; z <= 3; z++) {
+        for (int x = -2; x <= 2; x++) {
+            for (int z = -2; z <= 2; z++) {
                 long chunkX = (long) (Math.floor(PacketUtils.x / 16) + x);
                 long chunkZ = (long) (Math.floor(PacketUtils.z / 16) + z);
                 long chunkPos = (chunkX << 32) | (chunkZ & 0xffffffffL);
@@ -306,37 +311,74 @@ public class YourRenderer implements GLSurfaceView.Renderer {
             renderTriangles(targetCoords, colors, textureCoords, R.drawable.white_square);
         }
 
-        /*
-        //render entity hitboxes
-        synchronized ("entity") {
-            Entity.entities.values().forEach(v -> {
 
-                float x = v.x;
-                float y = v.y;
-                float z = v.z;
-                float[] hitbox = v.hitbox;
-                if (hitbox == null) {
-                    Log.w("Hitbox", "hitbox is null");
-                    return;
+        //Entity.entityChunks.keySet().forEach(System.out::println);
+        //render entity hitboxes
+        List<Float> hitboxCoords = new ArrayList<>();
+        List<Float> hitboxColors = new ArrayList<>();
+        List<Float> hitboxTextureCoords = new ArrayList<>();
+        synchronized ("entity") {
+            long x = (long) PacketUtils.x / 8;
+            long z = (long) PacketUtils.z / 8;
+            long y = (long) PacketUtils.y / 8;
+            for (int dx = -1; dx <= 1; dx++) {
+                for (int dz = -1; dz <= 1; dz++) {
+                    for (int dy = -1; dy <= 1; dy++) {
+                        long entityChunkPos = ((x + dx) << 35) | ((z + dz) << 6) | (y + dy);
+                        List<Entity> entities = Entity.entityChunks.get(entityChunkPos);
+                        if (entities == null) continue;
+                        for (Entity v : entities) {
+                            float[] hitbox = v.getHitbox();
+                            if (hitbox == null) continue;
+                            float[][] rectangularPrism = SlotRenderer.getRectangularPrism(new float[]{hitbox[0], hitbox[1], hitbox[2]}, new float[]{hitbox[3], hitbox[4], hitbox[5]});
+                            float[] coords = new float[6 * 6 * 3 * 3];
+                            for (int i = 0; i < rectangularPrism.length; i++) {
+                                float[] rect = Square.fourCoordsToSix(rectangularPrism[i]);
+                                System.arraycopy(rect, 0, coords, i * 18, 18);
+                            }
+                            float[] colors = new float[6 * 6 * 3 * 4];
+                            for (int i = 0; i < 6 * 6 * 3 * 4; i += 4) {
+                                colors[i] = 0.5f;
+                                colors[i + 1] = 0.5f;
+                                colors[i + 2] = 1;
+                                colors[i + 3] = 0.5f;
+                                if (v == PacketUtils.targetEntity) {
+                                    colors[i] = 1;
+                                    colors[i + 1] = 0.25f;
+                                    colors[i + 2] = 0.25f;
+                                    colors[i + 3] = 0.5f;
+                                }
+                            }
+                            float[] textureCoords = new float[6 * 6 * 3 * 2];
+
+                            for (float f : coords) {
+                                hitboxCoords.add(f);
+                            }
+
+                            for (float f : colors) {
+                                hitboxColors.add(f);
+                            }
+
+                            for (float f : textureCoords) {
+                                hitboxTextureCoords.add(f);
+                            }
+                        }
+
+                    }
                 }
-                float[][] rectangularPrism = SlotRenderer.getRectangularPrism(new float[]{x + hitbox[0], y + hitbox[1], z + hitbox[2]},
-                        new float[]{x + hitbox[3], y + hitbox[4], z + hitbox[5]});
-                float[] coords = new float[6 * 6 * 3 * 3];
-                for (int i = 0; i < rectangularPrism.length; i++) {
-                    float[] rect = Square.fourCoordsToSix(rectangularPrism[i]);
-                    System.arraycopy(rect, 0, coords, i * 18, 18);
-                }
-                float[] colors = new float[6 * 6 * 3 * 4];
-                for (int i = 0; i < 6 * 6 * 3 * 4; i += 4) {
-                    colors[i] = 0.5f;
-                    colors[i + 1] = 0.5f;
-                    colors[i + 2] = 1;
-                    colors[i + 3] = 0.5f;
-                }
-                float[] textureCoords = new float[6 * 6 * 3 * 2];
-                renderTriangles(coords, colors, textureCoords, R.drawable.white_square);
-            });
-        }*/
+            }
+        }
+
+        float[] hitboxCoordsArray = new float[hitboxCoords.size()];
+        float[] hitboxColorsArray = new float[hitboxColors.size()];
+        float[] hitboxTextureCoordsArray = new float[hitboxTextureCoords.size()];
+
+        for (int i = 0; i < hitboxCoords.size(); i++) hitboxCoordsArray[i] = hitboxCoords.get(i);
+        for (int i = 0; i < hitboxColors.size(); i++) hitboxColorsArray[i] = hitboxColors.get(i);
+        for (int i = 0; i < hitboxTextureCoords.size(); i++)
+            hitboxTextureCoordsArray[i] = hitboxTextureCoords.get(i);
+
+        renderTriangles(hitboxCoordsArray, hitboxColorsArray, hitboxTextureCoordsArray, R.drawable.white_square);
 
         GLES20.glUniformMatrix4fv(vPMatrixHandle, 1, false, scratch2, 0);
         //System.out.println("ratio: " + ratio);//0.625
@@ -409,6 +451,7 @@ public class YourRenderer implements GLSurfaceView.Renderer {
         renderTriangles(crosshairCoords, crosshairColors, crosshairTextureCoords, R.drawable.icons);
 
         if (System.nanoTime() - startTime > 1000000000) {
+            Log.v("number of entities", "entities: " + Entity.entityChunks.values().stream().mapToInt(List::size).sum());
             Log.d("FPS", "fps: " + frames);
             fps = frames;
             frames = 0;

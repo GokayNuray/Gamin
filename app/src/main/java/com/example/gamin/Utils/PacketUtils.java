@@ -49,6 +49,7 @@ public final class PacketUtils extends AppCompatActivity {
     public static float x_rot = 0.0F;
     public static float y_rot = 0.0F;
     public static float[] targetCoords;
+    public static Entity targetEntity;
     static boolean didHorizontalCollide = false;
     private static int playerId;
     private static double generic_movementSpeed;
@@ -70,22 +71,18 @@ public final class PacketUtils extends AppCompatActivity {
 
         //inertia
         float mult = 0.91F;
-        if (isOnGround)
-            mult *= 0.6F;//friction
+        if (isOnGround) mult *= 0.6F;//friction
         float acceleration = 0.16277136F / (mult * mult * mult);
         float landMovementFactor = (float) generic_movementSpeed; //TODO : add potion effects
         float movementFactor;
-        if (isOnGround)
-            movementFactor = (landMovementFactor * sprintingMult * acceleration);
-        else
-            movementFactor = 0.02F * sprintingMult;
+        if (isOnGround) movementFactor = (landMovementFactor * sprintingMult * acceleration);
+        else movementFactor = 0.02F * sprintingMult;
 
         //updatemotionxz
         float dist = strafe * strafe + forward * forward;
         if (dist >= 1.0E-4F) {
             dist = (float) Math.sqrt(dist);
-            if (dist < 1.0F)
-                dist = 1.0F;
+            if (dist < 1.0F) dist = 1.0F;
             dist = movementFactor / dist;
             strafe *= dist;
             forward *= dist;
@@ -105,12 +102,9 @@ public final class PacketUtils extends AppCompatActivity {
         }
 
         //TODO not sure about x and z, research more
-        if (Math.abs(motionX) < 0.005D)
-            motionX = 0.0D;
-        if (Math.abs(motionY) < 0.005D)
-            motionY = 0.0D;
-        if (Math.abs(motionZ) < 0.005D)
-            motionZ = 0.0D;
+        if (Math.abs(motionX) < 0.005D) motionX = 0.0D;
+        if (Math.abs(motionY) < 0.005D) motionY = 0.0D;
+        if (Math.abs(motionZ) < 0.005D) motionZ = 0.0D;
 
         //System.out.println(motionX + " " + motionY + " " + motionZ);
         didHorizontalCollide = false;
@@ -127,47 +121,83 @@ public final class PacketUtils extends AppCompatActivity {
     //TODO special block movement like soul sand and honey block and maybe add ice and slime block movement
     private static void moveEntity(double motionX, double motionY, double motionZ) {
         try {
-            PacketUtils.y = Collision.calculateMovement(PacketUtils.x, PacketUtils.y, PacketUtils.z, 1, motionY)[1];
-            isOnGround = Collision.calculateMovement(PacketUtils.x, PacketUtils.y, PacketUtils.z, 1, 0.0)[3] == 1.0;
+            double x = PacketUtils.x;
+            double y = PacketUtils.y;
+            double z = PacketUtils.z;
+
+            y = Collision.calculateMovement(x, y, z, 1, motionY)[1];
+            isOnGround = Collision.calculateMovement(x, y, z, 1, 0.0)[3] == 1.0;
             if (isSneaking && isOnGround) {
-                double xx = Collision.calculateMovement(PacketUtils.x, PacketUtils.y, PacketUtils.z, 0, motionX)[0];
-                while (Collision.calculateMovement(xx, PacketUtils.y, PacketUtils.z, 1, -0.98)[3] == 0.0) {
+                double xx = Collision.calculateMovement(x, y, z, 0, motionX)[0];
+                while (Collision.calculateMovement(xx, y, z, 1, -0.98)[3] == 0.0) {
                     if (motionX > 0) {
                         xx -= 0.05;
-                        if (xx < PacketUtils.x) {
-                            xx = PacketUtils.x;
+                        if (xx < x) {
+                            xx = x;
                             break;
                         }
                     } else {
                         xx += 0.05;
-                        if (xx > PacketUtils.x) {
-                            xx = PacketUtils.x;
+                        if (xx > x) {
+                            xx = x;
                             break;
                         }
                     }
                 }
-                PacketUtils.x = xx;
-                double zz = Collision.calculateMovement(PacketUtils.x, PacketUtils.y, PacketUtils.z, 2, motionZ)[2];
-                while (Collision.calculateMovement(PacketUtils.x, PacketUtils.y, zz, 1, -0.98)[3] == 0.0) {
+                x = xx;
+                double zz = Collision.calculateMovement(x, y, z, 2, motionZ)[2];
+                while (Collision.calculateMovement(x, y, zz, 1, -0.98)[3] == 0.0) {
                     if (motionZ > 0) {
                         zz -= 0.05;
-                        if (zz < PacketUtils.z) {
-                            zz = PacketUtils.z;
+                        if (zz < z) {
+                            zz = z;
                             break;
                         }
                     } else {
                         zz += 0.05;
-                        if (zz > PacketUtils.z) {
-                            zz = PacketUtils.z;
+                        if (zz > z) {
+                            zz = z;
                             break;
                         }
                     }
                 }
-                PacketUtils.z = zz;
+                z = zz;
             } else {
-                PacketUtils.x = Collision.calculateMovement(PacketUtils.x, PacketUtils.y, PacketUtils.z, 0, motionX)[0];
-                PacketUtils.z = Collision.calculateMovement(PacketUtils.x, PacketUtils.y, PacketUtils.z, 2, motionZ)[2];
+                x = Collision.calculateMovement(x, y, z, 0, motionX)[0];
+                z = Collision.calculateMovement(x, y, z, 2, motionZ)[2];
             }
+
+            //try stepping if couldn't move
+            if (didHorizontalCollide && isOnGround) {
+
+                didHorizontalCollide = false;
+
+                //calculate how much can we step up
+                double stepUp = Collision.calculateMovement(x, y, z, 1, 0.6)[1];
+
+                double x2 = PacketUtils.x;
+                double y2 = stepUp;
+                double z2 = PacketUtils.z;
+
+                //try stepping
+                x2 = Collision.calculateMovement(x2, y2, z2, 0, motionX)[0];
+                z2 = Collision.calculateMovement(x2, y2, z2, 2, motionZ)[2];
+                y2 = Collision.calculateMovement(x2, y2, z2, 1, -0.6)[1];
+
+                //check which distance is longer
+                double distance1 = Math.sqrt(Math.pow(PacketUtils.x - x, 2) + Math.pow(PacketUtils.y - y, 2) + Math.pow(PacketUtils.z - z, 2));
+                double distance2 = Math.sqrt(Math.pow(PacketUtils.x - x2, 2) + Math.pow(PacketUtils.y - y2, 2) + Math.pow(PacketUtils.z - z2, 2));
+
+                if (distance2 > distance1) {
+                    x = x2;
+                    y = y2;
+                    z = z2;
+                }
+            }
+
+            PacketUtils.x = x;
+            PacketUtils.y = y;
+            PacketUtils.z = z;
         } catch (JSONException e) {
             e.printStackTrace();
         }
@@ -388,10 +418,7 @@ public final class PacketUtils extends AppCompatActivity {
 
                 Entity entity15 = Entity.entities.get(entityId15);
                 if (entity15 != null) {
-                    entity15.x += dx15 / 32f;
-                    entity15.y += dy15 / 32f;
-                    entity15.z += dz15 / 32f;
-                    entity15.hasChanged = true;
+                    entity15.move(dx15 / 32f, dy15 / 32f, dz15 / 32f);
                 }
 
                 break;
@@ -408,10 +435,7 @@ public final class PacketUtils extends AppCompatActivity {
 
                 Entity entity17 = Entity.entities.get(entityId17);
                 if (entity17 != null) {
-                    entity17.x += dx17 / 32f;
-                    entity17.y += dy17 / 32f;
-                    entity17.z += dz17 / 32f;
-                    entity17.hasChanged = true;
+                    entity17.move(dx17 / 32f, dy17 / 32f, dz17 / 32f);
                 }
 
                 break;
@@ -428,10 +452,7 @@ public final class PacketUtils extends AppCompatActivity {
 
                 Entity entity18 = Entity.entities.get(entityId18);
                 if (entity18 != null) {
-                    entity18.x = x18 / 32f;
-                    entity18.y = y18 / 32f;
-                    entity18.z = z18 / 32f;
-                    entity18.hasChanged = true;
+                    entity18.setPos(x18 / 32f, y18 / 32f, z18 / 32f);
                 }
 
                 break;
@@ -653,6 +674,7 @@ public final class PacketUtils extends AppCompatActivity {
 
         float[] targetCoords = null;
         float[] targetHitbox = null;
+        Entity targetEntity = null;
 
         float[] d = new float[3];
         d[0] = (float) ((-Math.sin(yaw)) * Math.cos(pitch));
@@ -661,10 +683,10 @@ public final class PacketUtils extends AppCompatActivity {
 
         float[] tMax = new float[3];
         for (int i = 0; i < 3; i++) {
-            tMax[i] = (d[i] >= 0 ? (float) Math.floor(pos[i]) + 1 - pos[i] : pos[i] - (float) Math.ceil(pos[i])) / d[i];
+            tMax[i] = ((float) (d[i] >= 0 ? Math.ceil(pos[i]) : Math.floor(pos[i])) - pos[i]) / d[i];
         }
 
-        float[] steps = new float[3];
+        int[] steps = new int[3];
         for (int i = 0; i < 3; i++) {
             steps[i] = d[i] >= 0 ? 1 : -1;
         }
@@ -758,29 +780,61 @@ public final class PacketUtils extends AppCompatActivity {
             }
             if (tMax[0] < tMax[1]) {
                 if (tMax[0] < tMax[2]) {
-                    x += (int) steps[0];
+                    x += steps[0];
                     t = tMax[0];
                     tMax[0] += tDelta[0];
                 } else {
-                    z += (int) steps[2];
+                    z += steps[2];
                     t = tMax[2];
                     tMax[2] += tDelta[2];
                 }
             } else {
                 if (tMax[1] < tMax[2]) {
-                    y += (int) steps[1];
+                    y += steps[1];
                     t = tMax[1];
                     tMax[1] += tDelta[1];
                 } else {
-                    z += (int) steps[2];
+                    z += steps[2];
                     t = tMax[2];
                     tMax[2] += tDelta[2];
                 }
             }
         }
+
+        //check entity hitboxes
+        synchronized ("entity") {
+            long entityChunkX = (long) PacketUtils.x / 8;
+            long entityChunkZ = (long) PacketUtils.z / 8;
+            long entityChunkY = (long) PacketUtils.y / 8;
+            for (int dx = -1; dx <= 1; dx++) {
+                for (int dz = -1; dz <= 1; dz++) {
+                    for (int dy = -1; dy <= 1; dy++) {
+                        long entityChunkPos = ((entityChunkX + dx) << 35) | ((entityChunkZ + dz) << 6) | (entityChunkY + dy);
+                        List<Entity> entities = Entity.entityChunks.get(entityChunkPos);
+                        if (entities == null) continue;
+                        for (Entity entity : entities) {
+                            float[] hitbox = entity.getHitbox();
+                            if (hitbox == null) continue;
+
+                            float[] entityCollisionResult = checkIfLookingAt(hitbox, pos, d, maxDistance);
+                            if (entityCollisionResult[0] != -1) {
+                                maxDistance = entityCollisionResult[1];
+                                targetHitbox = hitbox;
+                                targetEntity = entity;
+                            }
+                        }
+
+                    }
+                }
+            }
+
+        }
+
         //add target coords to the targetHitbox array
         PacketUtils.targetCoords = targetHitbox;
+        PacketUtils.targetEntity = targetEntity;
     }
+
 
     private static float[] checkIfLookingAt(float[] target, float[] pos, float[] d, float maxDistance) {
         int result = -1; //0 +x, 1 +y, 2 +z, 3 -x, 4 -y, 5 -z

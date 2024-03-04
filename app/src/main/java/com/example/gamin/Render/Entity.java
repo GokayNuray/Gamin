@@ -17,33 +17,36 @@ import java.io.DataInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.FloatBuffer;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 
 public class Entity {
     public static final Map<Integer, Entity> entities = new HashMap<>();
+    public static final Map<Long, List<Entity>> entityChunks = new HashMap<>();
 
     private static final Map<Integer, JSONObject> entityData = new HashMap<>();
     private static final Map<Integer, List<Square>> models = new HashMap<>();
-    public float x;
-    public float y;
-    public float z;
     public float motionX;
     public float motionY;
     public float motionZ;
-    public boolean hasChanged = true;
     public float[] hitbox;
     FloatBuffer coordsBuffer;
     FloatBuffer colorsBuffer;
     FloatBuffer texturesBuffer;
     List<Square> squares;
     Object[] metadata = new Object[32];
+    private boolean hasChanged = true;
+    private float x;
+    private float y;
+    private float z;
 
     public Entity(Context context, int id, int intX, int intY, int intZ, byte[] metadata) {
-        x = intX / 32f;
-        y = intY / 32f;
-        z = intZ / 32f;
+        this.x = intX / 32f;
+        this.y = intY / 32f;
+        this.z = intZ / 32f;
         if (id < 0) id += 256;
         if (!models.containsKey(id)) {
             String model = "bat.jem";
@@ -89,7 +92,7 @@ public class Entity {
                     texture = "entity/ghast/ghast";
                     break;
                 case 57://zombie pigman
-                    model = "/legacy/zombie_pigman_15.jem";
+                    model = "legacy/zombie_pigman_15.jem";
                     texture = "entity/zombie_pigman";
                     break;
                 case 58://enderman
@@ -173,11 +176,11 @@ public class Entity {
                     texture = "entity/cat/ocelot";
                     break;
                 case 99://iron golem
-                    model = "/legacy/iron_golem_16.jem";
+                    model = "legacy/iron_golem_16.jem";
                     texture = "entity/iron_golem";
                     break;
                 case 100://horse
-                    model = "/legacy/horse_10.jem";
+                    model = "legacy/horse_10.jem";
                     texture = "entity/horse/horse_white";
                     break;
                 case 101://rabbit
@@ -200,6 +203,7 @@ public class Entity {
         }
 
         hitbox = getEntityHitbox(id);
+
         squares = models.get(id);
         assert squares != null;
 
@@ -207,6 +211,18 @@ public class Entity {
             readMetadata(metadata);
         } catch (IOException e) {
             e.printStackTrace();
+        }
+
+        long pos = (((long) x / 8) << 35) | (((long) z / 8) << 6) | (((long) y / 8));
+
+        synchronized ("entity") {
+            if (!entityChunks.containsKey(pos)) {
+                List<Entity> entities = new ArrayList<>();
+                entities.add(this);
+                entityChunks.put(pos, entities);
+            } else {
+                Objects.requireNonNull(entityChunks.get(pos)).add(this);
+            }
         }
     }
 
@@ -238,7 +254,10 @@ public class Entity {
         }
         try {
             JSONObject entity = entityData.get(id);
-            if (entity == null) return null;
+            if (entity == null) {
+                Log.e("Entity", "entity does not exist: " + id);
+                return null;
+            }
             float width = (float) entity.getDouble("width");
             float height = (float) entity.getDouble("height");
 
@@ -249,13 +268,9 @@ public class Entity {
             result[3] = width / 2;
             result[4] = height;
             result[5] = width / 2;
-            Log.v("Entity", "id: " + id);
-            Log.v("Entity", "hitbox: " + width + " " + height);
-            Log.v("Entity", "hitbox: " + result[0] + " " + result[1] + " " + result[2] + " " + result[3] + " " + result[4] + " " + result[5]);
 
             return result;
         } catch (JSONException e) {
-            Log.e("Entity", "entity does not exist: ", e);
             e.printStackTrace();
             return null;
         }
@@ -274,6 +289,56 @@ public class Entity {
             entity.z = (float) Collision.calculateMovement(entity.x, entity.y, entity.z, 2, entity.motionZ)[2];
             entity.hasChanged = true;
         }
+    }
+
+    public float[] getHitbox() {
+        float[] result = null;
+
+        if (hitbox != null) {
+            result = new float[6];
+
+            result[0] = hitbox[0] + x;
+            result[1] = hitbox[1] + y;
+            result[2] = hitbox[2] + z;
+            result[3] = hitbox[3] + x;
+            result[4] = hitbox[4] + y;
+            result[5] = hitbox[5] + z;
+        }
+
+        return result;
+    }
+
+    public void move(float x, float y, float z) {
+        setPos(this.x + x, this.y + y, this.z + z);
+    }
+
+    public void setPos(float x, float y, float z) {
+        long oldPos = ((long) this.x / 8) << 35 | ((long) this.z / 8) << 6 | ((long) this.y / 8);
+        long newPos = ((long) x / 8) << 35 | ((long) z / 8) << 6 | ((long) y / 8);
+        this.x = x;
+        this.y = y;
+        this.z = z;
+        synchronized ("entity") {
+
+            if (oldPos != newPos) {
+                if (entityChunks.containsKey(oldPos)) {
+                    List<Entity> entities = entityChunks.get(oldPos);
+                    assert entities != null;
+                    entities.remove(this);
+                    if (entities.isEmpty()) {
+                        entityChunks.remove(oldPos);
+                    }
+                }
+                if (!entityChunks.containsKey(newPos)) {
+                    List<Entity> entities = new ArrayList<>();
+                    entities.add(this);
+                    entityChunks.put(newPos, entities);
+                } else {
+                    Objects.requireNonNull(entityChunks.get(newPos)).add(this);
+                }
+            }
+        }
+        hasChanged = true;
     }
 
     void setBuffers() {

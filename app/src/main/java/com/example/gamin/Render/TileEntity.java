@@ -1,6 +1,7 @@
 package com.example.gamin.Render;
 
 import android.content.Context;
+import android.util.Log;
 
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -106,6 +107,9 @@ public class TileEntity {
                 JSONArray translate = part.getJSONArray("translate");
                 int[] translateArray = new int[]{translate.getInt(0), translate.getInt(1), translate.getInt(2)};
 
+                if (!part.has("boxes")) {
+                    continue;
+                }
                 JSONArray boxes = part.getJSONArray("boxes");
                 for (int j = 0; j < boxes.length(); j++) {
                     JSONObject box = boxes.getJSONObject(j);
@@ -153,6 +157,7 @@ public class TileEntity {
             return modelSquares;
 
         } catch (IOException | JSONException e) {
+            Log.e("TileEntity", "Error reading model" + model);
             throw new RuntimeException(e);
         }
     }
