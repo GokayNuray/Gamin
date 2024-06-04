@@ -1,13 +1,9 @@
 package com.example.gamin.Render;
 
 import android.content.Context;
-import android.content.res.AssetManager;
 import android.graphics.Bitmap;
-import android.graphics.BitmapFactory;
-import android.graphics.Canvas;
 import android.opengl.GLES20;
 import android.opengl.GLSurfaceView;
-import android.opengl.GLUtils;
 import android.opengl.Matrix;
 import android.util.Log;
 
@@ -17,14 +13,12 @@ import com.example.gamin.Utils.PacketUtils;
 
 import org.intellij.lang.annotations.Language;
 
-import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 import java.nio.FloatBuffer;
 import java.util.ArrayList;
-import java.util.HashMap;
+import java.util.Arrays;
 import java.util.List;
-import java.util.Map;
 
 import javax.microedition.khronos.egl.EGLConfig;
 import javax.microedition.khronos.opengles.GL10;
@@ -36,10 +30,11 @@ public class YourRenderer implements GLSurfaceView.Renderer {
     private static int positionHandle;
     private static int colorHandle;
     private static int mTextureCoordinateHandle;
+    private static int whiteSquareHandle;
     private final float[] projectionMatrix = new float[16];
-    private final float[] projectionMatrix2 = new float[16];
+    private final float[] GuiProjectionMatrix = new float[16];
     private final float[] viewMatrix = new float[16];
-    private final float[] viewMatrix2 = new float[16];
+    private final float[] GuiViewMatrix = new float[16];
     private final Context context;
     private long startTime = System.nanoTime();
     private int frames = 0;
@@ -47,114 +42,6 @@ public class YourRenderer implements GLSurfaceView.Renderer {
 
     public YourRenderer(Context context) {
         this.context = context;
-    }
-
-    private static int loadShader(int type, String shaderCode) {
-        int shader = GLES20.glCreateShader(type);
-        GLES20.glShaderSource(shader, shaderCode);
-        GLES20.glCompileShader(shader);
-        return shader;
-    }
-
-    public static void loadTextures(Context context) throws IOException {
-        String[] paths = {"blocks", "items", "entity"};
-        for (String path : paths) {
-            TextureAtlas.atlases.put(path, compressTextures(context, "textures/" + path + "/"));
-        }
-    }
-
-    private static TextureAtlas compressTextures(Context context, String path) throws IOException {
-        AssetManager assetManager = context.getAssets();
-        String[] names = assetManager.list(path);
-
-        Map<String, Integer> textureOffsets = new HashMap<>();
-        ArrayList<Bitmap> textures = new ArrayList<>();
-
-        int height = 0;
-        int offset = 0;
-        assert names != null : "invalid path: " + path;
-        for (String texture : names) {
-            if (texture.endsWith(".png")) {
-                Bitmap bitmap = BitmapFactory.decodeStream(assetManager.open(path + texture));
-                textures.add(bitmap);
-                textureOffsets.put(texture, offset);
-                offset += bitmap.getWidth();
-                height = Math.max(height, bitmap.getHeight());
-            } else {
-                for (String s : assetManager.list(path + texture + "/")) {
-                    if (!s.endsWith(".png")) {
-                        Log.w("TextureLoading", "invalid file: " + path + texture + "/" + s);
-                        continue;
-                    }
-                    Bitmap bitmap = BitmapFactory.decodeStream(assetManager.open(path + texture + "/" + s));
-                    textures.add(bitmap);
-                    textureOffsets.put(texture + "/" + s, offset);
-                    offset += bitmap.getWidth();
-                    height = Math.max(height, bitmap.getHeight());
-                }
-            }
-        }
-        Bitmap blockAtlas = Bitmap.createBitmap(offset, height, Bitmap.Config.ARGB_8888);
-        Canvas canvas = new Canvas(blockAtlas);
-        offset = 0;
-        for (Bitmap texture : textures) {
-            canvas.drawBitmap(texture, offset, 0, null);
-            offset += texture.getWidth();
-        }
-        textures.forEach(Bitmap::recycle);
-        return new TextureAtlas(blockAtlas, textureOffsets);
-    }
-
-    private static int loadTexture(Context context, int resId) {
-        final int[] textureHandle = new int[1];
-        GLES20.glGenTextures(1, textureHandle, 0);
-        final BitmapFactory.Options options = new BitmapFactory.Options();
-        options.inScaled = false;
-        //FIXME why can resId be 0?
-        final Bitmap bitmap = BitmapFactory.decodeResource(context.getResources(), resId == 0 ? R.drawable.apple : resId, options);
-        GLES20.glBindTexture(GLES20.GL_TEXTURE_2D, textureHandle[0]);
-        GLES20.glTexParameteri(GLES20.GL_TEXTURE_2D, GLES20.GL_TEXTURE_MIN_FILTER, GLES20.GL_NEAREST);
-        GLES20.glTexParameteri(GLES20.GL_TEXTURE_2D, GLES20.GL_TEXTURE_MAG_FILTER, GLES20.GL_NEAREST);
-        if (bitmap == null) throw new RuntimeException(resId + " is null");
-        GLUtils.texImage2D(GLES20.GL_TEXTURE_2D, 0, bitmap, 0);
-        bitmap.recycle();
-        return textureHandle[0];
-    }
-
-    private static int loadTexture(Bitmap bitmap) {
-        final int[] textureHandle = new int[1];
-        GLES20.glGenTextures(1, textureHandle, 0);
-        final BitmapFactory.Options options = new BitmapFactory.Options();
-        options.inScaled = false;
-        GLES20.glBindTexture(GLES20.GL_TEXTURE_2D, textureHandle[0]);
-        GLES20.glTexParameteri(GLES20.GL_TEXTURE_2D, GLES20.GL_TEXTURE_MIN_FILTER, GLES20.GL_NEAREST);
-        GLES20.glTexParameteri(GLES20.GL_TEXTURE_2D, GLES20.GL_TEXTURE_MAG_FILTER, GLES20.GL_NEAREST);
-        if (bitmap == null) throw new RuntimeException("bitmap is null");
-        GLUtils.texImage2D(GLES20.GL_TEXTURE_2D, 0, bitmap, 0);
-        bitmap.recycle();
-        return textureHandle[0];
-    }
-
-    private static int createAndLinkProgram(final int vertexShaderHandle, final int fragmentShaderHandle, final String[] attributes) {
-        int programHandle = GLES20.glCreateProgram();
-
-        if (programHandle != 0) {
-            GLES20.glAttachShader(programHandle, vertexShaderHandle);
-            GLES20.glAttachShader(programHandle, fragmentShaderHandle);
-            if (attributes != null) {
-                final int size = attributes.length;
-                for (int i = 0; i < size; i++) {
-                    GLES20.glBindAttribLocation(programHandle, i, attributes[i]);
-                }
-            }
-            GLES20.glLinkProgram(programHandle);
-        }
-
-        if (programHandle == 0) {
-            throw new RuntimeException("Error creating program.");
-        }
-
-        return programHandle;
     }
 
     @Override
@@ -185,7 +72,7 @@ public class YourRenderer implements GLSurfaceView.Renderer {
                 "v_TexCoordinate = a_TexCoordinate;" +
                 "gl_Position = u_MVPMatrix * a_Position;" +
                 "}";
-        int vertexShader = YourRenderer.loadShader(GLES20.GL_VERTEX_SHADER, vertexShaderCode);
+        int vertexShader = OpenGLUtils.loadShader(GLES20.GL_VERTEX_SHADER, vertexShaderCode);
         @Language("GLSL")
         String fragmentShaderCode = "precision mediump float;" +
                 "uniform sampler2D u_Texture;" +
@@ -196,9 +83,9 @@ public class YourRenderer implements GLSurfaceView.Renderer {
                 "if(val.a < 0.25){ discard; }" +
                 "gl_FragColor = val;" +
                 "}";
-        int fragShader = YourRenderer.loadShader(GLES20.GL_FRAGMENT_SHADER, fragmentShaderCode);
+        int fragShader = OpenGLUtils.loadShader(GLES20.GL_FRAGMENT_SHADER, fragmentShaderCode);
 
-        mProgram = YourRenderer.createAndLinkProgram(vertexShader, fragShader, new String[]{"a_Position", "a_Color", "a_TexCoordinate"});
+        mProgram = OpenGLUtils.createAndLinkProgram(vertexShader, fragShader, new String[]{"a_Position", "a_Color", "a_TexCoordinate"});
 
         GLES20.glUseProgram(YourRenderer.mProgram);
 
@@ -207,9 +94,11 @@ public class YourRenderer implements GLSurfaceView.Renderer {
         colorHandle = GLES20.glGetAttribLocation(YourRenderer.mProgram, "a_Color");
         mTextureCoordinateHandle = GLES20.glGetAttribLocation(YourRenderer.mProgram, "a_TexCoordinate");
 
+        whiteSquareHandle = OpenGLUtils.loadTexture(context, R.drawable.white_square);
+
         TextureAtlas.atlases.values().forEach(atlas -> {
             Bitmap bitmap = atlas.bitmap;
-            atlas.textureHandle = loadTexture(bitmap);
+            atlas.textureHandle = OpenGLUtils.loadTexture(bitmap);
         });
     }
 
@@ -221,84 +110,227 @@ public class YourRenderer implements GLSurfaceView.Renderer {
 
         // this projection matrix is applied to object coordinates
         // in the onDrawFrame() method
-        Matrix.frustumM(projectionMatrix2, 0, -1, 1, -ratio, ratio, 1, 2);
+        Matrix.frustumM(GuiProjectionMatrix, 0, -1, 1, -ratio, ratio, 1, 2);
         Matrix.perspectiveM(projectionMatrix, 0, 110, ratio, 0.15f, 64);
 
     }
 
     @Override
     public void onDrawFrame(GL10 gl10) {//TODO add chunk unloading, setblock backets and broken special block models
-        float[] scratch = new float[16];
-        float[] scratch2 = new float[16];
+        float[] worldVPMatrix = new float[16];
+        float[] GuiVPMatrix = new float[16];
 
-        double yaw = PacketUtils.x_rot * Math.PI / 180;
-        double pitch = PacketUtils.y_rot * Math.PI / 180;
-        double pitch2 = -PacketUtils.y_rot * Math.PI / 180 + Math.PI / 2;
+        {
+            GLES20.glClear(GLES20.GL_DEPTH_BUFFER_BIT | GLES20.GL_COLOR_BUFFER_BIT);
 
-        GLES20.glClear(GLES20.GL_DEPTH_BUFFER_BIT | GLES20.GL_COLOR_BUFFER_BIT);
+            double yaw = PacketUtils.x_rot * Math.PI / 180;
+            double pitch = PacketUtils.y_rot * Math.PI / 180;
+            double upVectorPitch = -PacketUtils.y_rot * Math.PI / 180 + Math.PI / 2;
+            // Set the camera position (View matrix) in the world
+            Matrix.setLookAtM(viewMatrix, 0, (float) PacketUtils.x, (float) (PacketUtils.y + 1.62), (float) PacketUtils.z,
+                    (float) (PacketUtils.x - Math.cos(pitch) * Math.sin(yaw)), (float) (PacketUtils.y + 1.62 - Math.sin(pitch)), (float) (PacketUtils.z + Math.cos(pitch) * Math.cos(yaw)),
+                    (float) (-Math.cos(upVectorPitch) * Math.sin(yaw)), (float) (1.62 - Math.sin(upVectorPitch)), (float) (Math.cos(upVectorPitch) * Math.cos(yaw)));
 
-        Matrix.setLookAtM(viewMatrix, 0, (float) PacketUtils.x, (float) (PacketUtils.y + 1.62), (float) PacketUtils.z,
-                (float) (PacketUtils.x - Math.cos(pitch) * Math.sin(yaw)), (float) (PacketUtils.y + 1.62 - Math.sin(pitch)), (float) (PacketUtils.z + Math.cos(pitch) * Math.cos(yaw)),
-                (float) (-Math.cos(pitch2) * Math.sin(yaw)), (float) (1.62 - Math.sin(pitch2)), (float) (Math.cos(pitch2) * Math.cos(yaw)));
+            // Calculate the projection and view transformation
+            Matrix.multiplyMM(worldVPMatrix, 0, projectionMatrix, 0, viewMatrix, 0);
+            GLES20.glUniformMatrix4fv(YourRenderer.vPMatrixHandle, 1, false, worldVPMatrix, 0);
 
-        // Calculate the projection and view transformation
-        Matrix.multiplyMM(scratch, 0, projectionMatrix, 0, viewMatrix, 0);
-        GLES20.glUniformMatrix4fv(YourRenderer.vPMatrixHandle, 1, false, scratch, 0);
+            // Create gui view matrix which is independent of the camera position
+            Matrix.setLookAtM(GuiViewMatrix, 0, 0, 0, 0, 0, 0, -1, 0, 1, 0);
+            Matrix.multiplyMM(GuiVPMatrix, 0, GuiProjectionMatrix, 0, GuiViewMatrix, 0);
+        }//Clear the screen and set the camera position
 
-        Matrix.setLookAtM(viewMatrix2, 0, 0, 0, 0, 0, 0, -1, 0, 10, 0);
-        Matrix.multiplyMM(scratch2, 0, projectionMatrix2, 0, viewMatrix2, 0);
+        {
+            //Load a random chunk every frame to speed up loading
+            //ChunkColumn[] chunks = PacketUtils.chunkColumnMap.values().toArray(new ChunkColumn[0]);
+            //ChunkColumn randomMap = PacketUtils.chunkColumnMap.values().stream().filter(chunk -> chunk.isLoaded).findFirst().orElse(null);
+            //randomMap.setRenders(context, 0, 0);
 
-
-        //ChunkColumn[] chunks = PacketUtils.chunkColumnMap.values().toArray(new ChunkColumn[0]);
-        //ChunkColumn randomMap = PacketUtils.chunkColumnMap.values().stream().filter(chunk -> chunk.isLoaded).findFirst().orElse(null);
-        //randomMap.setRenders(context, 0, 0);
-        //get 9 chunks near player
-        ArrayList<Chunk> chunks = new ArrayList<>();
-        long time = System.nanoTime();
-        for (int x = -2; x <= 2; x++) {
-            for (int z = -2; z <= 2; z++) {
-                long chunkX = (long) (Math.floor(PacketUtils.x / 16) + x);
-                long chunkZ = (long) (Math.floor(PacketUtils.z / 16) + z);
-                long chunkPos = (chunkX << 32) | (chunkZ & 0xffffffffL);
-                Chunk[] chunkColumn = Chunk.chunkColumnMap.get(chunkPos);
-                if (chunkColumn == null) continue;
-                for (Chunk chunk : chunkColumn) {
-                    if (chunk == null) continue;
-                    if (!chunk.isLoaded) chunk.setRenders(context, (int) chunkX, (int) chunkZ);
-                    chunks.add(chunk);
+            //get 9 chunks near player and load them if they are not loaded
+            ArrayList<Chunk> chunks = new ArrayList<>();
+            long time = System.nanoTime();
+            for (int x = -1; x <= 1; x++) {
+                for (int z = -1; z <= 1; z++) {
+                    long chunkX = (long) (Math.floor(PacketUtils.x / 16) + x);
+                    long chunkZ = (long) (Math.floor(PacketUtils.z / 16) + z);
+                    long chunkPos = (chunkX << 32) | (chunkZ & 0xffffffffL);
+                    Chunk[] chunkColumn = Chunk.chunkColumnMap.get(chunkPos);
+                    if (chunkColumn == null) continue;
+                    for (Chunk chunk : chunkColumn) {
+                        if (chunk == null) continue;
+                        if (!chunk.isLoaded) chunk.setRenders(context, (int) chunkX, (int) chunkZ);
+                        chunks.add(chunk);
+                    }
                 }
             }
-        }
-        if ((System.nanoTime() - time) > 1000000)
-            Log.v("ChunkLoading", "time: " + (System.nanoTime() - time) / 1000000 + "ms");
-        TextureAtlas blocks = TextureAtlas.atlases.get("blocks");
-        TextureAtlas items = TextureAtlas.atlases.get("items");
-        TextureAtlas entity = TextureAtlas.atlases.get("entity");
-        assert blocks != null;
-        assert items != null;
-        assert entity != null;
-        blocks.setBuffers(chunks);
-        items.setBuffers(chunks);
-        entity.setBuffers(chunks);
-        //entity.setEntityBuffers(false);
-        chunks.forEach(chunk -> chunk.isChanged = false);
-        renderAtlas(blocks);
-        renderAtlas(items);
-        renderAtlas(entity);
-        //rendsera(entity.entityBuffers, entity.entityBufferCapacity);
+            if ((System.nanoTime() - time) > 1000000)
+                Log.v("ChunkLoading", "time: " + (System.nanoTime() - time) / 1000000 + "ms");
 
-        if (PacketUtils.targetCoords != null) {
-            //render targeted object
-            float[] targetCoords = PacketUtils.targetCoords;
-            float[] colors = new float[]{
-                    0, 1, 0, 0.5f,
-                    0, 1, 0, 0.5f,
-                    0, 1, 0, 0.5f,
-                    0, 1, 0, 0.5f,
-                    0, 1, 0, 0.5f,
-                    0, 1, 0, 0.5f
+            TextureAtlas blocks = TextureAtlas.atlases.get("blocks");
+            TextureAtlas items = TextureAtlas.atlases.get("items");
+            TextureAtlas entity = TextureAtlas.atlases.get("entity");
+            assert blocks != null;
+            assert items != null;
+            assert entity != null;
+            blocks.setBuffers(chunks);
+            items.setBuffers(chunks);
+            entity.setBuffers(chunks);
+            //entity.setEntityBuffers(false);
+            chunks.forEach(chunk -> chunk.isChanged = false);
+            renderAtlas(blocks);
+            renderAtlas(items);
+            renderAtlas(entity);
+            //rendsera(entity.entityBuffers, entity.entityBufferCapacity);
+        }//Load chunks and render them
+
+        GLES20.glClear(GLES20.GL_DEPTH_BUFFER_BIT);
+        GLES20.glDepthMask(false);
+
+        {
+            if (PacketUtils.targetCoords != null) {
+                //render targeted object
+                float[] targetCoords = PacketUtils.targetCoords;
+                float[] colors = new float[]{
+                        0, 1, 0, 0.5f,
+                        0, 1, 0, 0.5f,
+                        0, 1, 0, 0.5f,
+                        0, 1, 0, 0.5f,
+                        0, 1, 0, 0.5f,
+                        0, 1, 0, 0.5f
+                };
+                float[] textureCoords = new float[]{
+                        0, 0,
+                        0, 1,
+                        1, 1,
+                        0, 0,
+                        1, 1,
+                        1, 0
+                };
+                renderTriangles(targetCoords, colors, textureCoords, whiteSquareHandle);
+            }
+        }//Render targeted block
+
+        {
+            List<Float> hitboxCoords;
+            List<Float> hitboxColors;
+            List<Float> hitboxTextureCoords;
+
+            //Entity.entityChunks.keySet().forEach(System.out::println);
+            hitboxCoords = new ArrayList<>();
+            hitboxColors = new ArrayList<>();
+            hitboxTextureCoords = new ArrayList<>();
+            synchronized ("entity") {
+                long x = (long) PacketUtils.x / 8;
+                long z = (long) PacketUtils.z / 8;
+                long y = (long) PacketUtils.y / 8;
+                for (int dx = -1; dx <= 1; dx++) {
+                    for (int dz = -1; dz <= 1; dz++) {
+                        for (int dy = -1; dy <= 1; dy++) {
+                            long entityChunkPos = ((x + dx) << 35) | ((z + dz) << 6) | (y + dy);
+                            List<Entity> entities = Entity.entityChunks.get(entityChunkPos);
+                            if (entities == null) continue;
+                            for (Entity v : entities) {
+                                float[] hitbox = v.getHitbox();
+                                if (hitbox == null) continue;
+                                float[][] rectangularPrism = Square.getRectangularPrism(new float[]{hitbox[0], hitbox[1], hitbox[2]}, new float[]{hitbox[3], hitbox[4], hitbox[5]});
+                                float[] coords = new float[6 * 6 * 3 * 3];
+                                for (int i = 0; i < rectangularPrism.length; i++) {
+                                    float[] rect = Square.fourCoordsToSix(rectangularPrism[i]);
+                                    System.arraycopy(rect, 0, coords, i * 18, 18);
+                                }
+                                float[] colors = new float[6 * 6 * 3 * 4];
+                                for (int i = 0; i < 6 * 6 * 3 * 4; i += 4) {
+                                    colors[i] = 0.5f;
+                                    colors[i + 1] = 0.5f;
+                                    colors[i + 2] = 1;
+                                    colors[i + 3] = 0.5f;
+                                    if (v == PacketUtils.targetEntity) {
+                                        colors[i] = 1;
+                                        colors[i + 1] = 0.25f;
+                                        colors[i + 2] = 0.25f;
+                                        colors[i + 3] = 0.5f;
+                                    }
+                                }
+                                float[] textureCoords = new float[6 * 6 * 3 * 2];
+
+                                for (float f : coords) {
+                                    hitboxCoords.add(f);
+                                }
+
+                                for (float f : colors) {
+                                    hitboxColors.add(f);
+                                }
+
+                                for (float f : textureCoords) {
+                                    hitboxTextureCoords.add(f);
+                                }
+                            }
+
+                        }
+                    }
+                }
+            }
+
+
+            float[] hitboxCoordsArray = new float[hitboxCoords.size()];
+            float[] hitboxColorsArray = new float[hitboxColors.size()];
+            float[] hitboxTextureCoordsArray = new float[hitboxTextureCoords.size()];
+
+            for (int i = 0; i < hitboxCoords.size(); i++)
+                hitboxCoordsArray[i] = hitboxCoords.get(i);
+            for (int i = 0; i < hitboxColors.size(); i++)
+                hitboxColorsArray[i] = hitboxColors.get(i);
+            for (int i = 0; i < hitboxTextureCoords.size(); i++)
+                hitboxTextureCoordsArray[i] = hitboxTextureCoords.get(i);
+
+            renderTriangles(hitboxCoordsArray, hitboxColorsArray, hitboxTextureCoordsArray, whiteSquareHandle);
+        }//render entity hitboxes
+
+        GLES20.glUniformMatrix4fv(vPMatrixHandle, 1, false, GuiVPMatrix, 0);
+
+        {
+            float[] jumpButtonUpperTriangle = new float[]{
+                    -0.8f, 0.4f - ratio, -1,
+                    -0.6f, 0.2f - ratio, -1,
+                    -0.6f, 0.4f - ratio, -1,
             };
-            float[] textureCoords = new float[]{
+            float[] whiteTriangleColor = new float[]{
+                    1.0f, 1.0f, 1.0f, 0.50f,
+                    1.0f, 1.0f, 1.0f, 0.50f,
+                    1.0f, 1.0f, 1.0f, 0.50f
+            };
+            float[] defaultTextureCoords = new float[]{
+                    0.0f, 0.0f,
+                    0.0f, 1.0f,
+                    1.0f, 1.0f
+            };
+            float[] jumpButtonLowerTriangle = new float[]{
+                    -0.8f, 0.4f - ratio, -1,
+                    -0.8f, 0.2f - ratio, -1,
+                    -0.6f, 0.2f - ratio, -1,
+            };
+            float[] sneakButtonCoords = new float[]{
+                    0.8f, 0.3f - ratio, -1,
+                    0.7f, 0.3f - ratio, -1,
+                    0.7f, 0.2f - ratio, -1,
+            };
+            float[] crosshairCoords = new float[]{
+                    -0.1f, 0.1f, -1,
+                    -0.1f, -0.1f, -1,
+                    0.1f, -0.1f, -1,
+                    -0.1f, 0.1f, -1,
+                    0.1f, -0.1f, -1,
+                    0.1f, 0.1f, -1
+            };
+            float[] crosshairColors = new float[]{
+                    1, 1, 1, 0.5f,
+                    1, 1, 1, 0.5f,
+                    1, 1, 1, 0.5f,
+                    1, 1, 1, 0.5f,
+                    1, 1, 1, 0.5f,
+                    1, 1, 1, 0.5f
+            };
+            float[] crosshairTextureCoords = new float[]{
                     0, 0,
                     0, 1,
                     1, 1,
@@ -306,162 +338,67 @@ public class YourRenderer implements GLSurfaceView.Renderer {
                     1, 1,
                     1, 0
             };
+            float[] hotbarCoords = new float[]{
+                    -0.9f, 0.2f - ratio, -1,
+                    -0.9f, -ratio, -1,
+                    0.9f, -ratio, -1,
+                    -0.9f, 0.2f - ratio, -1,
+                    0.9f, -ratio, -1,
+                    0.9f, 0.2f - ratio, -1
+            };
+            float[] hotbarColors = new float[]{
+                    1, 1, 1, 1,
+                    1, 1, 1, 1,
+                    1, 1, 1, 1,
+                    1, 1, 1, 1,
+                    1, 1, 1, 1,
+                    1, 1, 1, 1
+            };
+            float[] hotbarTextureCoords = new float[]{
+                    1.0f / 256, 1.0f / 256,
+                    1.0f / 256, 21.0f / 256,
+                    181.0f / 256, 21.0f / 256,
+                    1.0f / 256, 1.0f / 256,
+                    181.0f / 256, 21.0f / 256,
+                    181.0f / 256, 1.0f / 256,
+            };
+            int hotbarHandle = OpenGLUtils.loadTexture(context, R.drawable.widgets);
+            int crosshairHandle = OpenGLUtils.loadTexture(context, R.drawable.icons);
+            renderTriangles(jumpButtonLowerTriangle, whiteTriangleColor, defaultTextureCoords, whiteSquareHandle);
+            renderTriangles(jumpButtonUpperTriangle, whiteTriangleColor, defaultTextureCoords, whiteSquareHandle);
+            renderTriangles(sneakButtonCoords, whiteTriangleColor, defaultTextureCoords, whiteSquareHandle);
+            renderTriangles(crosshairCoords, crosshairColors, crosshairTextureCoords, crosshairHandle);
+            renderTriangles(hotbarCoords, hotbarColors, hotbarTextureCoords, hotbarHandle);
+        }//render GUI
 
-            GLES20.glClear(GLES20.GL_DEPTH_BUFFER_BIT);
-            renderTriangles(targetCoords, colors, textureCoords, R.drawable.white_square);
+        GLES20.glDepthMask(true);
+
+        //Render an item in the middle of the screen for testing purposes
+        ItemModel testItem = ItemModel.getItemModel(context, (short) 264, (byte) 0);
+        float[] itemCoords = Arrays.copyOf(testItem.coords, testItem.coords.length);
+        for (int i = 0; i < itemCoords.length; i += 3) {
+            itemCoords[i] = itemCoords[i];
+            itemCoords[i + 1] = itemCoords[i + 1] * ratio;
+            itemCoords[i + 2] = -1;
         }
+        float[] itemColors = testItem.colors;
+        float[] itemTextureCoords = testItem.textureCoords;
+        renderTriangles(itemCoords, itemColors, itemTextureCoords, TextureAtlas.atlases.get("items").textureHandle);
 
-
-        //Entity.entityChunks.keySet().forEach(System.out::println);
-        //render entity hitboxes
-        List<Float> hitboxCoords = new ArrayList<>();
-        List<Float> hitboxColors = new ArrayList<>();
-        List<Float> hitboxTextureCoords = new ArrayList<>();
-        synchronized ("entity") {
-            long x = (long) PacketUtils.x / 8;
-            long z = (long) PacketUtils.z / 8;
-            long y = (long) PacketUtils.y / 8;
-            for (int dx = -1; dx <= 1; dx++) {
-                for (int dz = -1; dz <= 1; dz++) {
-                    for (int dy = -1; dy <= 1; dy++) {
-                        long entityChunkPos = ((x + dx) << 35) | ((z + dz) << 6) | (y + dy);
-                        List<Entity> entities = Entity.entityChunks.get(entityChunkPos);
-                        if (entities == null) continue;
-                        for (Entity v : entities) {
-                            float[] hitbox = v.getHitbox();
-                            if (hitbox == null) continue;
-                            float[][] rectangularPrism = SlotRenderer.getRectangularPrism(new float[]{hitbox[0], hitbox[1], hitbox[2]}, new float[]{hitbox[3], hitbox[4], hitbox[5]});
-                            float[] coords = new float[6 * 6 * 3 * 3];
-                            for (int i = 0; i < rectangularPrism.length; i++) {
-                                float[] rect = Square.fourCoordsToSix(rectangularPrism[i]);
-                                System.arraycopy(rect, 0, coords, i * 18, 18);
-                            }
-                            float[] colors = new float[6 * 6 * 3 * 4];
-                            for (int i = 0; i < 6 * 6 * 3 * 4; i += 4) {
-                                colors[i] = 0.5f;
-                                colors[i + 1] = 0.5f;
-                                colors[i + 2] = 1;
-                                colors[i + 3] = 0.5f;
-                                if (v == PacketUtils.targetEntity) {
-                                    colors[i] = 1;
-                                    colors[i + 1] = 0.25f;
-                                    colors[i + 2] = 0.25f;
-                                    colors[i + 3] = 0.5f;
-                                }
-                            }
-                            float[] textureCoords = new float[6 * 6 * 3 * 2];
-
-                            for (float f : coords) {
-                                hitboxCoords.add(f);
-                            }
-
-                            for (float f : colors) {
-                                hitboxColors.add(f);
-                            }
-
-                            for (float f : textureCoords) {
-                                hitboxTextureCoords.add(f);
-                            }
-                        }
-
-                    }
-                }
+        {
+            if (System.nanoTime() - startTime > 1000000000) {
+                Log.v("number of entities", "entities: " + Entity.entityChunks.values().stream().mapToInt(List::size).sum());
+                Log.d("FPS", "fps: " + frames);
+                fps = frames;
+                frames = 0;
+                startTime = System.nanoTime();
+            } else {
+                frames++;
             }
-        }
-
-        float[] hitboxCoordsArray = new float[hitboxCoords.size()];
-        float[] hitboxColorsArray = new float[hitboxColors.size()];
-        float[] hitboxTextureCoordsArray = new float[hitboxTextureCoords.size()];
-
-        for (int i = 0; i < hitboxCoords.size(); i++) hitboxCoordsArray[i] = hitboxCoords.get(i);
-        for (int i = 0; i < hitboxColors.size(); i++) hitboxColorsArray[i] = hitboxColors.get(i);
-        for (int i = 0; i < hitboxTextureCoords.size(); i++)
-            hitboxTextureCoordsArray[i] = hitboxTextureCoords.get(i);
-
-        renderTriangles(hitboxCoordsArray, hitboxColorsArray, hitboxTextureCoordsArray, R.drawable.white_square);
-
-        GLES20.glUniformMatrix4fv(vPMatrixHandle, 1, false, scratch2, 0);
-        //System.out.println("ratio: " + ratio);//0.625
-
-        //tringul is a triangle with coords of 3 vertices of a triangle in 3d space and tringul2 is a color of each vertex and tringul3 is texture coords
-        //complete the tringul to make a square
-        float[] tringul = new float[]{
-                -0.8f, 0.4f - ratio, -1,
-                -0.6f, 0.2f - ratio, -1,
-                -0.6f, 0.4f - ratio, -1,
-        };
-        float[] tringul2 = new float[]{
-                1.0f, 1.0f, 1.0f, 0.50f,
-                1.0f, 1.0f, 1.0f, 0.50f,
-                1.0f, 1.0f, 1.0f, 0.50f
-        }; //color of each vertex
-        float[] tringul3 = new float[]{
-                0.0f, 0.0f,
-                0.0f, 1.0f,
-                1.0f, 1.0f
-        }; //texture coords
-        //second triangle to complete the square
-        float[] tringul4 = new float[]{
-                -0.8f, 0.4f - ratio, -1,
-                -0.8f, 0.2f - ratio, -1,
-                -0.6f, 0.2f - ratio, -1,
-        };//coords of 3 vertices of a triangle in 3d space
-
-        //triangle in bottom right corner
-        float[] tringul5 = new float[]{
-                0.8f, 0.3f - ratio, -1,
-                0.7f, 0.3f - ratio, -1,
-                0.7f, 0.2f - ratio, -1,
-        }; //coords of 3 vertices of a triangle in 3d space
-
-        float[] crosshairCoords = new float[]{
-                -0.1f, 0.1f, -1,
-                -0.1f, -0.1f, -1,
-                0.1f, -0.1f, -1,
-                -0.1f, 0.1f, -1,
-                0.1f, -0.1f, -1,
-                0.1f, 0.1f, -1
-        };
-
-        float[] crosshairColors = new float[]{
-                1, 1, 1, 0.5f,
-                1, 1, 1, 0.5f,
-                1, 1, 1, 0.5f,
-                1, 1, 1, 0.5f,
-                1, 1, 1, 0.5f,
-                1, 1, 1, 0.5f
-        };
-
-        float[] crosshairTextureCoords = new float[]{
-                0, 0,
-                0, 1,
-                1, 1,
-                0, 0,
-                1, 1,
-                1, 0
-        };
-
-        //WHY?? code crashes when there are no blocks in screen without this code(texture coords)
-        //but works fine otherwise
-        // I guess it used texture coords of the previous triangle and crashed when there is none
-
-        renderTriangles(tringul4, tringul2, tringul3, R.drawable.white_square);
-        renderTriangles(tringul, tringul2, tringul3, R.drawable.white_square);
-        renderTriangles(tringul5, tringul2, tringul3, R.drawable.white_square);
-        renderTriangles(crosshairCoords, crosshairColors, crosshairTextureCoords, R.drawable.icons);
-
-        if (System.nanoTime() - startTime > 1000000000) {
-            Log.v("number of entities", "entities: " + Entity.entityChunks.values().stream().mapToInt(List::size).sum());
-            Log.d("FPS", "fps: " + frames);
-            fps = frames;
-            frames = 0;
-            startTime = System.nanoTime();
-        } else {
-            frames++;
-        }
+        } //FPS logging
     }
 
-    private void renderTriangles(float[] targetCoords, float[] colors, float[] textureCoords, int resId) {
+    private void renderTriangles(float[] targetCoords, float[] colors, float[] textureCoords, int textureHandle) {
         FloatBuffer targetCoordsBuffer = ByteBuffer.allocateDirect(targetCoords.length * 4).order(ByteOrder.nativeOrder()).asFloatBuffer();
         targetCoordsBuffer.put(targetCoords).position(0);
 
@@ -476,7 +413,7 @@ public class YourRenderer implements GLSurfaceView.Renderer {
         GLES20.glEnableVertexAttribArray(YourRenderer.positionHandle);
         GLES20.glVertexAttribPointer(YourRenderer.positionHandle, 3, GLES20.GL_FLOAT, false, 0, targetCoordsBuffer);
 
-        GLES20.glBindTexture(GLES20.GL_TEXTURE_2D, loadTexture(context, resId));
+        GLES20.glBindTexture(GLES20.GL_TEXTURE_2D, textureHandle);
 
         GLES20.glEnableVertexAttribArray(YourRenderer.mTextureCoordinateHandle);
         GLES20.glVertexAttribPointer(YourRenderer.mTextureCoordinateHandle, 2, GLES20.GL_FLOAT, false, 0, textureCoordsBuffer);
@@ -487,10 +424,10 @@ public class YourRenderer implements GLSurfaceView.Renderer {
     private void renderAtlas(TextureAtlas atlas) {
         GLES20.glBindTexture(GLES20.GL_TEXTURE_2D, atlas.textureHandle);
 
-        rendsera(atlas.buffers, atlas.squareCount);
+        renderBuffers(atlas.buffers, atlas.squareCount);
     }
 
-    private void rendsera(int[] buffers, int squareCount) {
+    private void renderBuffers(int[] buffers, int squareCount) {
 
         GLES20.glBindBuffer(GLES20.GL_ARRAY_BUFFER, buffers[0]);
         GLES20.glEnableVertexAttribArray(YourRenderer.positionHandle);

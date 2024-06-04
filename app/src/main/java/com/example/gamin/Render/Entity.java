@@ -23,6 +23,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 
+//FIXME entity and tile entities are broken rn
 public class Entity {
     public static final Map<Integer, Entity> entities = new HashMap<>();
     public static final Map<Long, List<Entity>> entityChunks = new HashMap<>();
@@ -198,13 +199,13 @@ public class Entity {
 
 
             }
-            List<Square> modelSquares = TileEntity.readJemModel(context, model, texture, angle);
-            models.put(id, modelSquares);
+            //List<Square> modelSquares = TileEntity.readJemModel(context, model, texture, angle);
+            //models.put(id, modelSquares);
         }
 
         hitbox = getEntityHitbox(id);
 
-        squares = models.get(id);
+        /*squares = models.get(id);
         assert squares != null;
 
         try {
@@ -223,7 +224,7 @@ public class Entity {
             } else {
                 Objects.requireNonNull(entityChunks.get(pos)).add(this);
             }
-        }
+        }*/
     }
 
     public static void loadEntities(Context context) throws IOException, JSONException {

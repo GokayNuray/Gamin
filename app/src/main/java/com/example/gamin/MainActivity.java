@@ -1,13 +1,13 @@
 package com.example.gamin;
 
 import android.annotation.SuppressLint;
+import android.content.pm.ActivityInfo;
 import android.opengl.GLSurfaceView;
 import android.os.Bundle;
 import android.os.StrictMode;
 import android.text.method.ScrollingMovementMethod;
 import android.view.KeyEvent;
 import android.view.MotionEvent;
-import android.view.View;
 import android.webkit.WebView;
 import android.widget.Button;
 import android.widget.EditText;
@@ -21,10 +21,10 @@ import androidx.appcompat.app.AppCompatActivity;
 import com.example.gamin.Minecraft.Inventory;
 import com.example.gamin.Minecraft.Slot;
 import com.example.gamin.Render.Entity;
+import com.example.gamin.Render.OpenGLUtils;
 import com.example.gamin.Render.YourRenderer;
 import com.example.gamin.Utils.BrokenHash;
 import com.example.gamin.Utils.Collision;
-import com.example.gamin.Utils.InventoryUtils;
 import com.example.gamin.Utils.PacketUtils;
 import com.example.gamin.Utils.VarInt;
 import com.example.gamin.Utils.mslogin;
@@ -112,7 +112,7 @@ public class MainActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         StrictMode.setVmPolicy(new StrictMode.VmPolicy.Builder().detectLeakedClosableObjects().penaltyLog().build());
         try {
-            YourRenderer.loadTextures(getApplicationContext());
+            OpenGLUtils.loadTextures(getApplicationContext());
             Slot.loadAssetData(getApplicationContext());
             Collision.loadCollisionData(getApplicationContext());
             Entity.loadEntities(getApplicationContext());
@@ -122,13 +122,13 @@ public class MainActivity extends AppCompatActivity {
 
         setContentView(R.layout.activity_main);
 
-        TextView loginCheck = findViewById(R.id.textView);
-        EditText ipField = findViewById(R.id.editTextTextPersonName);
+        TextView loginCheck = findViewById(R.id.tokenStatus);
+        EditText ipField = findViewById(R.id.ipField);
         File ipFile = new File(getFilesDir() + "/ip.txt");
         @SuppressLint("UseSwitchCompatOrMaterialCode") Switch switch2 = findViewById(R.id.switch2);
-        EditText nameField = findViewById(R.id.editTextText);
-        Button playButton = findViewById(R.id.button);
-        Button loginButton = findViewById(R.id.button2);
+        EditText nameField = findViewById(R.id.nameField);
+        Button playButton = findViewById(R.id.playButton);
+        Button loginButton = findViewById(R.id.loginButton);
 
         if (ipFile.exists()) {
             try {
@@ -191,6 +191,7 @@ public class MainActivity extends AppCompatActivity {
             e.printStackTrace();
         }
         playButton.setOnClickListener(view -> {
+            setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_SENSOR_LANDSCAPE);
 
             try {
                 FileWriter fileWriter = new FileWriter(ipFile);
@@ -201,21 +202,21 @@ public class MainActivity extends AppCompatActivity {
             }
 
             setContentView(R.layout.gaming_sayfasi);
-            imageButtons = new ImageButton[90];
+            /*imageButtons = new ImageButton[90];
             for (int i = 0; i < 90; i++) {
                 imageButtons[i] = findViewById(getResources().getIdentifier("imageButton" + (i + 1), "id", getPackageName()));
-            }
-            View[] layouts = {
+            }*/
+            /*View[] layouts = {
                     findViewById(R.id.chatBox), findViewById(R.id.inventory), findViewById(R.id.window)
-            };
+            };*/
 
-            chatMessages = findViewById(R.id.textView4);
+            chatMessages = findViewById(R.id.chatMessages);
             chatMessages.setMovementMethod(new ScrollingMovementMethod());
 
-            Button otizm = findViewById(R.id.button22);
+            //Button otizm = findViewById(R.id.button22);
 
 
-            glSurfaceView = findViewById(R.id.glView2);
+            glSurfaceView = findViewById(R.id.glView);
             glSurfaceView.setEGLContextClientVersion(2);
             renderer = new YourRenderer(getApplicationContext());
             glSurfaceView.setRenderer(renderer);
@@ -292,7 +293,7 @@ public class MainActivity extends AppCompatActivity {
             });
 
 
-            otizm.setOnClickListener(view13 -> {
+            /*otizm.setOnClickListener(view13 -> {
                 otizmi++;
                 if (otizmi % 2 == 1) {
                     //InventoryUtils.drawButton(glSurfaceView,renderer,"blaze_rod",findViewById(R.id.imageButton90))
@@ -307,13 +308,13 @@ public class MainActivity extends AppCompatActivity {
                     InventoryUtils.resizeInventory(layouts[1], 0);
                     InventoryUtils.resizeInventory(layouts[2], 0);
                 }
-            });
+            });*/
 
             Thread thread = new Thread(() -> eskimain(String.valueOf(ipField.getText()), String.valueOf(nameField.getText()), switch2.isChecked()));
             thread.start();
 
-            Button sendMessage = findViewById(R.id.button6);
-            EditText messageField = findViewById(R.id.editTextTextPersonName3);
+            Button sendMessage = findViewById(R.id.sendMessage);
+            EditText messageField = findViewById(R.id.ChatField);
             sendMessage.setOnClickListener(view12 -> {
                 System.out.println("mesaj gidiyır");
                 List<Byte> mesaj = new ArrayList<>();
@@ -352,7 +353,7 @@ public class MainActivity extends AppCompatActivity {
             System.out.println("sa");
             PacketUtils.write((byte) 0, handshake, false);
 
-            try {
+            try {//FIXME I think I should wait for the server to respond before sending the login packet instead of sleeping
                 Thread.sleep(10);
             } catch (InterruptedException e) {
                 throw new RuntimeException(e);
@@ -625,7 +626,7 @@ public class MainActivity extends AppCompatActivity {
 
     @Override
     public boolean onKeyDown(int keyCode, KeyEvent event) {
-        
+
 
         return super.onKeyDown(keyCode, event);
     }

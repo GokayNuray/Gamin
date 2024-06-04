@@ -7,8 +7,6 @@ import android.util.Log;
 import android.widget.ImageButton;
 import android.widget.TextView;
 
-import androidx.appcompat.app.AppCompatActivity;
-
 import com.example.gamin.Minecraft.Chunk;
 import com.example.gamin.Minecraft.Inventory;
 import com.example.gamin.Minecraft.Slot;
@@ -29,7 +27,7 @@ import java.util.Arrays;
 import java.util.List;
 
 @SuppressWarnings({"ResultOfMethodCallIgnored"})
-public final class PacketUtils extends AppCompatActivity {
+public final class PacketUtils {
     public static OutputStream os;
     public static OutputStream ecos;
     public static boolean isPremium;
@@ -203,7 +201,7 @@ public final class PacketUtils extends AppCompatActivity {
         }
     }
 
-    public static void write(byte packetid, List<Byte> data, Boolean isEncrypted) {
+    public static synchronized void write(byte packetid, List<Byte> data, Boolean isEncrypted) {
         List<Byte> gerceklist = new ArrayList<>();
 
         if (isEncrypted) {
@@ -244,7 +242,7 @@ public final class PacketUtils extends AppCompatActivity {
     }
 
 
-    public static void read(GLSurfaceView glSurfaceView, YourRenderer renderer, ImageButton[] imageButtons, TextView textView, byte id, byte[] data) throws IOException {
+    public static synchronized void read(GLSurfaceView glSurfaceView, YourRenderer renderer, ImageButton[] imageButtons, TextView textView, byte id, byte[] data) throws IOException {
         switch (id) {
             case 0x00://keepAlive
                 System.out.println("hala yaşıyoruz");

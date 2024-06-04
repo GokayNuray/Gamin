@@ -1,27 +1,14 @@
 package com.example.gamin.Render;
 
-import android.content.Context;
-import android.util.Log;
-
-import org.json.JSONArray;
-import org.json.JSONException;
-import org.json.JSONObject;
-
-import java.io.IOException;
-import java.io.InputStream;
-import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.HashMap;
 import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
 import java.util.Set;
 
 public class TileEntity {
 
     //banners, chests, signs, skulls, and mob heads
     public static final Set<Integer> tileEntityIds = new HashSet<>(Arrays.asList(176, 177, 54, 130, 146, 63, 68, 144));
-    private static final Map<String, List<Square>> models = new HashMap<>();
+    /*private static final Map<String, List<Square>> models = new HashMap<>();
     public SlotRenderer slotRenderer;
 
     public TileEntity(Context context, int id, int metadata, int x, int y, int z) {
@@ -160,6 +147,6 @@ public class TileEntity {
             Log.e("TileEntity", "Error reading model" + model);
             throw new RuntimeException(e);
         }
-    }
+    }*/
 
 }

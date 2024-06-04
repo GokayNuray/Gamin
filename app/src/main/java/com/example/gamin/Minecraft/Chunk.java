@@ -3,8 +3,8 @@ package com.example.gamin.Minecraft;
 import android.content.Context;
 import android.util.Log;
 
+import com.example.gamin.Render.BlockModel;
 import com.example.gamin.Render.Entity;
-import com.example.gamin.Render.SlotRenderer;
 import com.example.gamin.Render.TextureAtlas;
 import com.example.gamin.Render.TileEntity;
 
@@ -24,7 +24,7 @@ public class Chunk {
     public final Map<TextureAtlas, FloatBuffer> colorsBuffers = new HashMap<>();
     public final Map<TextureAtlas, FloatBuffer> texturesBuffers = new HashMap<>();
     public final Map<Integer, Entity> entities = new HashMap<>();
-    private final SlotRenderer[] renders = new SlotRenderer[16 * 16 * 16];
+    private final BlockModel[] models = new BlockModel[16 * 16 * 16];
     private final Map<Integer, TileEntity> tileEntities = new HashMap<>();
     private final Set<TextureAtlas> updatedAtlases = new HashSet<>();
     private final int chunkX;
@@ -92,31 +92,31 @@ public class Chunk {
                 chunk.tileEntities.remove(pos);
             } else {
                 if (TileEntity.tileEntityIds.contains(getBlockId(block) & 0xff)) {
-                    TileEntity tileEntity = new TileEntity(context, getBlockId(block), getBlockMetaData(block), x, y, z);
+                    /*TileEntity tileEntity = new TileEntity(context, getBlockId(block), getBlockMetaData(block), x, y, z);
                     chunk.tileEntities.put(pos, tileEntity);
-                    chunk.setRender(tileEntity.slotRenderer, pos);
+                    chunk.setRender(tileEntity.slotRenderer, pos);*/
                     return;
                 }
-                SlotRenderer render = SlotRenderer.getSlotRenderer(context, block, x, y, z);
-                chunk.setRender(render, pos);
+                BlockModel model = BlockModel.getBlockModel(context, block, x, y, z);
+                chunk.setRender(model, pos);
             }
         } else {
             Log.w("Chunk", "ChunkColumn is null");
         }
     }
 
-    private void setRender(SlotRenderer render, int pos) {
-        SlotRenderer oldRender = renders[pos];
-        updatedAtlases.add(render.atlas);
-        squares.put(render.atlas, squares.getOrDefault(render.atlas, 0) + render.squares.size() - (oldRender == null ? 0 : oldRender.squares.size()));
-        renders[pos] = render;
+    private void setRender(BlockModel model, int pos) {
+        BlockModel oldRender = models[pos];
+        updatedAtlases.add(model.textureAtlas);
+        squares.put(model.textureAtlas, squares.getOrDefault(model.textureAtlas, 0) + model.squares.size() - (oldRender == null ? 0 : oldRender.squares.size()));
+        models[pos] = model;
         isChanged = true;
     }
 
     private void removeRender(int pos) {
-        updatedAtlases.add(renders[pos].atlas);
-        squares.put(renders[pos].atlas, squares.getOrDefault(renders[pos].atlas, 0) - renders[pos].squares.size());
-        renders[pos] = null;
+        updatedAtlases.add(models[pos].textureAtlas);
+        squares.put(models[pos].textureAtlas, squares.getOrDefault(models[pos].textureAtlas, 0) - models[pos].squares.size());
+        models[pos] = null;
         isChanged = true;
     }
 
@@ -138,28 +138,28 @@ public class Chunk {
         int x = chunkX * 16;
         int y = chunkY * 16;
         int z = chunkZ * 16;
-        for (int i = 0; i < renders.length; i++) {
-            SlotRenderer render = renders[i];
-            if (render == null) continue;
-            if (!updatedAtlases.contains(render.atlas)) continue;
+        for (int i = 0; i < models.length; i++) {
+            BlockModel model = models[i];
+            if (model == null) continue;
+            if (!updatedAtlases.contains(model.textureAtlas)) continue;
 
-            FloatBuffer coordsBuffer = coordsBuffers.get(render.atlas);
-            FloatBuffer colorsBuffer = colorsBuffers.get(render.atlas);
-            FloatBuffer texturesBuffer = texturesBuffers.get(render.atlas);
+            FloatBuffer coordsBuffer = coordsBuffers.get(model.textureAtlas);
+            FloatBuffer colorsBuffer = colorsBuffers.get(model.textureAtlas);
+            FloatBuffer texturesBuffer = texturesBuffers.get(model.textureAtlas);
             if (coordsBuffer == null || colorsBuffer == null || texturesBuffer == null) {
                 Log.w("Chunk", "coordsBuffer, colorsBuffer or texturesBuffer is null");
                 continue;
             }
-            colorsBuffer.put(render.colors);
-            texturesBuffer.put(render.textureCoords);
+            colorsBuffer.put(model.colors);
+            texturesBuffer.put(model.textureCoords);
             //add block coordinates to coordsBuffer
             int blockX = x + i % 16;
             int blockY = y + i / 256;
             int blockZ = z + (i / 16) % 16;
-            for (int j = 0; j < render.coords.length; j += 3) {
-                coordsBuffer.put(render.coords[j] + blockX);
-                coordsBuffer.put(render.coords[j + 1] + blockY);
-                coordsBuffer.put(render.coords[j + 2] + blockZ);
+            for (int j = 0; j < model.coords.length; j += 3) {
+                coordsBuffer.put(model.coords[j] + blockX);
+                coordsBuffer.put(model.coords[j + 1] + blockY);
+                coordsBuffer.put(model.coords[j + 2] + blockZ);
             }
         }
         for (TextureAtlas atlas : updatedAtlases) {
@@ -178,8 +178,8 @@ public class Chunk {
     }
 
     /*public void update(short chunkY, short blockX, short blockY, short blockZ) {
-        SlotRenderer render = renders.get((chunkY << 12) | (blockX << 8) | (blockY << 4) | blockZ);
-        SlotRenderer newRender = render.update();
+        BlockModel model = models.get((chunkY << 12) | (blockX << 8) | (blockY << 4) | blockZ);
+        BlockModel newRender = model.update();
         if (newRender != null) setRender(newRender, chunkY, blockX, blockY, blockZ);
     }*/
 
@@ -201,9 +201,9 @@ public class Chunk {
                                     setRender(tileEntity.slotRenderer, chunkY, blockX, blockY, blockZ);
                                     continue;
                                 }
-                                SlotRenderer render = new SlotRenderer(context, getBlockId(block), getBlockMetaData(block), 1, chunkX * 16 + blockX, chunkY * 16 + blockY, chunkZ * 16 + blockZ);
-                                //replaceSquares(null, render);
-                                renders.put((chunkY << 12) | (blockX << 8) | (blockY << 4) | blockZ, render);
+                                BlockModel model = new BlockModel(context, getBlockId(block), getBlockMetaData(block), 1, chunkX * 16 + blockX, chunkY * 16 + blockY, chunkZ * 16 + blockZ);
+                                //replaceSquares(null, model);
+                                models.put((chunkY << 12) | (blockX << 8) | (blockY << 4) | blockZ, model);
                             } catch (Exception e) {
                                 e.printStackTrace();
                             }
@@ -218,20 +218,20 @@ public class Chunk {
             if (getBlockId(block) == 0) continue;
             try {
                 if (TileEntity.tileEntityIds.contains(getBlockId(block) & 0xff)) {
-                    TileEntity tileEntity = new TileEntity(context, getBlockId(block), getBlockMetaData(block), chunkX * 16 + i % 16, chunkY * 16 + i / 256, chunkZ * 16 + (i / 16) % 16);
+                    /*TileEntity tileEntity = new TileEntity(context, getBlockId(block), getBlockMetaData(block), chunkX * 16 + i % 16, chunkY * 16 + i / 256, chunkZ * 16 + (i / 16) % 16);
                     tileEntities.put((int) i, tileEntity);
-                    setRender(tileEntity.slotRenderer, i);
+                    setRender(tileEntity.slotRenderer, i);*/
                     continue;
                 }
-                SlotRenderer render = SlotRenderer.getSlotRenderer(context, block, chunkX * 16 + i % 16, chunkY * 16 + i / 256, chunkZ * 16 + (i / 16) % 16);
-                //replaceSquares(null, render);
-                assert render != null : "render is null";
-                setRender(render, i);
+                BlockModel model = BlockModel.getBlockModel(context, block, chunkX * 16 + i % 16, chunkY * 16 + i / 256, chunkZ * 16 + (i / 16) % 16);
+                //replaceSquares(null, model);
+                assert model != null : "model is null";
+                setRender(model, i);
             } catch (Exception e) {
                 e.printStackTrace();
             }
         }
-        //Log.v("Chunk", "setting renders took " + (System.currentTimeMillis() - time) + "ms");
+        //Log.v("Chunk", "setting models took " + (System.currentTimeMillis() - time) + "ms");
         /*
         for (short chunkY = 0; chunkY < 16; chunkY++) {
             if ((bitmask & (1 << chunkY)) != 0) {
@@ -240,16 +240,16 @@ public class Chunk {
                         for (short blockY = 0; blockY < 16; blockY++) {
                             short block = chunks[chunkY][blockY * 256 + blockZ * 16 + blockX];
                             if (getBlockId(block) == 0) continue;
-                            SlotRenderer render = renders.get((chunkY << 12) | (blockX << 8) | (blockY << 4) | blockZ);
+                            BlockModel model = models.get((chunkY << 12) | (blockX << 8) | (blockY << 4) | blockZ);
 
-                            //find adjacent block shapes and call SlotRenderer.removeBlockedFaces() to remove faces that are blocked by adjacent blocks
-                            //this is done to prevent rendering faces that are not visible
+                            //find adjacent block shapes and call BlockModel.removeBlockedFaces() to remove faces that are blocked by adjacent blocks
+                            //this is done to prevent modeling faces that are not visible
 
                             byte[] adjacentBlockShapes = new byte[6];
-                            //find adjacent renders and get their block shapes
+                            //find adjacent models and get their block shapes
 
                             if (blockX > 0) {
-                                SlotRenderer adjacentRender = renders.get((chunkY << 12) | ((blockX - 1) << 8) | (blockY << 4) | blockZ);
+                                BlockModel adjacentRender = models.get((chunkY << 12) | ((blockX - 1) << 8) | (blockY << 4) | blockZ);
                                 if (adjacentRender != null) {
                                     adjacentBlockShapes[0] = adjacentRender.shape;
                                 } else {
@@ -261,7 +261,7 @@ public class Chunk {
                             }
 
                             if (blockX < 15) {
-                                SlotRenderer adjacentRender = renders.get((chunkY << 12) | ((blockX + 1) << 8) | (blockY << 4) | blockZ);
+                                BlockModel adjacentRender = models.get((chunkY << 12) | ((blockX + 1) << 8) | (blockY << 4) | blockZ);
                                 if (adjacentRender != null) {
                                     adjacentBlockShapes[1] = adjacentRender.shape;
                                 } else {
@@ -272,7 +272,7 @@ public class Chunk {
                             }
 
                             if (blockY > 0) {
-                                SlotRenderer adjacentRender = renders.get((chunkY << 12) | (blockX << 8) | ((blockY - 1) << 4) | blockZ);
+                                BlockModel adjacentRender = models.get((chunkY << 12) | (blockX << 8) | ((blockY - 1) << 4) | blockZ);
                                 if (adjacentRender != null) {
                                     adjacentBlockShapes[2] = adjacentRender.shape;
                                 } else {
@@ -283,7 +283,7 @@ public class Chunk {
                             }
 
                             if (blockY < 15) {
-                                SlotRenderer adjacentRender = renders.get((chunkY << 12) | (blockX << 8) | ((blockY + 1) << 4) | blockZ);
+                                BlockModel adjacentRender = models.get((chunkY << 12) | (blockX << 8) | ((blockY + 1) << 4) | blockZ);
                                 if (adjacentRender != null) {
                                     adjacentBlockShapes[3] = adjacentRender.shape;
                                 } else {
@@ -294,7 +294,7 @@ public class Chunk {
                             }
 
                             if (blockZ > 0) {
-                                SlotRenderer adjacentRender = renders.get((chunkY << 12) | (blockX << 8) | (blockY << 4) | (blockZ - 1));
+                                BlockModel adjacentRender = models.get((chunkY << 12) | (blockX << 8) | (blockY << 4) | (blockZ - 1));
                                 if (adjacentRender != null) {
                                     adjacentBlockShapes[4] = adjacentRender.shape;
                                 } else {
@@ -305,7 +305,7 @@ public class Chunk {
                             }
 
                             if (blockZ < 15) {
-                                SlotRenderer adjacentRender = renders.get((chunkY << 12) | (blockX << 8) | (blockY << 4) | (blockZ + 1));
+                                BlockModel adjacentRender = models.get((chunkY << 12) | (blockX << 8) | (blockY << 4) | (blockZ + 1));
                                 if (adjacentRender != null) {
                                     adjacentBlockShapes[5] = adjacentRender.shape;
                                 } else {
@@ -315,9 +315,9 @@ public class Chunk {
                                 adjacentBlockShapes[5] = -1;
                             }
 
-                            if (render != null) {
-                                render.removeBlockedFaces(adjacentBlockShapes);
-                                replaceSquares(null, render);
+                            if (model != null) {
+                                model.removeBlockedFaces(adjacentBlockShapes);
+                                replaceSquares(null, model);
                             }
                         }
                     }
@@ -330,16 +330,16 @@ public class Chunk {
         for (int i = 0; i < 16 * 16 * 16; i++) {
             short block = blocks[i];
             if (getBlockId(block) == 0) continue;
-            SlotRenderer render = renders[i];
+            BlockModel model = models[i];
 
-            //find adjacent block shapes and call SlotRenderer.removeBlockedFaces() to remove faces that are blocked by adjacent blocks
-            //this is done to prevent rendering faces that are not visible
+            //find adjacent block shapes and call BlockModel.removeBlockedFaces() to remove faces that are blocked by adjacent blocks
+            //this is done to prevent modeling faces that are not visible
 
             byte[] adjacentBlockShapes = new byte[6];
-            //find adjacent renders and get their block shapes
+            //find adjacent models and get their block shapes
 
             if (i % 16 > 0) {
-                SlotRenderer adjacentRender = renders[i - 1];
+                BlockModel adjacentRender = models[i - 1];
                 if (adjacentRender != null) {
                     adjacentBlockShapes[0] = adjacentRender.shape;
                 } else {
@@ -350,7 +350,7 @@ public class Chunk {
             }
 
             if (i % 16 < 15) {
-                SlotRenderer adjacentRender = renders[i + 1];
+                BlockModel adjacentRender = models[i + 1];
                 if (adjacentRender != null) {
                     adjacentBlockShapes[1] = adjacentRender.shape;
                 } else {
@@ -361,7 +361,7 @@ public class Chunk {
             }
 
             if (i / 256 > 0) {
-                SlotRenderer adjacentRender = renders[i - 256];
+                BlockModel adjacentRender = models[i - 256];
                 if (adjacentRender != null) {
                     adjacentBlockShapes[2] = adjacentRender.shape;
                 } else {
@@ -372,7 +372,7 @@ public class Chunk {
             }
 
             if (i / 256 < 15) {
-                SlotRenderer adjacentRender = renders[i + 256];
+                BlockModel adjacentRender = models[i + 256];
                 if (adjacentRender != null) {
                     adjacentBlockShapes[3] = adjacentRender.shape;
                 } else {
@@ -383,7 +383,7 @@ public class Chunk {
             }
 
             if ((i / 16) % 16 > 0) {
-                SlotRenderer adjacentRender = renders[i - 16];
+                BlockModel adjacentRender = models[i - 16];
                 if (adjacentRender != null) {
                     adjacentBlockShapes[4] = adjacentRender.shape;
                 } else {
@@ -394,7 +394,7 @@ public class Chunk {
             }
 
             if ((i / 16) % 16 < 15) {
-                SlotRenderer adjacentRender = renders[i + 16];
+                BlockModel adjacentRender = models[i + 16];
                 if (adjacentRender != null) {
                     adjacentBlockShapes[5] = adjacentRender.shape;
                 } else {
@@ -404,8 +404,8 @@ public class Chunk {
                 adjacentBlockShapes[5] = -1;
             }
 
-            if (render != null) {
-                setRender(render.removeBlockedFaces(adjacentBlockShapes), i);
+            if (model != null) {
+                setRender(model.removeBlockedFaces(adjacentBlockShapes), i);
             }
         }
         //Log.v("Chunk", "removing blocked faces took " + (System.currentTimeMillis() - time2) + "ms");
