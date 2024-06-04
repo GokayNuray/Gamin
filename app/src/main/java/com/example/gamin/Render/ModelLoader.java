@@ -105,6 +105,17 @@ public final class ModelLoader {
         List<Square> squares = new ArrayList<>();
         TextureAtlas atlas = loadFromPath(context, modelPath, squares);
 
+        for (Square square : squares) {
+            //rotate the model if it is a block
+            if (itemId >= 256) break;
+            square.rotate(20, 0, 0.5f, 0.5f, 0.5f);
+            square.rotate(-45, 1, 0.5f, 0.5f, 0.5f);
+            square.rotate(0, 2, 0.5f, 0.5f, 0.5f);
+            square.scale(0.75f, 0.75f, 0.75f);
+            square.translate(0, 0f, -2.75f);
+            square.splitCoords();
+        }
+
         return new ItemModel(squares, atlas);
     }
 

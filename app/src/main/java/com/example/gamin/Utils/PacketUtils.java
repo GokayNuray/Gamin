@@ -12,7 +12,7 @@ import com.example.gamin.Minecraft.Inventory;
 import com.example.gamin.Minecraft.Slot;
 import com.example.gamin.R;
 import com.example.gamin.Render.Entity;
-import com.example.gamin.Render.YourRenderer;
+import com.example.gamin.Render.GameRenderer;
 
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -242,7 +242,7 @@ public final class PacketUtils {
     }
 
 
-    public static synchronized void read(GLSurfaceView glSurfaceView, YourRenderer renderer, ImageButton[] imageButtons, TextView textView, byte id, byte[] data) throws IOException {
+    public static synchronized void read(GLSurfaceView glSurfaceView, GameRenderer renderer, ImageButton[] imageButtons, TextView textView, byte id, byte[] data) throws IOException {
         switch (id) {
             case 0x00://keepAlive
                 System.out.println("hala yaşıyoruz");

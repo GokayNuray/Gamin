@@ -21,8 +21,8 @@ import androidx.appcompat.app.AppCompatActivity;
 import com.example.gamin.Minecraft.Inventory;
 import com.example.gamin.Minecraft.Slot;
 import com.example.gamin.Render.Entity;
+import com.example.gamin.Render.GameRenderer;
 import com.example.gamin.Render.OpenGLUtils;
-import com.example.gamin.Render.YourRenderer;
 import com.example.gamin.Utils.BrokenHash;
 import com.example.gamin.Utils.Collision;
 import com.example.gamin.Utils.PacketUtils;
@@ -84,7 +84,7 @@ public class MainActivity extends AppCompatActivity {
     private TextView chatMessages;
     private ImageButton[] imageButtons;
     private GLSurfaceView glSurfaceView;
-    private YourRenderer renderer;
+    private GameRenderer renderer;
 
     private int otizmi = 0;
 
@@ -218,7 +218,7 @@ public class MainActivity extends AppCompatActivity {
 
             glSurfaceView = findViewById(R.id.glView);
             glSurfaceView.setEGLContextClientVersion(2);
-            renderer = new YourRenderer(getApplicationContext());
+            renderer = new GameRenderer(getApplicationContext());
             glSurfaceView.setRenderer(renderer);
             glSurfaceView.setRenderMode(GLSurfaceView.RENDERMODE_CONTINUOUSLY);
 
@@ -606,7 +606,7 @@ public class MainActivity extends AppCompatActivity {
                         runOnUiThread(() -> {
                             textViewX.setText("X:" + PacketUtils.x + " Yaw:" + PacketUtils.x_rot);
                             textViewY.setText("Y:" + PacketUtils.y + " Pitch:" + PacketUtils.y_rot);
-                            textViewZ.setText("Z:" + PacketUtils.z + " FPS:" + YourRenderer.fps);
+                            textViewZ.setText("Z:" + PacketUtils.z + " FPS:" + GameRenderer.fps);
                         });
 
                     }

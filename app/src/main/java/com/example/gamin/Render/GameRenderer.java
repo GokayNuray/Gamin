@@ -17,13 +17,12 @@ import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 import java.nio.FloatBuffer;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 
 import javax.microedition.khronos.egl.EGLConfig;
 import javax.microedition.khronos.opengles.GL10;
 
-public class YourRenderer implements GLSurfaceView.Renderer {
+public class GameRenderer implements GLSurfaceView.Renderer {
     public static int fps = 0;
     private static int mProgram;
     private static int vPMatrixHandle;
@@ -40,7 +39,7 @@ public class YourRenderer implements GLSurfaceView.Renderer {
     private int frames = 0;
     private float ratio;
 
-    public YourRenderer(Context context) {
+    public GameRenderer(Context context) {
         this.context = context;
     }
 
@@ -87,12 +86,12 @@ public class YourRenderer implements GLSurfaceView.Renderer {
 
         mProgram = OpenGLUtils.createAndLinkProgram(vertexShader, fragShader, new String[]{"a_Position", "a_Color", "a_TexCoordinate"});
 
-        GLES20.glUseProgram(YourRenderer.mProgram);
+        GLES20.glUseProgram(GameRenderer.mProgram);
 
-        vPMatrixHandle = GLES20.glGetUniformLocation(YourRenderer.mProgram, "u_MVPMatrix");
-        positionHandle = GLES20.glGetAttribLocation(YourRenderer.mProgram, "a_Position");
-        colorHandle = GLES20.glGetAttribLocation(YourRenderer.mProgram, "a_Color");
-        mTextureCoordinateHandle = GLES20.glGetAttribLocation(YourRenderer.mProgram, "a_TexCoordinate");
+        vPMatrixHandle = GLES20.glGetUniformLocation(GameRenderer.mProgram, "u_MVPMatrix");
+        positionHandle = GLES20.glGetAttribLocation(GameRenderer.mProgram, "a_Position");
+        colorHandle = GLES20.glGetAttribLocation(GameRenderer.mProgram, "a_Color");
+        mTextureCoordinateHandle = GLES20.glGetAttribLocation(GameRenderer.mProgram, "a_TexCoordinate");
 
         whiteSquareHandle = OpenGLUtils.loadTexture(context, R.drawable.white_square);
 
@@ -110,7 +109,7 @@ public class YourRenderer implements GLSurfaceView.Renderer {
 
         // this projection matrix is applied to object coordinates
         // in the onDrawFrame() method
-        Matrix.frustumM(GuiProjectionMatrix, 0, -1, 1, -ratio, ratio, 1, 2);
+        Matrix.orthoM(GuiProjectionMatrix, 0, -1, 1, -ratio, ratio, 1, 10);
         Matrix.perspectiveM(projectionMatrix, 0, 110, ratio, 0.15f, 64);
 
     }
@@ -133,7 +132,7 @@ public class YourRenderer implements GLSurfaceView.Renderer {
 
             // Calculate the projection and view transformation
             Matrix.multiplyMM(worldVPMatrix, 0, projectionMatrix, 0, viewMatrix, 0);
-            GLES20.glUniformMatrix4fv(YourRenderer.vPMatrixHandle, 1, false, worldVPMatrix, 0);
+            GLES20.glUniformMatrix4fv(GameRenderer.vPMatrixHandle, 1, false, worldVPMatrix, 0);
 
             // Create gui view matrix which is independent of the camera position
             Matrix.setLookAtM(GuiViewMatrix, 0, 0, 0, 0, 0, 0, -1, 0, 1, 0);
@@ -286,6 +285,7 @@ public class YourRenderer implements GLSurfaceView.Renderer {
             renderTriangles(hitboxCoordsArray, hitboxColorsArray, hitboxTextureCoordsArray, whiteSquareHandle);
         }//render entity hitboxes
 
+        float oneTestInventoryPixel;
         GLES20.glUniformMatrix4fv(vPMatrixHandle, 1, false, GuiVPMatrix, 0);
 
         {
@@ -362,28 +362,61 @@ public class YourRenderer implements GLSurfaceView.Renderer {
                     181.0f / 256, 21.0f / 256,
                     181.0f / 256, 1.0f / 256,
             };
+            float testInventoryHeight = ratio * 0.9f;
+            oneTestInventoryPixel = testInventoryHeight / 110;
+            float testInventoryWidth = oneTestInventoryPixel * 175 / 2;
+            float[] testInventoryCoords = new float[]{
+                    -testInventoryWidth, testInventoryHeight, -1,
+                    -testInventoryWidth, -testInventoryHeight, -1,
+                    testInventoryWidth, -testInventoryHeight, -1,
+                    -testInventoryWidth, testInventoryHeight, -1,
+                    testInventoryWidth, -testInventoryHeight, -1,
+                    testInventoryWidth, testInventoryHeight, -1
+            };
+            float[] testInventoryTextureCoords = new float[]{
+                    0.0f / 256, 0.0f / 256,
+                    0.0f / 256, 220.0f / 256,
+                    175.0f / 256, 220.0f / 256,
+                    0.0f / 256, 0.0f / 256,
+                    175.0f / 256, 220.0f / 256,
+                    175.0f / 256, 0.0f / 256,
+            };
             int hotbarHandle = OpenGLUtils.loadTexture(context, R.drawable.widgets);
             int crosshairHandle = OpenGLUtils.loadTexture(context, R.drawable.icons);
+            int testInventoryHandle = OpenGLUtils.loadTexture(context, R.drawable.generic_54);
             renderTriangles(jumpButtonLowerTriangle, whiteTriangleColor, defaultTextureCoords, whiteSquareHandle);
             renderTriangles(jumpButtonUpperTriangle, whiteTriangleColor, defaultTextureCoords, whiteSquareHandle);
             renderTriangles(sneakButtonCoords, whiteTriangleColor, defaultTextureCoords, whiteSquareHandle);
             renderTriangles(crosshairCoords, crosshairColors, crosshairTextureCoords, crosshairHandle);
             renderTriangles(hotbarCoords, hotbarColors, hotbarTextureCoords, hotbarHandle);
+            renderTriangles(testInventoryCoords, hotbarColors, testInventoryTextureCoords, testInventoryHandle);
         }//render GUI
 
         GLES20.glDepthMask(true);
 
         //Render an item in the middle of the screen for testing purposes
-        ItemModel testItem = ItemModel.getItemModel(context, (short) 264, (byte) 0);
-        float[] itemCoords = Arrays.copyOf(testItem.coords, testItem.coords.length);
-        for (int i = 0; i < itemCoords.length; i += 3) {
-            itemCoords[i] = itemCoords[i];
-            itemCoords[i + 1] = itemCoords[i + 1] * ratio;
-            itemCoords[i + 2] = -1;
-        }
+        ItemModel testItem = ItemModel.getItemModel(context, (short) 192, (byte) 0);
+        float startX = oneTestInventoryPixel * -80;
+        float startY = oneTestInventoryPixel * -13;
         float[] itemColors = testItem.colors;
         float[] itemTextureCoords = testItem.textureCoords;
-        renderTriangles(itemCoords, itemColors, itemTextureCoords, TextureAtlas.atlases.get("items").textureHandle);
+        for (int dx = 0; dx < 9; dx++) {
+            for (int dy = 0; dy < 6; dy++) {
+                float[] itemCoords = testItem.getCoordinatesInInventory(startX, startY, oneTestInventoryPixel, dx, dy);
+                renderTriangles(itemCoords, itemColors, itemTextureCoords, testItem.textureAtlas.textureHandle);
+            }
+        }
+
+        ItemModel testItem2 = ItemModel.getItemModel(context, (short) 264, (byte) 0);
+        float[] itemColors2 = testItem2.colors;
+        float[] itemTextureCoords2 = testItem2.textureCoords;
+        for (int dx = 4; dx < 5; dx++) {
+            for (int dy = 2; dy < 4; dy++) {
+                float[] itemCoords = testItem2.getCoordinatesInInventory(startX, startY, oneTestInventoryPixel, dx, dy);
+                renderTriangles(itemCoords, itemColors2, itemTextureCoords2, testItem2.textureAtlas.textureHandle);
+            }
+        }
+
 
         {
             if (System.nanoTime() - startTime > 1000000000) {
@@ -408,15 +441,15 @@ public class YourRenderer implements GLSurfaceView.Renderer {
         FloatBuffer textureCoordsBuffer = ByteBuffer.allocateDirect(textureCoords.length * 4).order(ByteOrder.nativeOrder()).asFloatBuffer();
         textureCoordsBuffer.put(textureCoords).position(0);
 
-        GLES20.glEnableVertexAttribArray(YourRenderer.colorHandle);
-        GLES20.glVertexAttribPointer(YourRenderer.colorHandle, 4, GLES20.GL_FLOAT, false, 0, colorsBuffer);
-        GLES20.glEnableVertexAttribArray(YourRenderer.positionHandle);
-        GLES20.glVertexAttribPointer(YourRenderer.positionHandle, 3, GLES20.GL_FLOAT, false, 0, targetCoordsBuffer);
+        GLES20.glEnableVertexAttribArray(GameRenderer.colorHandle);
+        GLES20.glVertexAttribPointer(GameRenderer.colorHandle, 4, GLES20.GL_FLOAT, false, 0, colorsBuffer);
+        GLES20.glEnableVertexAttribArray(GameRenderer.positionHandle);
+        GLES20.glVertexAttribPointer(GameRenderer.positionHandle, 3, GLES20.GL_FLOAT, false, 0, targetCoordsBuffer);
 
         GLES20.glBindTexture(GLES20.GL_TEXTURE_2D, textureHandle);
 
-        GLES20.glEnableVertexAttribArray(YourRenderer.mTextureCoordinateHandle);
-        GLES20.glVertexAttribPointer(YourRenderer.mTextureCoordinateHandle, 2, GLES20.GL_FLOAT, false, 0, textureCoordsBuffer);
+        GLES20.glEnableVertexAttribArray(GameRenderer.mTextureCoordinateHandle);
+        GLES20.glVertexAttribPointer(GameRenderer.mTextureCoordinateHandle, 2, GLES20.GL_FLOAT, false, 0, textureCoordsBuffer);
 
         GLES20.glDrawArrays(GLES20.GL_TRIANGLES, 0, targetCoords.length / 3);
     }
@@ -430,16 +463,16 @@ public class YourRenderer implements GLSurfaceView.Renderer {
     private void renderBuffers(int[] buffers, int squareCount) {
 
         GLES20.glBindBuffer(GLES20.GL_ARRAY_BUFFER, buffers[0]);
-        GLES20.glEnableVertexAttribArray(YourRenderer.positionHandle);
-        GLES20.glVertexAttribPointer(YourRenderer.positionHandle, 3, GLES20.GL_FLOAT, false, 0, 0);
+        GLES20.glEnableVertexAttribArray(GameRenderer.positionHandle);
+        GLES20.glVertexAttribPointer(GameRenderer.positionHandle, 3, GLES20.GL_FLOAT, false, 0, 0);
 
         GLES20.glBindBuffer(GLES20.GL_ARRAY_BUFFER, buffers[1]);
-        GLES20.glEnableVertexAttribArray(YourRenderer.colorHandle);
-        GLES20.glVertexAttribPointer(YourRenderer.colorHandle, 4, GLES20.GL_FLOAT, false, 0, 0);
+        GLES20.glEnableVertexAttribArray(GameRenderer.colorHandle);
+        GLES20.glVertexAttribPointer(GameRenderer.colorHandle, 4, GLES20.GL_FLOAT, false, 0, 0);
 
         GLES20.glBindBuffer(GLES20.GL_ARRAY_BUFFER, buffers[2]);
-        GLES20.glEnableVertexAttribArray(YourRenderer.mTextureCoordinateHandle);
-        GLES20.glVertexAttribPointer(YourRenderer.mTextureCoordinateHandle, 2, GLES20.GL_FLOAT, false, 0, 0);
+        GLES20.glEnableVertexAttribArray(GameRenderer.mTextureCoordinateHandle);
+        GLES20.glVertexAttribPointer(GameRenderer.mTextureCoordinateHandle, 2, GLES20.GL_FLOAT, false, 0, 0);
 
         GLES20.glBindBuffer(GLES20.GL_ARRAY_BUFFER, 0);
 

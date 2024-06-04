@@ -15,8 +15,8 @@ import java.util.Map;
  * @noinspection ResultOfMethodCallIgnored
  */
 public class Slot {
-    public static Map<Integer, JSONObject> blocksMap;
-    public static Map<Integer, JSONObject> itemsMap;
+    public static final Map<Integer, JSONObject> blocksMap = new HashMap<>();
+    public static final Map<Integer, JSONObject> itemsMap = new HashMap<>();
 
     private final byte count;
     private final byte damage;
@@ -86,8 +86,6 @@ public class Slot {
 
         is.close();
         is2.close();
-        blocksMap = new HashMap<>();
-        itemsMap = new HashMap<>();
         for (int i = 0; i < blocksJson.length(); i++) {
             JSONObject jsonObject = blocksJson.getJSONObject(i);
             blocksMap.put(jsonObject.getInt("id"), jsonObject);

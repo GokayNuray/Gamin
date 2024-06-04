@@ -7,13 +7,13 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageButton;
 
+import com.example.gamin.Render.GameRenderer;
 import com.example.gamin.Render.MyRenderer;
-import com.example.gamin.Render.YourRenderer;
 
 public final class InventoryUtils {
 
 
-    public static void drawButton(GLSurfaceView glSurfaceView, YourRenderer renderer, String name, ImageButton button) {
+    public static void drawButton(GLSurfaceView glSurfaceView, GameRenderer renderer, String name, ImageButton button) {
 
         //renderer.newSlot = name + ".json";
         glSurfaceView.requestRender();

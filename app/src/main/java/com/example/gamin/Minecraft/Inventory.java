@@ -3,7 +3,7 @@ package com.example.gamin.Minecraft;
 import android.opengl.GLSurfaceView;
 import android.widget.ImageButton;
 
-import com.example.gamin.Render.YourRenderer;
+import com.example.gamin.Render.GameRenderer;
 import com.example.gamin.Utils.InventoryUtils;
 
 import java.util.HashMap;
@@ -20,7 +20,7 @@ public class Inventory {
         inventoryMap.put(id, this);
     }
 
-    public void update(GLSurfaceView glSurfaceView, YourRenderer renderer, ImageButton[] imageButtons) {
+    public void update(GLSurfaceView glSurfaceView, GameRenderer renderer, ImageButton[] imageButtons) {
         if (name.equals("playerInventory")) {
             for (int i = 9; i < 45; i++) {
                 if (contents[i] != null) {

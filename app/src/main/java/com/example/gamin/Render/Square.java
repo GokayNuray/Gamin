@@ -191,6 +191,40 @@ public class Square {
         squareCoords = result;
     }
 
+    void scale(float x, float y, float z) {
+        for (int i = 0; i < squareCoords.length; i++) {
+            int a = i % 3;
+            switch (a) {
+                case 0:
+                    squareCoords[i] = squareCoords[i] * x;
+                    break;
+                case 1:
+                    squareCoords[i] = squareCoords[i] * y;
+                    break;
+                case 2:
+                    squareCoords[i] = squareCoords[i] * z;
+                    break;
+            }
+        }
+    }
+
+    void translate(float x, float y, float z) {
+        for (int i = 0; i < squareCoords.length; i++) {
+            int a = i % 3;
+            switch (a) {
+                case 0:
+                    squareCoords[i] = squareCoords[i] + x;
+                    break;
+                case 1:
+                    squareCoords[i] = squareCoords[i] + y;
+                    break;
+                case 2:
+                    squareCoords[i] = squareCoords[i] + z;
+                    break;
+            }
+        }
+    }
+
     //flip the square upside down
     void flip() {
         float[] coords = squareCoords;
