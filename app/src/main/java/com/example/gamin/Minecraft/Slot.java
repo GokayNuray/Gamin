@@ -2,6 +2,8 @@ package com.example.gamin.Minecraft;
 
 import android.content.Context;
 
+import com.example.gamin.Render.ItemModel;
+
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -23,10 +25,10 @@ public class Slot {
     private final byte metaData;
     private final JSONObject nbt;
     private final String displayName;
-    public String itemModel;
+    public ItemModel itemModel;
     private String textId;
 
-    public Slot(Short id, byte count, byte damage, byte metaData, JSONObject nbt) {
+    public Slot(Context context, Short id, byte count, byte damage, byte metaData, JSONObject nbt) {
 
         this.count = count;
         this.damage = damage;
@@ -60,11 +62,8 @@ public class Slot {
                 }
             }
             this.displayName = item.getString("displayName");
-            if (item.has("itemModel")) {
-                this.itemModel = item.getString("itemModel");
-            } else {
-                this.itemModel = displayName.trim().toLowerCase().replaceAll(" ", "_");
-            }
+
+            itemModel = ItemModel.getItemModel(context, id, metaData);
 
         } catch (JSONException e) {
             System.out.println(item);

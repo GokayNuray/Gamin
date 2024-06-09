@@ -7,7 +7,8 @@ import android.opengl.GLSurfaceView;
 import android.opengl.Matrix;
 import android.util.Log;
 
-import com.example.gamin.Minecraft.Chunk;
+import com.example.gamin.Minecraft.Inventory;
+import com.example.gamin.Minecraft.Slot;
 import com.example.gamin.R;
 import com.example.gamin.Utils.PacketUtils;
 
@@ -38,6 +39,8 @@ public class GameRenderer implements GLSurfaceView.Renderer {
     private long startTime = System.nanoTime();
     private int frames = 0;
     private float ratio;
+
+    private Inventory currentInventory = null;
 
     public GameRenderer(Context context) {
         this.context = context;
@@ -139,6 +142,7 @@ public class GameRenderer implements GLSurfaceView.Renderer {
             Matrix.multiplyMM(GuiVPMatrix, 0, GuiProjectionMatrix, 0, GuiViewMatrix, 0);
         }//Clear the screen and set the camera position
 
+        /*
         {
             //Load a random chunk every frame to speed up loading
             //ChunkColumn[] chunks = PacketUtils.chunkColumnMap.values().toArray(new ChunkColumn[0]);
@@ -181,7 +185,7 @@ public class GameRenderer implements GLSurfaceView.Renderer {
             renderAtlas(entity);
             //rendsera(entity.entityBuffers, entity.entityBufferCapacity);
         }//Load chunks and render them
-
+         */
         GLES20.glClear(GLES20.GL_DEPTH_BUFFER_BIT);
         GLES20.glDepthMask(false);
 
@@ -285,7 +289,6 @@ public class GameRenderer implements GLSurfaceView.Renderer {
             renderTriangles(hitboxCoordsArray, hitboxColorsArray, hitboxTextureCoordsArray, whiteSquareHandle);
         }//render entity hitboxes
 
-        float oneTestInventoryPixel;
         GLES20.glUniformMatrix4fv(vPMatrixHandle, 1, false, GuiVPMatrix, 0);
 
         {
@@ -362,25 +365,6 @@ public class GameRenderer implements GLSurfaceView.Renderer {
                     181.0f / 256, 21.0f / 256,
                     181.0f / 256, 1.0f / 256,
             };
-            float testInventoryHeight = ratio * 0.9f;
-            oneTestInventoryPixel = testInventoryHeight / 110;
-            float testInventoryWidth = oneTestInventoryPixel * 175 / 2;
-            float[] testInventoryCoords = new float[]{
-                    -testInventoryWidth, testInventoryHeight, -1,
-                    -testInventoryWidth, -testInventoryHeight, -1,
-                    testInventoryWidth, -testInventoryHeight, -1,
-                    -testInventoryWidth, testInventoryHeight, -1,
-                    testInventoryWidth, -testInventoryHeight, -1,
-                    testInventoryWidth, testInventoryHeight, -1
-            };
-            float[] testInventoryTextureCoords = new float[]{
-                    0.0f / 256, 0.0f / 256,
-                    0.0f / 256, 220.0f / 256,
-                    175.0f / 256, 220.0f / 256,
-                    0.0f / 256, 0.0f / 256,
-                    175.0f / 256, 220.0f / 256,
-                    175.0f / 256, 0.0f / 256,
-            };
             int hotbarHandle = OpenGLUtils.loadTexture(context, R.drawable.widgets);
             int crosshairHandle = OpenGLUtils.loadTexture(context, R.drawable.icons);
             int testInventoryHandle = OpenGLUtils.loadTexture(context, R.drawable.generic_54);
@@ -389,34 +373,26 @@ public class GameRenderer implements GLSurfaceView.Renderer {
             renderTriangles(sneakButtonCoords, whiteTriangleColor, defaultTextureCoords, whiteSquareHandle);
             renderTriangles(crosshairCoords, crosshairColors, crosshairTextureCoords, crosshairHandle);
             renderTriangles(hotbarCoords, hotbarColors, hotbarTextureCoords, hotbarHandle);
-            renderTriangles(testInventoryCoords, hotbarColors, testInventoryTextureCoords, testInventoryHandle);
         }//render GUI
+
+        Inventory testInventory = new Inventory((byte) 0, "test", "minecraft:furnace", 9);
+        currentInventory = testInventory;
+        float[] testInventoryCoords = testInventory.getCoords(ratio);
+        float[] testInventoryTexCoords = testInventory.getTexCoords();
+        float[] testInventoryColors = testInventory.getColors();
+        int testInventoryHandle = OpenGLUtils.loadTexture(context, testInventory.resId);
+        renderTriangles(testInventoryCoords, testInventoryColors, testInventoryTexCoords, testInventoryHandle);
 
         GLES20.glDepthMask(true);
 
-        //Render an item in the middle of the screen for testing purposes
-        ItemModel testItem = ItemModel.getItemModel(context, (short) 192, (byte) 0);
-        float startX = oneTestInventoryPixel * -80;
-        float startY = oneTestInventoryPixel * -13;
-        float[] itemColors = testItem.colors;
-        float[] itemTextureCoords = testItem.textureCoords;
-        for (int dx = 0; dx < 9; dx++) {
-            for (int dy = 0; dy < 6; dy++) {
-                float[] itemCoords = testItem.getCoordinatesInInventory(startX, startY, oneTestInventoryPixel, dx, dy);
-                renderTriangles(itemCoords, itemColors, itemTextureCoords, testItem.textureAtlas.textureHandle);
-            }
+        Slot testSlot = new Slot(context, (short) 264, (byte) 1, (byte) 0, (byte) 0, null);
+        for (int i = 0; i < testInventory.contents.length; i++) {
+            testInventory.insertItem(i, testSlot, ratio);
+            float[] testSlotCoords = testInventory.itemModelCoords[i];
+            float[] testSlotTexCoords = testSlot.itemModel.textureCoords;
+            float[] testSlotColors = testSlot.itemModel.colors;
+            renderTriangles(testSlotCoords, testSlotColors, testSlotTexCoords, testSlot.itemModel.textureAtlas.textureHandle);
         }
-
-        ItemModel testItem2 = ItemModel.getItemModel(context, (short) 264, (byte) 0);
-        float[] itemColors2 = testItem2.colors;
-        float[] itemTextureCoords2 = testItem2.textureCoords;
-        for (int dx = 4; dx < 5; dx++) {
-            for (int dy = 2; dy < 4; dy++) {
-                float[] itemCoords = testItem2.getCoordinatesInInventory(startX, startY, oneTestInventoryPixel, dx, dy);
-                renderTriangles(itemCoords, itemColors2, itemTextureCoords2, testItem2.textureAtlas.textureHandle);
-            }
-        }
-
 
         {
             if (System.nanoTime() - startTime > 1000000000) {
@@ -480,4 +456,12 @@ public class GameRenderer implements GLSurfaceView.Renderer {
 
     }
 
+    public boolean clickInventory(float xRatio, float yRatio) {
+        if (currentInventory == null) return false;
+        float widthInRenderer = xRatio * 2 - 1;
+        float heightInRenderer = ((1 - yRatio) * 2 - 1) * ratio;
+        int clickedSlot = currentInventory.getClickedSlotIndex(widthInRenderer, heightInRenderer, ratio);
+        Log.v("clicked slot", "slot: " + clickedSlot);
+        return true;
+    }
 }

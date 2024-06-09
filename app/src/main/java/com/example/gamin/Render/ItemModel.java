@@ -32,11 +32,11 @@ public class ItemModel extends Model {
         return itemModels.get(key);
     }
 
-    public float[] getCoordinatesInInventory(float startX, float startY, float pixelSize, int dX, int dY) {
+    public float[] getCoordinatesInInventory(float startX, float startY, float pixelSize) {
         float[] coordinates = new float[coords.length];
         for (int i = 0; i < coords.length; i += 3) {
-            coordinates[i] = startX + coords[i] * 16 * pixelSize + dX * 18 * pixelSize;
-            coordinates[i + 1] = startY + coords[i + 1] * 16 * pixelSize + dY * 18 * pixelSize;
+            coordinates[i] = startX + coords[i] * 16 * pixelSize;
+            coordinates[i + 1] = startY + coords[i + 1] * 16 * pixelSize;
             coordinates[i + 2] = -1;
         }
         return coordinates;

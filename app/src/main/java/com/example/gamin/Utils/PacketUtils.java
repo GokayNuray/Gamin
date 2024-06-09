@@ -9,7 +9,6 @@ import android.widget.TextView;
 
 import com.example.gamin.Minecraft.Chunk;
 import com.example.gamin.Minecraft.Inventory;
-import com.example.gamin.Minecraft.Slot;
 import com.example.gamin.R;
 import com.example.gamin.Render.Entity;
 import com.example.gamin.Render.GameRenderer;
@@ -604,9 +603,8 @@ public final class PacketUtils {
                         byte slotMetaData = is30.readByte();
                         JSONObject nbt = NBT.readtoJson(is30);
                         System.out.println(slotBlockId + nbt.toString() + i);
-                        Slot slot = new Slot(slotBlockId, slotCount, slotDamage, slotMetaData, nbt);
+                        //Slot slot = new Slot(glSurfaceView.getContext(), slotBlockId, slotCount, slotDamage, slotMetaData, nbt);
                         assert inventory != null;
-                        inventory.contents[i] = slot;
                     }
                 }
                 assert inventory != null;

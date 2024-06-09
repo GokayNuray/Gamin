@@ -233,6 +233,10 @@ public class MainActivity extends AppCompatActivity {
                 float x = motionEvent.getX();
                 float y = motionEvent.getY();
 
+                if (renderer.clickInventory(x / width, y / height)) {
+                    return true;
+                }
+
                 if (!(x > width * 1.7 / 2 && y > height * (ratio * 2 - 0.3) / (ratio * 2))) {
                     PacketUtils.isSneaking = false;
                 }
@@ -340,7 +344,7 @@ public class MainActivity extends AppCompatActivity {
 
     private void eskimain(String serverip, String name, boolean isPremium) {
         try {
-            new Inventory((byte) 0, "playerInventory", 45);
+            new Inventory((byte) 0, "playerInventory", "inventory", 45);
             socket = new Socket(serverip, 25565);
             OutputStream os = socket.getOutputStream();
             PacketUtils.os = os;

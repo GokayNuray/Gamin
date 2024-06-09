@@ -30,6 +30,9 @@ public class Entity {
 
     private static final Map<Integer, JSONObject> entityData = new HashMap<>();
     private static final Map<Integer, List<Square>> models = new HashMap<>();
+
+    public final Context context;
+
     public float motionX;
     public float motionY;
     public float motionZ;
@@ -45,6 +48,7 @@ public class Entity {
     private float z;
 
     public Entity(Context context, int id, int intX, int intY, int intZ, byte[] metadata) {
+        this.context = context;
         this.x = intX / 32f;
         this.y = intY / 32f;
         this.z = intZ / 32f;
@@ -414,7 +418,7 @@ public class Entity {
                         byte slotDamage = dis.readByte();
                         byte slotMetaData = dis.readByte();
                         JSONObject slotNbt = NBT.readtoJson(dis);
-                        this.metadata[index] = new Slot(slotBlockId, slotCount, slotDamage, slotMetaData, slotNbt);
+                        this.metadata[index] = new Slot(context, slotBlockId, slotCount, slotDamage, slotMetaData, slotNbt);
                     }
                     break;
                 case 7:
