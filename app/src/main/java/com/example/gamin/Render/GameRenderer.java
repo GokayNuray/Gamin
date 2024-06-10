@@ -7,6 +7,7 @@ import android.opengl.GLSurfaceView;
 import android.opengl.Matrix;
 import android.util.Log;
 
+import com.example.gamin.Minecraft.Chunk;
 import com.example.gamin.Minecraft.Inventory;
 import com.example.gamin.Minecraft.Slot;
 import com.example.gamin.R;
@@ -142,7 +143,6 @@ public class GameRenderer implements GLSurfaceView.Renderer {
             Matrix.multiplyMM(GuiVPMatrix, 0, GuiProjectionMatrix, 0, GuiViewMatrix, 0);
         }//Clear the screen and set the camera position
 
-        /*
         {
             //Load a random chunk every frame to speed up loading
             //ChunkColumn[] chunks = PacketUtils.chunkColumnMap.values().toArray(new ChunkColumn[0]);
@@ -185,7 +185,7 @@ public class GameRenderer implements GLSurfaceView.Renderer {
             renderAtlas(entity);
             //rendsera(entity.entityBuffers, entity.entityBufferCapacity);
         }//Load chunks and render them
-         */
+
         GLES20.glClear(GLES20.GL_DEPTH_BUFFER_BIT);
         GLES20.glDepthMask(false);
 
@@ -375,36 +375,38 @@ public class GameRenderer implements GLSurfaceView.Renderer {
             renderTriangles(hotbarCoords, hotbarColors, hotbarTextureCoords, hotbarHandle);
         }//render GUI
 
-        if (currentInventory != null) {
-            float[] inventoryCoords = currentInventory.getCoords(ratio);
-            float[] inventoryTexCoords = currentInventory.getTexCoords();
-            float[] inventoryColors = currentInventory.getColors();
-            int currentInventoryHandle = OpenGLUtils.loadTexture(context, currentInventory.resId);
-            renderTriangles(inventoryCoords, inventoryColors, inventoryTexCoords, currentInventoryHandle);
+        synchronized ("inventory") {
+            if (currentInventory != null) {
+                float[] inventoryCoords = currentInventory.getCoords(ratio);
+                float[] inventoryTexCoords = currentInventory.getTexCoords();
+                float[] inventoryColors = currentInventory.getColors();
+                int currentInventoryHandle = OpenGLUtils.loadTexture(context, currentInventory.resId);
+                renderTriangles(inventoryCoords, inventoryColors, inventoryTexCoords, currentInventoryHandle);
 
-            GLES20.glDepthMask(true);
+                GLES20.glDepthMask(true);
 
-            for (int i = 0; i < currentInventory.contents.length; i++) {
-                Slot slot = currentInventory.contents[i];
-                if (slot == null) continue;
-                float[] slotCoords = currentInventory.itemModelCoords[i];
-                float[] slotTexCoords = slot.itemModel.textureCoords;
-                float[] slotColors = slot.itemModel.colors;
-                renderTriangles(slotCoords, slotColors, slotTexCoords, slot.itemModel.textureAtlas.textureHandle);
+                for (int i = 0; i < currentInventory.contents.length; i++) {
+                    Slot slot = currentInventory.contents[i];
+                    if (slot == null) continue;
+                    float[] slotCoords = currentInventory.itemModelCoords[i];
+                    float[] slotTexCoords = slot.itemModel.textureCoords;
+                    float[] slotColors = slot.itemModel.colors;
+                    renderTriangles(slotCoords, slotColors, slotTexCoords, slot.itemModel.textureAtlas.textureHandle);
+                }
             }
-        }
 
-        Inventory playerInventory = Inventory.inventoryMap.get((byte) 0);
-        if (playerInventory != null) {
-            //render hotbar items
-            for (int i = 36; i < 45; i++) {
-                Slot slot = playerInventory.contents[i];
-                if (slot == null) continue;
-                float pixelSize = 1.8f / 180;
-                float[] slotCoords = slot.itemModel.getCoordinatesInInventory(-0.9f + 0.2f * (i - 36) + 2 * pixelSize, -ratio + 2 * pixelSize, pixelSize);
-                float[] slotTexCoords = slot.itemModel.textureCoords;
-                float[] slotColors = slot.itemModel.colors;
-                renderTriangles(slotCoords, slotColors, slotTexCoords, slot.itemModel.textureAtlas.textureHandle);
+            Inventory playerInventory = Inventory.inventoryMap.get((byte) 0);
+            if (playerInventory != null) {
+                //render hotbar items
+                for (int i = 36; i < 45; i++) {
+                    Slot slot = playerInventory.contents[i];
+                    if (slot == null) continue;
+                    float pixelSize = 1.8f / 180;
+                    float[] slotCoords = slot.itemModel.getCoordinatesInInventory(-0.9f + 0.2f * (i - 36) + 2 * pixelSize, -ratio + 2 * pixelSize, pixelSize);
+                    float[] slotTexCoords = slot.itemModel.textureCoords;
+                    float[] slotColors = slot.itemModel.colors;
+                    renderTriangles(slotCoords, slotColors, slotTexCoords, slot.itemModel.textureAtlas.textureHandle);
+                }
             }
         }
 

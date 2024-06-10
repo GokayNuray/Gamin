@@ -245,14 +245,14 @@ public final class PacketUtils {
     public static synchronized void read(GLSurfaceView glSurfaceView, GameRenderer renderer, ImageButton[] imageButtons, TextView textView, byte id, byte[] data) throws IOException {
         switch (id) {
             case 0x00://keepAlive
-                System.out.println("hala yaşıyoruz");
+                //System.out.println("hala yaşıyoruz");
                 write((byte) 0, VarInt.writeVarInt(VarInt.readVarInt(new ByteArrayInputStream(data))), isPremium);
                 break;
             case 0x01://login success
                 ByteArrayInputStream datastream01 = new ByteArrayInputStream(data);
                 DataInputStream dataStream01 = new DataInputStream(datastream01);
                 playerId = dataStream01.readInt();
-                System.out.println(dataStream01.readInt());
+                //System.out.println(dataStream01.readInt());
                 break;
             case 0x02://chat
             {
@@ -261,7 +261,7 @@ public final class PacketUtils {
                 byte[] dataBuffer = new byte[len];
                 dataStream.read(dataBuffer);
                 String s = new String(dataBuffer);
-                System.out.println(s);
+                //System.out.println(s);
                 textView.append(ChatToTextView.convert(s));
                 textView.setBackgroundResource(R.color.transparentgray);
                 textView.setShadowLayer(1, 0, 0, Color.BLACK);

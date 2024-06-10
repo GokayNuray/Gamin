@@ -6,6 +6,7 @@ import android.opengl.GLSurfaceView;
 import android.os.Bundle;
 import android.os.StrictMode;
 import android.text.method.ScrollingMovementMethod;
+import android.util.Log;
 import android.view.KeyEvent;
 import android.view.MotionEvent;
 import android.webkit.WebView;
@@ -339,10 +340,12 @@ public class MainActivity extends AppCompatActivity {
             Inventory playerInventory = new Inventory((byte) 0, "playerInventory", "inventory", 45);
             Button inventoryButton = findViewById(R.id.inventory);
             inventoryButton.setOnClickListener(view2 -> {
-                if (renderer.currentInventory == null) {
-                    renderer.currentInventory = playerInventory;
-                } else {
-                    renderer.currentInventory = null;
+                synchronized ("inventory") {
+                    if (renderer.currentInventory == null) {
+                        renderer.currentInventory = playerInventory;
+                    } else {
+                        renderer.currentInventory = null;
+                    }
                 }
             });
             TextView handItem = findViewById(R.id.handItem);
@@ -579,13 +582,19 @@ public class MainActivity extends AppCompatActivity {
                         playerPosAndLook.add((byte) 0);
                     }
                     PacketUtils.write((byte) 6, playerPosAndLook, isPremium);
+                    long lastTime = System.currentTimeMillis();
+                    int tickCount = 0;
                     while (true) {
 
-                        try {
-                            Thread.sleep(50);
-                        } catch (InterruptedException e) {
-                            e.printStackTrace();
+                        tickCount++;
+                        if (System.currentTimeMillis() - lastTime >= 1000) {
+                            lastTime = System.currentTimeMillis();
+                            if (tickCount < 15) {
+                                Log.v("TPS", String.valueOf(tickCount));
+                            }
+                            tickCount = 0;
                         }
+                        long startTime = System.currentTimeMillis();
                         try {
                             //Entity.moveEntities();
                             onGround = Collision.calculateMovement(PacketUtils.x, PacketUtils.y, PacketUtils.z, 1, 0)[3] == 1;
@@ -661,6 +670,16 @@ public class MainActivity extends AppCompatActivity {
                             textViewY.setText("Y:" + PacketUtils.y + " Pitch:" + PacketUtils.y_rot);
                             textViewZ.setText("Z:" + PacketUtils.z + " FPS:" + GameRenderer.fps);
                         });
+
+                        long endTime = System.currentTimeMillis();
+                        try {
+                            if (50 - (endTime - startTime) > 0) {
+                                Thread.sleep(50 - (endTime - startTime));
+                            }
+                        } catch (InterruptedException e) {
+                            e.printStackTrace();
+                        }
+
 
                     }
                 });
