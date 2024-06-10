@@ -3,12 +3,12 @@ package com.example.gamin.Utils;
 
 import android.graphics.Color;
 import android.opengl.GLSurfaceView;
-import android.util.Log;
 import android.widget.ImageButton;
 import android.widget.TextView;
 
 import com.example.gamin.Minecraft.Chunk;
 import com.example.gamin.Minecraft.Inventory;
+import com.example.gamin.Minecraft.Slot;
 import com.example.gamin.R;
 import com.example.gamin.Render.Entity;
 import com.example.gamin.Render.GameRenderer;
@@ -47,6 +47,7 @@ public final class PacketUtils {
     public static float y_rot = 0.0F;
     public static float[] targetCoords;
     public static Entity targetEntity;
+    public static byte handSlot = 0;
     static boolean didHorizontalCollide = false;
     private static int playerId;
     private static double generic_movementSpeed;
@@ -312,7 +313,7 @@ public final class PacketUtils {
             }
             break;
             case 0x09://holditem change
-
+                handSlot = data[0];
                 break;
 
             case 0x0C://spawn player
@@ -549,7 +550,6 @@ public final class PacketUtils {
                     chunkXs[i] = chunkX;
                     chunkZs[i] = chunkZ;
                 }
-                Log.v("ChunkColumn", "got" + len26 + "chunks");
                 for (int i = 0; i < len26; i++) {
                     byte chunkCount = 0;
                     Chunk[] chunkColumn = chunkColumns[i];
@@ -593,7 +593,6 @@ public final class PacketUtils {
                 DataInputStream is30 = new DataInputStream(new ByteArrayInputStream(data));
                 byte windowId = is30.readByte();
                 short len30 = is30.readShort();
-                System.out.println(windowId + "windows items" + len30);
                 Inventory inventory = Inventory.inventoryMap.get((windowId));
                 for (int i = 0; i < len30; i++) {
                     short slotBlockId = is30.readShort();
@@ -603,8 +602,9 @@ public final class PacketUtils {
                         byte slotMetaData = is30.readByte();
                         JSONObject nbt = NBT.readtoJson(is30);
                         System.out.println(slotBlockId + nbt.toString() + i);
-                        //Slot slot = new Slot(glSurfaceView.getContext(), slotBlockId, slotCount, slotDamage, slotMetaData, nbt);
+                        Slot slot = new Slot(glSurfaceView.getContext(), slotBlockId, slotCount, slotDamage, slotMetaData, nbt);
                         assert inventory != null;
+                        inventory.insertItem(i, slot, renderer.ratio);
                     }
                 }
                 assert inventory != null;

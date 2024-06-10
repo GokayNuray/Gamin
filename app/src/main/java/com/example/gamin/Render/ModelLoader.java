@@ -165,6 +165,9 @@ public final class ModelLoader {
         is.read(b);
         is.close();
         JSONObject jsonObject = new JSONObject(new String(b));
+        if (jsonObject.toString().contains("entity")) {//TODO temporary workaround
+            return readJsonModel(context, "models/item/iron_sword.json", modelSquares);
+        }
 
         do {
             JSONObject textures = jsonObject.optJSONObject("textures");

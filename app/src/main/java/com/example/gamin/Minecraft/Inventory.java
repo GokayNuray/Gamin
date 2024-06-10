@@ -28,9 +28,19 @@ public class Inventory {
 
     private void createContents(String type) {
         switch (type) {
-            case "inventory":
+            case "inventory": {
                 contents = new Slot[45];
+                resId = R.drawable.inventory;
+                width = 176;
+                height = 166;
+                InventorySection craftOutputSection = new InventorySection(144, -51, 1, 1);
+                InventorySection craftSection = new InventorySection(88, -41, 2, 2);
+                InventorySection armorSection = new InventorySection(8, -23, 1, 4);
+                InventorySection playerSection = new InventorySection(8, -99, 9, 3);
+                InventorySection hotbarSection = new InventorySection(8, -157, 9, 1);
+                sections.addAll(List.of(craftOutputSection, craftSection, armorSection, playerSection, hotbarSection));
                 break;
+            }
             case "minecraft:chest":
                 if (size == 27) {
                     contents = new Slot[63];

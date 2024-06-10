@@ -1,6 +1,9 @@
 package com.example.gamin.Minecraft;
 
 import android.content.Context;
+import android.util.Log;
+
+import androidx.annotation.NonNull;
 
 import com.example.gamin.Render.ItemModel;
 
@@ -24,8 +27,8 @@ public class Slot {
     private final byte damage;
     private final byte metaData;
     private final JSONObject nbt;
-    private final String displayName;
     public ItemModel itemModel;
+    public String displayName;
     private String textId;
 
     public Slot(Context context, Short id, byte count, byte damage, byte metaData, JSONObject nbt) {
@@ -34,6 +37,7 @@ public class Slot {
         this.damage = damage;
         this.metaData = metaData;
         this.nbt = nbt;
+        Log.v("Slot nbt", nbt.toString());
         JSONObject item = new JSONObject();
 
         try {
@@ -62,6 +66,12 @@ public class Slot {
                 }
             }
             this.displayName = item.getString("displayName");
+            if (nbt.has("display")) {
+                JSONObject display = nbt.getJSONObject("display");
+                if (display.has("Name")) {
+                    this.displayName = display.getString("Name");
+                }
+            }
 
             itemModel = ItemModel.getItemModel(context, id, metaData);
 
@@ -93,5 +103,24 @@ public class Slot {
             JSONObject jsonObject = itemsJson.getJSONObject(i);
             itemsMap.put(jsonObject.getInt("id"), jsonObject);
         }
+    }
+
+    @NonNull
+    @Override
+    public String toString() {
+        String lore = "";
+        if (nbt.has("display")) {
+            try {
+                if (nbt.getJSONObject("display").has("Lore")) {
+                    JSONArray loreArray = nbt.getJSONObject("display").getJSONArray("Lore");
+                    for (int i = 0; i < loreArray.length(); i++) {
+                        lore += loreArray.getString(i) + "\n";
+                    }
+                }
+            } catch (JSONException e) {
+                e.printStackTrace();
+            }
+        }
+        return displayName + "\n" + lore;
     }
 }

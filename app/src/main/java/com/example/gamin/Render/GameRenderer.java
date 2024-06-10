@@ -36,11 +36,10 @@ public class GameRenderer implements GLSurfaceView.Renderer {
     private final float[] viewMatrix = new float[16];
     private final float[] GuiViewMatrix = new float[16];
     private final Context context;
+    public Inventory currentInventory = null;
+    public float ratio;
     private long startTime = System.nanoTime();
     private int frames = 0;
-    private float ratio;
-
-    private Inventory currentInventory = null;
 
     public GameRenderer(Context context) {
         this.context = context;
@@ -124,6 +123,7 @@ public class GameRenderer implements GLSurfaceView.Renderer {
 
         {
             GLES20.glClear(GLES20.GL_DEPTH_BUFFER_BIT | GLES20.GL_COLOR_BUFFER_BIT);
+            GLES20.glDepthMask(true);
 
             double yaw = PacketUtils.x_rot * Math.PI / 180;
             double pitch = PacketUtils.y_rot * Math.PI / 180;
@@ -375,28 +375,41 @@ public class GameRenderer implements GLSurfaceView.Renderer {
             renderTriangles(hotbarCoords, hotbarColors, hotbarTextureCoords, hotbarHandle);
         }//render GUI
 
-        Inventory testInventory = new Inventory((byte) 0, "test", "minecraft:furnace", 9);
-        currentInventory = testInventory;
-        float[] testInventoryCoords = testInventory.getCoords(ratio);
-        float[] testInventoryTexCoords = testInventory.getTexCoords();
-        float[] testInventoryColors = testInventory.getColors();
-        int testInventoryHandle = OpenGLUtils.loadTexture(context, testInventory.resId);
-        renderTriangles(testInventoryCoords, testInventoryColors, testInventoryTexCoords, testInventoryHandle);
+        if (currentInventory != null) {
+            float[] inventoryCoords = currentInventory.getCoords(ratio);
+            float[] inventoryTexCoords = currentInventory.getTexCoords();
+            float[] inventoryColors = currentInventory.getColors();
+            int currentInventoryHandle = OpenGLUtils.loadTexture(context, currentInventory.resId);
+            renderTriangles(inventoryCoords, inventoryColors, inventoryTexCoords, currentInventoryHandle);
 
-        GLES20.glDepthMask(true);
+            GLES20.glDepthMask(true);
 
-        Slot testSlot = new Slot(context, (short) 264, (byte) 1, (byte) 0, (byte) 0, null);
-        for (int i = 0; i < testInventory.contents.length; i++) {
-            testInventory.insertItem(i, testSlot, ratio);
-            float[] testSlotCoords = testInventory.itemModelCoords[i];
-            float[] testSlotTexCoords = testSlot.itemModel.textureCoords;
-            float[] testSlotColors = testSlot.itemModel.colors;
-            renderTriangles(testSlotCoords, testSlotColors, testSlotTexCoords, testSlot.itemModel.textureAtlas.textureHandle);
+            for (int i = 0; i < currentInventory.contents.length; i++) {
+                Slot slot = currentInventory.contents[i];
+                if (slot == null) continue;
+                float[] slotCoords = currentInventory.itemModelCoords[i];
+                float[] slotTexCoords = slot.itemModel.textureCoords;
+                float[] slotColors = slot.itemModel.colors;
+                renderTriangles(slotCoords, slotColors, slotTexCoords, slot.itemModel.textureAtlas.textureHandle);
+            }
+        }
+
+        Inventory playerInventory = Inventory.inventoryMap.get((byte) 0);
+        if (playerInventory != null) {
+            //render hotbar items
+            for (int i = 36; i < 45; i++) {
+                Slot slot = playerInventory.contents[i];
+                if (slot == null) continue;
+                float pixelSize = 1.8f / 180;
+                float[] slotCoords = slot.itemModel.getCoordinatesInInventory(-0.9f + 0.2f * (i - 36) + 2 * pixelSize, -ratio + 2 * pixelSize, pixelSize);
+                float[] slotTexCoords = slot.itemModel.textureCoords;
+                float[] slotColors = slot.itemModel.colors;
+                renderTriangles(slotCoords, slotColors, slotTexCoords, slot.itemModel.textureAtlas.textureHandle);
+            }
         }
 
         {
             if (System.nanoTime() - startTime > 1000000000) {
-                Log.v("number of entities", "entities: " + Entity.entityChunks.values().stream().mapToInt(List::size).sum());
                 Log.d("FPS", "fps: " + frames);
                 fps = frames;
                 frames = 0;
@@ -456,12 +469,10 @@ public class GameRenderer implements GLSurfaceView.Renderer {
 
     }
 
-    public boolean clickInventory(float xRatio, float yRatio) {
-        if (currentInventory == null) return false;
+    public int clickInventory(float xRatio, float yRatio) {
+        if (currentInventory == null) return -2;
         float widthInRenderer = xRatio * 2 - 1;
         float heightInRenderer = ((1 - yRatio) * 2 - 1) * ratio;
-        int clickedSlot = currentInventory.getClickedSlotIndex(widthInRenderer, heightInRenderer, ratio);
-        Log.v("clicked slot", "slot: " + clickedSlot);
-        return true;
+        return currentInventory.getClickedSlotIndex(widthInRenderer, heightInRenderer, ratio);
     }
 }

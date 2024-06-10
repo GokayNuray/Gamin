@@ -1,7 +1,6 @@
 package com.example.gamin.Render;
 
 import android.content.Context;
-import android.util.Log;
 
 import com.example.gamin.Minecraft.Slot;
 import com.example.gamin.Utils.Collision;
@@ -31,8 +30,6 @@ public class Entity {
     private static final Map<Integer, JSONObject> entityData = new HashMap<>();
     private static final Map<Integer, List<Square>> models = new HashMap<>();
 
-    public final Context context;
-
     public float motionX;
     public float motionY;
     public float motionZ;
@@ -48,7 +45,6 @@ public class Entity {
     private float z;
 
     public Entity(Context context, int id, int intX, int intY, int intZ, byte[] metadata) {
-        this.context = context;
         this.x = intX / 32f;
         this.y = intY / 32f;
         this.z = intZ / 32f;
@@ -260,7 +256,7 @@ public class Entity {
         try {
             JSONObject entity = entityData.get(id);
             if (entity == null) {
-                Log.e("Entity", "entity does not exist: " + id);
+                //Log.e("Entity", "entity does not exist: " + id); TODO temporarily disabled because it's filling the log
                 return null;
             }
             float width = (float) entity.getDouble("width");
@@ -381,7 +377,7 @@ public class Entity {
         hasChanged = false;
     }
 
-    private void readMetadata(byte[] metadata) throws IOException {
+    private void readMetadata(Context context, byte[] metadata) throws IOException {
         ByteArrayInputStream is = new ByteArrayInputStream(metadata);
         DataInputStream dis = new DataInputStream(is);
         while (dis.available() > 0) {

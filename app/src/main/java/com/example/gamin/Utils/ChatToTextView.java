@@ -72,7 +72,7 @@ final class ChatToTextView {
                 builder.append(chat);
             }
         } catch (JSONException e) {
-            e.printStackTrace();
+            //e.printStackTrace(); TODO temporaliy disabled to avoid spamming the logcat
             builder = new SpannableStringBuilder();
             builder.append(chat);
         }

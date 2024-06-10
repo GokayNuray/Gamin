@@ -233,7 +233,47 @@ public class MainActivity extends AppCompatActivity {
                 float x = motionEvent.getX();
                 float y = motionEvent.getY();
 
-                if (renderer.clickInventory(x / width, y / height)) {
+                int clickedSlot = renderer.clickInventory(x / width, y / height);
+                if (clickedSlot > -2) {
+                    TextView hover = findViewById(R.id.hover);
+                    if (clickedSlot == -1) {
+                        //hide the hover text
+                        hover.setText("");
+                        hover.setWidth(0);
+                        hover.setHeight(0);
+                        return true;
+                    }
+                    //hover.setText("hovering over slot " + clickedSlot);
+                    Slot slot = renderer.currentInventory.contents[clickedSlot];
+                    if (slot == null) {
+                        hover.setText("");
+                        hover.setWidth(0);
+                        hover.setHeight(0);
+                        return true;
+                    }
+                    String displayName = slot.toString();
+                    hover.setText(displayName);
+                    hover.setBackgroundColor(getColor(R.color.transparentgray));
+                    hover.setWidth(400);
+                    hover.setHeight(800);
+
+                    if (x > width / 2) {
+                        hover.setTranslationX(x);
+                    } else {
+                        hover.setTranslationX(x - hover.getWidth());
+                    }
+                    if (y > height / 2) {
+                        hover.setTranslationY(y - hover.getHeight());
+                    } else {
+                        hover.setTranslationY(y);
+                    }
+                    return true;
+                }
+
+                //hotbar click
+                if (x > width * 0.1 / 2 && x < width * 1.9 / 2 && y > height * (ratio * 2 - 0.2) / (ratio * 2) && y < height * (ratio * 2) / (ratio * 2)) {
+                    int slot = (int) ((x - width * 0.1 / 2) / (width * 0.9 / 9));
+                    PacketUtils.handSlot = (byte) slot;
                     return true;
                 }
 
@@ -296,23 +336,33 @@ public class MainActivity extends AppCompatActivity {
                 return true;
             });
 
-
-            /*otizm.setOnClickListener(view13 -> {
-                otizmi++;
-                if (otizmi % 2 == 1) {
-                    //InventoryUtils.drawButton(glSurfaceView,renderer,"blaze_rod",findViewById(R.id.imageButton90))
-                    //InventoryUtils.showInventory(layouts[1],(byte)0)
-                    InventoryUtils.resizeInventory(layouts[0], 0);
-                    InventoryUtils.resizeInventory(layouts[1], R.dimen.yuzelli);
-                    InventoryUtils.resizeInventory(layouts[2], 0);
+            Inventory playerInventory = new Inventory((byte) 0, "playerInventory", "inventory", 45);
+            Button inventoryButton = findViewById(R.id.inventory);
+            inventoryButton.setOnClickListener(view2 -> {
+                if (renderer.currentInventory == null) {
+                    renderer.currentInventory = playerInventory;
                 } else {
-                    //InventoryUtils.drawButton(glSurfaceView,renderer,"acacia_fence_gate",findViewById(R.id.imageButton90))
-                    //InventoryUtils.hideInventory(layouts[1],(byte)0)
-                    InventoryUtils.resizeInventory(layouts[0], R.dimen.yuzyetmis);
-                    InventoryUtils.resizeInventory(layouts[1], 0);
-                    InventoryUtils.resizeInventory(layouts[2], 0);
+                    renderer.currentInventory = null;
                 }
-            });*/
+            });
+            TextView handItem = findViewById(R.id.handItem);
+            new Thread(() -> {
+                while (true) {
+                    try {
+                        Thread.sleep(100);
+                    } catch (InterruptedException e) {
+                        e.printStackTrace();
+                    }
+                    Slot hand = playerInventory.contents[PacketUtils.handSlot + 36];
+                    String handItemText;
+                    if (hand != null) {
+                        handItemText = PacketUtils.handSlot + "-" + hand.displayName;
+                    } else {
+                        handItemText = PacketUtils.handSlot + "-hand empty";
+                    }
+                    runOnUiThread(() -> handItem.setText(handItemText));
+                }
+            }).start();
 
             Thread thread = new Thread(() -> eskimain(String.valueOf(ipField.getText()), String.valueOf(nameField.getText()), switch2.isChecked()));
             thread.start();
@@ -344,7 +394,6 @@ public class MainActivity extends AppCompatActivity {
 
     private void eskimain(String serverip, String name, boolean isPremium) {
         try {
-            new Inventory((byte) 0, "playerInventory", "inventory", 45);
             socket = new Socket(serverip, 25565);
             OutputStream os = socket.getOutputStream();
             PacketUtils.os = os;
