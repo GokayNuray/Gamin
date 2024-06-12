@@ -15,6 +15,8 @@ import java.io.ByteArrayInputStream;
 import java.io.DataInputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.nio.ByteBuffer;
+import java.nio.ByteOrder;
 import java.nio.FloatBuffer;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -22,13 +24,14 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 
-//FIXME entity and tile entities are broken rn
 public class Entity {
     public static final Map<Integer, Entity> entities = new HashMap<>();
     public static final Map<Long, List<Entity>> entityChunks = new HashMap<>();
 
     private static final Map<Integer, JSONObject> entityData = new HashMap<>();
     private static final Map<Integer, List<Square>> models = new HashMap<>();
+
+    public final int id;
 
     public float motionX;
     public float motionY;
@@ -45,6 +48,7 @@ public class Entity {
     private float z;
 
     public Entity(Context context, int id, int intX, int intY, int intZ, byte[] metadata) {
+        this.id = id;
         this.x = intX / 32f;
         this.y = intY / 32f;
         this.z = intZ / 32f;
@@ -205,13 +209,16 @@ public class Entity {
 
         hitbox = getEntityHitbox(id);
 
-        squares = models.get(id);
-        assert squares != null;
-
         try {
             readMetadata(context, metadata);
         } catch (IOException e) {
             e.printStackTrace();
+        }
+        if (this.metadata[0] == null || ((byte) this.metadata[0] & 0x20) == 0x20 || id == 78) {//TODO: check if this is correct(78 is fake armor stand)
+            squares = new ArrayList<>();
+        } else {
+            squares = models.get(id);
+            assert squares != null;
         }
 
         long pos = (((long) x / 8) << 35) | (((long) z / 8) << 6) | (((long) y / 8));
@@ -342,13 +349,14 @@ public class Entity {
         hasChanged = true;
     }
 
-    void setBuffers() {
-        if (!hasChanged) return;
-        int squareCount = squares.size();
+    boolean setBuffers() {
+        if (!hasChanged) return false;
         if (coordsBuffer == null) {
-            coordsBuffer = FloatBuffer.allocate(squareCount * 6 * 3);
-            colorsBuffer = FloatBuffer.allocate(squareCount * 6 * 4);
-            texturesBuffer = FloatBuffer.allocate(squareCount * 6 * 2);
+            int squareCount = squares.size();
+
+            coordsBuffer = ByteBuffer.allocateDirect(squareCount * 6 * 3 * 4).order(ByteOrder.nativeOrder()).asFloatBuffer();
+            colorsBuffer = ByteBuffer.allocateDirect(squareCount * 6 * 4 * 4).order(ByteOrder.nativeOrder()).asFloatBuffer();
+            texturesBuffer = ByteBuffer.allocateDirect(squareCount * 6 * 2 * 4).order(ByteOrder.nativeOrder()).asFloatBuffer();
 
             for (Square square : squares) {
                 colorsBuffer.put(square.squareColors);
@@ -375,6 +383,7 @@ public class Entity {
         colorsBuffer.position(0);
         texturesBuffer.position(0);
         hasChanged = false;
+        return true;
     }
 
     private void readMetadata(Context context, byte[] metadata) throws IOException {

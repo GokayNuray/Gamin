@@ -178,12 +178,12 @@ public class GameRenderer implements GLSurfaceView.Renderer {
             blocks.setBuffers(chunks);
             items.setBuffers(chunks);
             entity.setBuffers(chunks);
-            //entity.setEntityBuffers(false);
+            entity.setEntityBuffers(false);
             chunks.forEach(chunk -> chunk.isChanged = false);
             renderAtlas(blocks);
             renderAtlas(items);
             renderAtlas(entity);
-            //renderBuffers(entity.entityBuffers, entity.entityBufferCapacity);
+            renderBuffers(entity.entityBuffers, entity.entityBufferCapacity);
         }//Load chunks and render them
 
         GLES20.glClear(GLES20.GL_DEPTH_BUFFER_BIT);
