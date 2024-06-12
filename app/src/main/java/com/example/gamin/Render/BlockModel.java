@@ -88,9 +88,9 @@ public class BlockModel extends Model {
     }
 
     /*
-    This constructor is used for removing blocked faces
+    This constructor is used for removing blocked faces and Tile entities which doesn't need shape calculations
      */
-    private BlockModel(List<Square> squares, TextureAtlas textureAtlas, byte shape) {
+    BlockModel(List<Square> squares, TextureAtlas textureAtlas, byte shape) {
         this.squares.addAll(squares);
         this.textureAtlas = textureAtlas;
         this.shape = shape;

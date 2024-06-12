@@ -183,7 +183,7 @@ public class GameRenderer implements GLSurfaceView.Renderer {
             renderAtlas(blocks);
             renderAtlas(items);
             renderAtlas(entity);
-            //rendsera(entity.entityBuffers, entity.entityBufferCapacity);
+            //renderBuffers(entity.entityBuffers, entity.entityBufferCapacity);
         }//Load chunks and render them
 
         GLES20.glClear(GLES20.GL_DEPTH_BUFFER_BIT);

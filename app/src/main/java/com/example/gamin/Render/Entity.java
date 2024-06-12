@@ -199,17 +199,17 @@ public class Entity {
 
 
             }
-            //List<Square> modelSquares = TileEntity.readJemModel(context, model, texture, angle);
-            //models.put(id, modelSquares);
+            List<Square> modelSquares = ModelLoader.readJemModel(context, model, texture, angle);
+            models.put(id, modelSquares);
         }
 
         hitbox = getEntityHitbox(id);
 
-        /*squares = models.get(id);
+        squares = models.get(id);
         assert squares != null;
 
         try {
-            readMetadata(metadata);
+            readMetadata(context, metadata);
         } catch (IOException e) {
             e.printStackTrace();
         }
@@ -224,7 +224,7 @@ public class Entity {
             } else {
                 Objects.requireNonNull(entityChunks.get(pos)).add(this);
             }
-        }*/
+        }
     }
 
     public static void loadEntities(Context context) throws IOException, JSONException {

@@ -92,9 +92,9 @@ public class Chunk {
                 chunk.tileEntities.remove(pos);
             } else {
                 if (TileEntity.tileEntityIds.contains(getBlockId(block) & 0xff)) {
-                    /*TileEntity tileEntity = new TileEntity(context, getBlockId(block), getBlockMetaData(block), x, y, z);
+                    TileEntity tileEntity = new TileEntity(context, getBlockId(block), getBlockMetaData(block));
                     chunk.tileEntities.put(pos, tileEntity);
-                    chunk.setRender(tileEntity.slotRenderer, pos);*/
+                    chunk.setRender(tileEntity.model, pos);
                     return;
                 }
                 BlockModel model = BlockModel.getBlockModel(context, block, x, y, z);
@@ -218,9 +218,9 @@ public class Chunk {
             if (getBlockId(block) == 0) continue;
             try {
                 if (TileEntity.tileEntityIds.contains(getBlockId(block) & 0xff)) {
-                    /*TileEntity tileEntity = new TileEntity(context, getBlockId(block), getBlockMetaData(block), chunkX * 16 + i % 16, chunkY * 16 + i / 256, chunkZ * 16 + (i / 16) % 16);
+                    TileEntity tileEntity = new TileEntity(context, getBlockId(block), getBlockMetaData(block));
                     tileEntities.put((int) i, tileEntity);
-                    setRender(tileEntity.slotRenderer, i);*/
+                    setRender(tileEntity.model, i);
                     continue;
                 }
                 BlockModel model = BlockModel.getBlockModel(context, block, chunkX * 16 + i % 16, chunkY * 16 + i / 256, chunkZ * 16 + (i / 16) % 16);
